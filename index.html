@@ -1801,8 +1801,19 @@
         ctx.drawImage(photoOverlay, sx, sy, sw, sh, -421 / 2, -748 / 2, 421, 748);
         ctx.restore();
       } else {
-        /* ── Live camera frame ── */
-        ctx.drawImage(cameraView, 0, 0, 421, 748);
+        /* ── Live camera frame — replicate object-fit: cover ── */
+        const vw = cameraView.videoWidth  || 421;
+        const vh = cameraView.videoHeight || 748;
+        const boxAr = 421 / 748, vidAr = vw / vh;
+        let sx, sy, sw, sh;
+        if (vidAr > boxAr) {   /* video wider than frame → crop sides */
+          sh = vh; sw = sh * boxAr;
+          sx = (vw - sw) / 2; sy = 0;
+        } else {                /* video taller than frame → crop top/bottom */
+          sw = vw; sh = sw / boxAr;
+          sx = 0; sy = (vh - sh) / 2;
+        }
+        ctx.drawImage(cameraView, sx, sy, sw, sh, 0, 0, 421, 748);
       }
 
       return canvas.toDataURL('image/jpeg', 0.92);
