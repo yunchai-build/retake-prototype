@@ -758,12 +758,20 @@
       flex-shrink: 0; letter-spacing: -0.29px;
     }
 
+    .social-card-info { overflow: hidden; }
+
     .social-card-name {
       font-family: 'Space Grotesk', sans-serif;
       font-size: 16px; font-weight: 700;
       color: #1A1A2E;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      flex: 1; min-width: 0;
+      white-space: nowrap;
+      display: inline-block;
+      animation: chip-marquee 7s linear infinite;
+    }
+
+    @keyframes chip-marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
     }
 
     .cam-proceed-btn {
@@ -1280,11 +1288,11 @@
       <button class="cam-gallery-btn" id="btnGallery" aria-label="Photo library"></button>
       <button class="social-card" id="camFrameCard" aria-label="Save frame">
         <div class="social-card-bookmark">
-          <img src="https://www.figma.com/api/mcp/asset/6b1aa757-edd4-405c-9f39-615e7df043ce" alt="" />
+          <img src="https://www.figma.com/api/mcp/asset/19da69bf-66c9-49bc-b301-0069721489db" alt="" />
         </div>
         <div class="social-card-info">
           <div class="social-card-avatar">YS</div>
-          <span class="social-card-name">윤채의 B주류초대석...</span>
+          <span class="social-card-name">babe, wake up &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; babe, wake up &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>
       </button>
       <button class="cam-proceed-btn" id="btnProceed" aria-label="Proceed">
@@ -1824,7 +1832,7 @@
        SCREEN 6 STATE
     ───────────────────────────────────────────────────── */
     let capturedDataUrl = null;
-    const frameName     = "윤채의 B주류초대석";
+    const frameName     = "babe, wake up";
     const darkFlash     = $('darkFlashOverlay');
 
     /* ─────────────────────────────────────────────────────
