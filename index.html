@@ -739,15 +739,7 @@
     }
     .social-card-bookmark img { width: 24px; height: 24px; display: block; }
 
-    .social-card-info {
-      flex: 1; min-width: 0;
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(26,26,46,0.1);
-      border-radius: 20px 0 0 20px;
-      padding: 4px 4px 4px 8px;
-      height: 100%;
-    }
-
+    /* Avatar sits OUTSIDE the grey track — fixed, no scroll overlap */
     .social-card-avatar {
       width: 28px; height: 28px;
       border-radius: 9.333px;
@@ -756,17 +748,30 @@
       font-family: 'Space Grotesk', sans-serif;
       font-size: 14px; font-weight: 500; color: white;
       flex-shrink: 0; letter-spacing: -0.29px;
+      margin-left: 6px;
     }
 
-    .social-card-info { overflow: hidden; }
+    /* Grey track = text-only scrolling zone */
+    .social-card-info {
+      flex: 1; min-width: 0;
+      display: flex; align-items: center;
+      background: rgba(26,26,46,0.1);
+      border-radius: 20px 0 0 20px;
+      padding: 4px 10px 4px 10px;
+      height: 100%;
+      overflow: hidden;
+      /* Fade edges so scroll feels natural */
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+    }
 
     .social-card-name {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 16px; font-weight: 700;
+      font-size: 15px; font-weight: 700;
       color: #1A1A2E;
       white-space: nowrap;
       display: inline-block;
-      animation: chip-marquee 7s linear infinite;
+      animation: chip-marquee 8s linear infinite;
     }
 
     @keyframes chip-marquee {
@@ -1290,8 +1295,8 @@
         <div class="social-card-bookmark">
           <img src="https://www.figma.com/api/mcp/asset/19da69bf-66c9-49bc-b301-0069721489db" alt="" />
         </div>
+        <div class="social-card-avatar">YS</div>
         <div class="social-card-info">
-          <div class="social-card-avatar">YS</div>
           <span class="social-card-name">babe, wake up &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; babe, wake up &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>
       </button>
