@@ -728,16 +728,18 @@
       will-change: transform;
       overflow: hidden;
     }
-    .social-card:active {
-      transform: translateY(4px) scale(0.97);
-      box-shadow: 0 4px 0 #1A1A2E;
-    }
-
     .social-card-bookmark {
       display: flex; align-items: center; justify-content: center;
       padding: 2px; flex-shrink: 0; background: #FEFDFB;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: transform 0.1s ease;
     }
-    .social-card-bookmark img { width: 24px; height: 24px; display: block; }
+    .social-card-bookmark:active { transform: scale(0.85); }
+
+    /* Bookmark icon states */
+    .social-card-bookmark svg .bm-fill { fill: none; transition: fill 0.15s ease; }
+    .social-card-bookmark.saved svg .bm-fill { fill: #1A1A2E; }
 
     /* Avatar sits OUTSIDE the grey track — fixed, no scroll overlap */
     .social-card-avatar {
@@ -1291,15 +1293,17 @@
     <!-- ── Screen 5: bottom action bar ── -->
     <div class="cam-bottom-bar" id="camBottomBar">
       <button class="cam-gallery-btn" id="btnGallery" aria-label="Photo library"></button>
-      <button class="social-card" id="camFrameCard" aria-label="Save frame">
-        <div class="social-card-bookmark">
-          <img src="https://www.figma.com/api/mcp/asset/19da69bf-66c9-49bc-b301-0069721489db" alt="" />
-        </div>
+      <div class="social-card" id="camFrameCard">
+        <button class="social-card-bookmark" id="btnBookmark" aria-label="Save frame" aria-pressed="false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="bm-fill" d="M6 3h12a1 1 0 0 1 1 1v16.5l-7-3.115L5 20.5V4a1 1 0 0 1 1-1z" stroke="#1A1A2E" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </button>
         <div class="social-card-avatar">YS</div>
         <div class="social-card-info">
           <span class="social-card-name">babe, wake up &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; babe, wake up &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>
-      </button>
+      </div>
       <button class="cam-proceed-btn" id="btnProceed" aria-label="Proceed">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1A1A2E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="11 15 16 10 11 5"/><polyline points="5 15 10 10 5 5"/>
@@ -1642,6 +1646,12 @@
     }
 
     $('btnGallery').addEventListener('click', () => photoLibraryInput.click());
+
+    $('btnBookmark').addEventListener('click', () => {
+      const btn = $('btnBookmark');
+      const saved = btn.classList.toggle('saved');
+      btn.setAttribute('aria-pressed', saved);
+    });
 
     photoLibraryInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
