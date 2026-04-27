@@ -1,0 +1,3157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retake!</title>
+  <style>
+    @font-face {
+      font-family: 'Bedstead';
+      src: url('bedstead-extracondensed.otf') format('opentype');
+      font-weight: normal; font-style: normal;
+    }
+    /* ─────────────────────────────────────────────────────
+       BASE
+    ───────────────────────────────────────────────────── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #E8E4DF;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* remove tap flash on mobile */
+    button { -webkit-tap-highlight-color: transparent; }
+
+
+    /* ─────────────────────────────────────────────────────
+       ROOT PHONE FRAME
+    ───────────────────────────────────────────────────── */
+    .screen {
+      width: 430px;
+      height: 932px;
+      position: relative;
+      background: #F7F5F2;
+      overflow: hidden;
+      border-radius: 52px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       SHARED: CAMERA VIDEO
+       Sits ABOVE the device-frame image so it always
+       replaces the checkerboard regardless of whether the
+       PNG is transparent or not.  Same position + rounded
+       corners give the exact phone-screen crop.
+    ───────────────────────────────────────────────────── */
+    .camera-view {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 414px;
+      height: 750px;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+      z-index: 2;
+      pointer-events: none;
+      transform: scaleX(-1); /* mirror for selfie mode */
+    }
+    .camera-view.active { opacity: 1; pointer-events: auto; }
+
+
+    /* ─────────────────────────────────────────────────────
+       SHARED: DEVICE FRAME  (on top of camera video)
+    ───────────────────────────────────────────────────── */
+    .device-frame {
+      position: absolute;
+      left: 4px;
+      top: 77px;
+      width: 422px;
+      height: 750px;
+      border-radius: 0;
+      object-fit: cover;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       SHARED: WATERMARK
+    ───────────────────────────────────────────────────── */
+    .watermark {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 800px;
+      color: rgba(255,255,255,0.5);
+      font-family: 'Bedstead', monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.3);
+      pointer-events: none;
+    }
+
+
+    /* ═════════════════════════════════════════════════════
+       SCREEN 1 — retake! balloon logo
+    ═════════════════════════════════════════════════════ */
+    .logo-container {
+      position: absolute;
+      left: 4px;
+      top: 59px;
+      width: 421px;
+      height: 748px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      will-change: transform, opacity;
+      pointer-events: none;
+      z-index: 5;
+
+      /* 1 hover bob (둥 한번) → flyaway immediately after */
+      animation-name:            logo-hover,  logo-flyaway;
+      animation-duration:        1.0s,        0.85s;
+      animation-timing-function: ease-in-out, ease-in;
+      animation-delay:           0.3s,        1.3s;
+      animation-iteration-count: 1,           1;
+      animation-fill-mode:       none,        forwards;
+    }
+
+    /* Perfect sine curve — 3 keyframes only */
+    @keyframes logo-hover {
+      0%, 100% { transform: translateY(0px); }
+         50%   { transform: translateY(-20px); }
+    }
+
+    @keyframes logo-flyaway {
+      0%   { transform: translateY(0px)    rotate(0deg)  scale(1);    opacity: 1; }
+      40%  { transform: translateY(-120px) rotate(-1deg) scale(0.96); opacity: 0.7; }
+      100% { transform: translateY(-560px) rotate(-2deg) scale(0.88); opacity: 0; }
+    }
+
+    .logo-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      pointer-events: none;
+    }
+
+
+    /* ═════════════════════════════════════════════════════
+       SCREEN 2 — invitation card
+    ═════════════════════════════════════════════════════ */
+    /* ── Invite card: centered spotlight modal ── */
+    .invite-card {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -48%) scale(0.88);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 11;
+      background: #F0E84A;
+      border-radius: 28px;
+      padding: 28px 28px 28px;
+      width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.32), 0 4px 16px rgba(0,0,0,0.14);
+      transition: opacity 0.38s ease, transform 0.42s cubic-bezier(0.22,1,0.36,1);
+    }
+    .invite-card.visible {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+
+    /* ── YS avatar ── */
+    .app-icon {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      background: #1A1A2E;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bedstead', monospace;
+      font-size: 16px; color: #F0E84A;
+    }
+
+    /* ── Card text + buttons ── */
+    .card-content { display: flex; flex-direction: column; gap: 20px; }
+    .card-text    { display: flex; flex-direction: column; gap: 0; }
+    .card-username {
+      color: #1A1A2E;
+      font-family: 'Bedstead', monospace;
+      font-size: 42px;
+      line-height: 1.0;
+    }
+    .card-subtitle {
+      color: rgba(26,26,46,0.6);
+      font-family: 'Bedstead', monospace;
+      font-size: 42px;
+      line-height: 1.0;
+    }
+    .card-buttons { display: flex; gap: 10px; }
+
+    /* ── Invite buttons ── */
+    .btn {
+      flex: 1;
+      padding: 16px 0;
+      border-radius: 18px;
+      font-family: 'Bedstead', monospace;
+      font-size: 18px;
+      line-height: normal;
+      cursor: pointer;
+      border: none;
+      text-align: center;
+      transition: opacity 0.1s ease, transform 0.1s ease;
+    }
+    .btn:active { opacity: 0.78; transform: scale(0.97); }
+    .btn-decline { background: rgba(26,26,46,0.10); color: #1A1A2E; }
+    .btn-accept  { background: #1A1A2E; color: #F0E84A; }
+
+
+    /* ═════════════════════════════════════════════════════
+       SCREEN 3 — camera permission overlay + sheet
+    ═════════════════════════════════════════════════════ */
+
+    /* Dark scrim */
+    .scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+    .scrim.visible { opacity: 1; pointer-events: auto; }
+
+    /* Bottom sheet */
+    .bottom-sheet {
+      position: absolute;
+      left: 0; bottom: 0;
+      width: 430px;
+      background: #FFFFFF;
+      border-radius: 28px 28px 0 0;
+      box-shadow: 0 -2px 40px rgba(0,0,0,0.10);
+      overflow: hidden;
+      transform: translateY(100%);
+      transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+      z-index: 11;
+    }
+    .bottom-sheet.visible { transform: translateY(0); }
+
+    /* Drag handle */
+    .sheet-handle {
+      display: block;
+      position: absolute;
+      top: 12px;
+      left: 50%; transform: translateX(-50%);
+      width: 36px; height: 4px;
+      background: rgba(0,0,0,0.12);
+      border-radius: 2px;
+    }
+
+    /* Sheet inner layout */
+    .sheet-inner {
+      padding: 48px 36px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* App icon */
+    .sheet-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: #1A1A2E;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sheet-icon img { display: none; }
+
+    .sheet-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+    }
+    .sheet-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      text-align: center;
+    }
+    .sheet-title {
+      color: #18181F;
+      font-family: 'Bedstead', monospace;
+      font-size: 26px;
+      line-height: normal;
+    }
+    .sheet-subtitle {
+      width: 300px;
+      color: rgba(24,24,31,0.5);
+      font-family: 'Bedstead', monospace;
+      font-size: 15px;
+      line-height: 22px;
+      text-align: center;
+    }
+
+    .sheet-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    /* "Allow Camera" CTA */
+    .btn-allow-camera {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 18px 0;
+      background: #1A1A2E;
+      border: none;
+      border-radius: 18px;
+      color: #FEFDFB;
+      font-family: 'Bedstead', monospace;
+      font-size: 20px;
+      line-height: normal;
+      cursor: pointer;
+      transition: opacity 0.1s ease, transform 0.1s ease;
+    }
+    .btn-allow-camera:active { opacity: 0.78; transform: scale(0.97); }
+
+    .btn-not-now {
+      background: none; border: none;
+      color: rgba(24,24,31,0.4);
+      font-family: 'Bedstead', monospace;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 8px 0;
+      transition: opacity 0.1s ease;
+    }
+    .btn-not-now:active { opacity: 0.5; }
+
+
+    /* ═════════════════════════════════════════════════════
+       SCREEN 4 — "Tap anywhere to take a photo"
+    ═════════════════════════════════════════════════════ */
+
+    /* Finger-press keyframe — hand moves down like pressing shutter, springs back */
+    @keyframes finger-press {
+      0%        { transform: translateY(0px)  scale(1);    }
+      18%       { transform: translateY(9px)  scale(0.96); } /* press down */
+      36%       { transform: translateY(9px)  scale(0.96); } /* hold */
+      58%       { transform: translateY(-3px) scale(1.02); } /* spring overshoot */
+      72%       { transform: translateY(0px)  scale(1);    } /* settle */
+      100%      { transform: translateY(0px)  scale(1);    } /* pause before repeat */
+    }
+
+    .screen4-card {
+      position: absolute;
+      left: 50%;
+      top: calc(50% - 33.5px);
+      transform: translate(-50%, 100vh);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 5;
+
+      width: 368px;
+      background: #FFFFFF;
+      border-radius: 28px;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.12);
+      padding: 28px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+
+      transition:
+        opacity 0.55s ease,
+        transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .screen4-card.visible {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+    }
+
+    /* 3D hand illustration — overflow visible so animation isn't clipped */
+    .screen4-img-wrap {
+      width: 120.139px;
+      height: 200px;
+      overflow: visible;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .screen4-img-wrap img {
+      position: absolute;
+      width: 141.3px;
+      height: 200.06px;
+      left: -16.1px;
+      top: 0;
+      max-width: none;
+      /* Finger-press animation starts 0.6s after card is visible */
+      animation: finger-press 2.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s infinite;
+      transform-origin: center bottom;
+      will-change: transform;
+    }
+
+    .screen4-title {
+      color: #1A1A2E;
+      font-family: 'Bedstead', monospace;
+      font-size: 28px;
+      text-align: center;
+      line-height: 34px;
+      width: 100%;
+    }
+    .screen4-subtitle {
+      color: #7C7A90;
+      font-family: 'Bedstead', monospace;
+      font-size: 15px;
+      text-align: center;
+    }
+
+
+    /* ═════════════════════════════════════════════════════
+       SCREEN 5 — Camera UI (top controls + popup + bottom bar)
+    ═════════════════════════════════════════════════════ */
+
+    /* ── Top control buttons ── */
+    .cam-top-bar {
+      position: absolute;
+      top: 89px;
+      left: 20px;
+      /* Figma: flex-start + gap 111px between 3 groups */
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 111px;
+      z-index: 6;
+      opacity: 0;
+      transform: translateY(-16px);
+      transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+    .cam-top-bar.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    /* Flash + Timer sit together with 8px gap */
+    .cam-top-middle { display: flex; gap: 8px; align-items: center; }
+
+    /* Gallery mode: [✕] ——— [📷 Take photo instead] */
+    .cam-top-bar.gallery-mode {
+      justify-content: space-between;
+      right: 20px;
+    }
+    .cam-top-bar.gallery-mode .cam-top-middle,
+    .cam-top-bar.gallery-mode #btnFlipCam { display: none; }
+    .cam-top-bar.gallery-mode #btnTakePhotoInstead { display: flex; }
+
+    /* Capture mode (post-capture, staying on S5): [✕] ——— [↺ Retake photo] */
+    .cam-top-bar.capture-mode {
+      justify-content: space-between;
+      right: 20px;
+    }
+    .cam-top-bar.capture-mode .cam-top-middle,
+    .cam-top-bar.capture-mode #btnFlipCam { display: none; }
+    .cam-top-bar.capture-mode #btnRetakePhoto { display: flex; }
+
+    /* "Take photo instead" + "Retake photo" — frosted glass pill with icon + label */
+    #btnTakePhotoInstead, #btnRetakePhoto {
+      display: none; /* hidden by default — shown via class toggles */
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      width: auto; height: auto;
+      min-height: 44px;
+      white-space: nowrap;
+      border-radius: 22px; /* pill */
+      font-family: 'Bedstead', monospace;
+      font-size: 15px;
+      color: white;
+    }
+
+    /* ── Photo overlay ── */
+    .photo-container {
+      position: absolute;
+      left: 0; top: 0;
+      width: 414px; height: 750px;
+      overflow: hidden;
+      z-index: 2;
+      display: none;
+      pointer-events: none;
+    }
+    .photo-container.active {
+      display: block;
+      pointer-events: auto;
+    }
+    .photo-overlay {
+      position: absolute;
+      left: 50%; top: 50%;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      /* JS always writes: translate(-50%,-50%) scale(s) rotate(r) */
+      transform: translate(-50%, -50%) scaleX(-1); /* mirror to match selfie camera */
+      transform-origin: center center;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* ── Top gradient scrim ── */
+    .cam-top-gradient {
+      position: absolute;
+      left: 8px; top: 77px;
+      width: 414px; height: 180px;
+      border-radius: 32px 32px 0 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.52) 0%,
+        rgba(0,0,0,0.22) 50%,
+        rgba(0,0,0,0)    100%
+      );
+      z-index: 5;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    .cam-top-gradient.visible { opacity: 1; }
+
+    .cam-btn {
+      width: 42px; height: 42px;
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.1s ease, opacity 0.1s ease;
+      position: relative;
+    }
+    .cam-btn:active { opacity: 0.6; transform: scale(0.88); }
+
+    /* ── Timer active state ── */
+    #btnTimer.timer-active svg { stroke: #EEFF01; }
+    .timer-badge {
+      position: absolute;
+      top: 1px; right: 1px;
+      background: #EEFF01;
+      color: #1A1A2E;
+      font-family: 'Bedstead', monospace;
+      font-size: 9px; font-weight: 700;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 5px;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: opacity 0.18s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .timer-active .timer-badge { opacity: 1; transform: scale(1); }
+
+    /* ── Countdown overlay ── */
+    .countdown-overlay {
+      position: absolute;
+      left: 4px; top: 77px;
+      width: 422px; height: 750px;
+      border-radius: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 7;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.22s ease;
+    }
+    .countdown-overlay.visible { opacity: 1; pointer-events: auto; }
+    .countdown-number {
+      font-family: 'Bedstead', monospace;
+      font-size: 128px; font-weight: 700;
+      color: white;
+      line-height: 1;
+      text-shadow:
+        0 4px 32px rgba(0,0,0,0.55),
+        0 1px 8px  rgba(0,0,0,0.40);
+      will-change: transform, opacity;
+    }
+    /* tick class removed — countdown uses programmatic breathe-in/out transitions */
+    .countdown-hint {
+      margin-top: 20px;
+      font-family: 'Bedstead', monospace;
+      font-size: 17px;
+      color: rgba(255,255,255,0.75);
+      text-shadow: 0 1px 5px rgba(0,0,0,0.50);
+    }
+
+    /* ── Shutter flash overlay ── */
+    .flash-overlay {
+      position: absolute;
+      left: 4px; top: 77px;
+      width: 422px; height: 750px;
+      border-radius: 0;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9;
+    }
+
+    /* Drop-shadow on all icons + text inside cam-btns for light-bg legibility.
+       SVG icons are solid shapes so their shadow concentrates hard → lower opacity
+       + more blur to spread it; text naturally diffuses so stays tighter. */
+    /* SVG icons: spread shadow to match text visual weight (solid shapes concentrate harder) */
+    .cam-btn svg { filter: none; }
+    #btnTakePhotoInstead svg, #btnRetakePhoto svg { filter: none; }
+
+    /* ── Popup toast ──
+       Figma: left 64px, top 733px — sits inside camera area,
+       26px above the bottom bar (823−733−64px_height≈26px gap).
+    ── */
+    /* invitee-s6-pop1 */
+    .cam-popup {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, calc(-50% + 12px));
+      width: fit-content; white-space: nowrap;
+      background: rgba(254,253,251,0.6);
+      border: 1.5px solid rgba(26,26,46,0.2);
+      border-radius: 18px;
+      padding: 12px 18px;
+      text-align: center;
+      z-index: 9; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      font-family: 'Bedstead', monospace;
+      font-size: 17px;
+      color: #1A1A2E;
+    }
+    .cam-popup.visible { opacity: 1; transform: translate(-50%, -50%); }
+
+    /* ── Tap anywhere indicator ── */
+    #tapHint {
+      position: absolute;
+      left: 50%; top: 52%;
+      transform: translate(-50%, -50%);
+      display: flex; flex-direction: column;
+      align-items: center; gap: 28px;
+      z-index: 9; pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    #tapHint.visible { opacity: 1; }
+    #tapHint.hiding  { opacity: 0; }
+
+    .tap-rings {
+      position: relative;
+      width: 220px; height: 220px;
+      flex-shrink: 0;
+    }
+    .tap-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.65);
+      border: none;
+      animation: tapPulse 4.5s cubic-bezier(0.2,0.8,0.4,1) infinite;
+    }
+    .tap-ring:nth-child(2) { animation-delay: 1.5s; }
+    .tap-ring:nth-child(3) { animation-delay: 3.0s; }
+
+    @keyframes tapPulse {
+      0%   { transform: scale(0.05); opacity: 0.9; }
+      100% { transform: scale(1.3); opacity: 0; }
+    }
+
+    .tap-hint-dot { display: none; }
+
+    .tap-hint-label {
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 999px;
+      padding: 10px 24px;
+      font-family: 'Bedstead', monospace;
+      font-size: 16px;
+      color: rgba(255,255,255,0.92);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    /* ── Bottom action bar ──
+       Figma: left 26px, top 823px, gap 16px
+    ── */
+    .cam-bottom-bar {
+      position: absolute;
+      top: 835px;
+      left: 16px; right: 16px;
+      transform: translateY(20px);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      z-index: 6;
+      opacity: 0;
+      transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 999px;
+      padding: 10px 10px 10px 16px;
+    }
+    .cam-bottom-bar.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .cam-gallery-btn {
+      width: 46px; height: 46px;
+      border: none;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.12);
+      cursor: pointer; flex-shrink: 0;
+      transition: background 0.1s ease, transform 0.1s ease;
+    }
+    .cam-gallery-btn:active { background: rgba(255,255,255,0.22); transform: scale(0.9); }
+
+    /* ── Scrolling frame title ── */
+    .cam-marquee-wrap {
+      flex: 1; min-width: 0;
+      overflow: hidden;
+      display: flex; align-items: center;
+      padding: 0 4px;
+    }
+    .marquee-username { color: rgba(255,255,255,0.45); }
+    .marquee-sep      { color: rgba(255,255,255,0.25); margin: 0 3px; }
+
+    .cam-marquee-text {
+      font-family: 'Bedstead', monospace;
+      font-size: 18px;
+      color: rgba(255,255,255,1);
+      white-space: nowrap;
+      display: inline-block;
+      animation: cam-marquee 9s linear infinite;
+      letter-spacing: 0.02em;
+    }
+    @keyframes cam-marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ── Proceed button ── */
+    .cam-proceed-btn {
+      width: 56px; height: 56px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 2px 14px rgba(0,0,0,0.28);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .cam-proceed-btn:active { transform: scale(0.91); box-shadow: 0 1px 6px rgba(0,0,0,0.2); }
+
+
+    /* ═══════════════════════════════════════════════════
+       SCREEN 6 — EDIT / SHARE
+    ═══════════════════════════════════════════════════ */
+
+    /* Dark flash overlay — masks screen transitions */
+    .dark-flash-overlay {
+      position: absolute;
+      left: 4px; top: 77px;
+      width: 422px; height: 750px;
+      border-radius: 0;
+      background: #1A1A2E;
+      opacity: 0; pointer-events: none;
+      z-index: 9;
+    }
+
+    /* ── S6 edge gradient scrim — keeps buttons readable on any photo ── */
+    #s6ScrimOverlay {
+      position: absolute;
+      left: 8px; top: 77px;
+      width: 414px; height: 750px;
+      border-radius: 32px;
+      /* top: matches .cam-top-gradient exactly (180px / 750px ≈ 24%) */
+      /* bottom: same values mirrored for bottom bar */
+      background:
+        linear-gradient(to top, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.22) 12%, rgba(0,0,0,0) 24%);
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+    .screen6-bg #s6ScrimOverlay { opacity: 1; }
+
+    /* ── S6 Exit button (top-left) — matches S5 cam-btn exactly ── */
+    .s6-exit-btn {
+      position: absolute;
+      left: 20px; top: 89px;
+      width: 42px; height: 42px;
+      background: rgba(0,0,0,0.28);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 6;
+      opacity: 0; transform: translateY(-16px);
+      transition: opacity 0.32s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
+      pointer-events: none;
+    }
+    .s6-exit-btn.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .s6-exit-btn.out     { opacity: 0; transform: translateY(-16px); pointer-events: none; }
+    .s6-exit-btn:active  { opacity: 0.6; transform: scale(0.88); }
+
+    /* ── S6 Right editing tools panel ── */
+    .s6-tools {
+      position: absolute;
+      right: 20px; top: 89px;
+      display: flex; flex-direction: column; gap: 16px;
+      z-index: 6;
+      opacity: 0; transform: translateX(22px);
+      transition: opacity 0.32s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
+      pointer-events: none;
+      touch-action: manipulation;
+    }
+    .s6-tools.visible { opacity: 1; transform: translateX(0); pointer-events: auto; }
+    .s6-tools.out     { opacity: 0; transform: translateX(32px); pointer-events: none; }
+
+    .s6-tool-btn {
+      position: relative;
+      width: 42px; height: 42px; padding: 9px;
+      background: rgba(0,0,0,0.28); border: none; border-radius: 50%;
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s ease, opacity 0.1s ease, transform 0.1s ease;
+    }
+    .s6-tool-btn:active { opacity: 0.6; transform: scale(0.88); }
+    .s6-tool-btn.active { background: rgba(255,255,255,0.92); }
+    .s6-tool-btn.active svg { stroke: #1A1A2E; }
+
+    /* Floating left labels */
+    .tool-label {
+      position: absolute;
+      right: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+      font-family: 'Bedstead', monospace; font-size: 12px; color: rgba(255,255,255,0.92);
+      white-space: nowrap;
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      padding: 5px 10px; border-radius: 999px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+    .s6-tools.labels-expanded .tool-label { opacity: 1; }
+
+    /* ── Drawing canvas overlay ── */
+    #editCanvas {
+      position: absolute; left: 0; top: 0;
+      width: 414px; height: 750px;
+      z-index: 3; cursor: none; touch-action: none;
+    }
+    #editCanvas.no-tool { cursor: default; pointer-events: none; }
+
+    /* ── Brush cursor ── */
+    #brushCursor {
+      position: absolute; pointer-events: none; z-index: 10;
+      transform: translate(-50%, -50%); display: none;
+    }
+
+    /* ── Tool-mode shared transition base ── */
+    .tool-mode-el {
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1);
+    }
+    .tool-mode-el.tm-in { opacity: 1; pointer-events: auto; }
+
+    .history-btn {
+      width: 42px; height: 42px;
+      background: transparent; border: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: opacity 0.1s ease, transform 0.1s ease;
+    }
+    .history-btn:active  { opacity: 0.6; transform: scale(0.88); }
+    .history-btn:disabled { opacity: 0.25; pointer-events: none; }
+
+    /* ── Tool-mode undo/redo (top-center) ── */
+    #tmUndoRedo {
+      position: absolute; left: 50%; top: 89px;
+      transform: translateX(-50%) translateY(-14px);
+      display: flex; gap: 4px; z-index: 8;
+    }
+    #tmUndoRedo.tm-in { transform: translateX(-50%) translateY(0); }
+
+    /* ── Done button (top-right) ── */
+    #tmDoneBtn {
+      position: absolute; right: 20px; top: 89px;
+      height: 38px; background: white; border: none; border-radius: 999px;
+      padding: 0 20px;
+      font-family: 'Bedstead', monospace; font-size: 15px;
+      color: #1A1A2E; letter-spacing: 0.02em;
+      cursor: pointer; z-index: 8;
+      display: flex; align-items: center;
+      transform: translateY(-14px);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+      transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1), background 0.1s ease;
+    }
+    #tmDoneBtn.tm-in { transform: translateY(0); }
+    #tmDoneBtn:active { background: #EEFF01; transform: scale(0.95) translateY(0); }
+
+    /* ── Left size-track panel ── */
+    #tmLeftPanel {
+      position: absolute; left: 0; top: 332px;
+      width: 56px; height: 240px;
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border-radius: 0 20px 20px 0; z-index: 8;
+      opacity: 0; pointer-events: none; transform: translateX(-36px);
+      transition: opacity 0.28s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
+    }
+    #tmLeftPanel.tm-in { opacity: 1; pointer-events: auto; transform: translateX(0); }
+    #tmLeftPanel::before {
+      content: ''; position: absolute;
+      left: 50%; top: 38px; bottom: 30px; width: 2px; transform: translateX(-50%);
+      background: rgba(255,255,255,0.2); border-radius: 1px; pointer-events: none;
+    }
+    #tmTrackTop {
+      position: absolute; width: 16px; height: 16px;
+      background: rgba(255,255,255,0.45); border-radius: 50%;
+      top: 14px; left: 50%; transform: translateX(-50%);
+    }
+    #tmTrackBottom {
+      position: absolute; width: 5px; height: 5px;
+      background: rgba(255,255,255,0.45); border-radius: 50%;
+      bottom: 14px; left: 50%; transform: translateX(-50%);
+    }
+    #tmSizeHandle {
+      position: absolute; background: white; border-radius: 50%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.35); cursor: grab;
+      transition: width 0.06s ease, height 0.06s ease, top 0.06s ease, left 0.06s ease;
+    }
+
+    /* ── Tool-mode bottom bars ── */
+    #tmPenBar {
+      position: absolute; left: 16px; right: 16px; top: 835px;
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border-radius: 999px; padding: 0 20px; height: 76px;
+      display: flex; align-items: center; gap: 0;
+      z-index: 8;
+      opacity: 0; transform: translateY(32px); pointer-events: none;
+      transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1);
+    }
+    #tmPenBar.tm-in {
+      opacity: 1; transform: translateY(0); pointer-events: auto;
+    }
+    .tm-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.15); flex-shrink: 0; margin: 0 14px; }
+    .tm-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-right: 8px; }
+    .tm-val { font-family: 'Bedstead', monospace; font-size: 13px; color: rgba(255,255,255,0.45); width: 34px; text-align: right; flex-shrink: 0; margin-left: 8px; }
+
+    /* ── Range sliders ── */
+    input[type="range"] {
+      -webkit-appearance: none; flex: 1; height: 3px; border-radius: 2px;
+      outline: none; cursor: pointer; min-width: 0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 20px; height: 20px;
+      background: white; border-radius: 50%; box-shadow: 0 1px 6px rgba(0,0,0,0.32); cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px; height: 20px; background: white; border-radius: 50%;
+      border: none; box-shadow: 0 1px 6px rgba(0,0,0,0.32);
+    }
+
+    /* ── Color swatches ── */
+    .tm-swatches { display: flex; gap: 7px; align-items: center; flex-shrink: 0; }
+    .tm-swatch {
+      width: 26px; height: 26px; border-radius: 50%; border: none; cursor: pointer;
+      flex-shrink: 0; position: relative; box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .tm-swatch:active { transform: scale(0.85); }
+    .tm-swatch.active::after {
+      content: ''; position: absolute; inset: -3px; border-radius: 50%;
+      border: 2.5px solid white; box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    }
+
+    /* ── Pen type buttons ── */
+    .tm-pen-types { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+    .pen-type-btn {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,0.1); border: none; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; transition: background 0.15s;
+    }
+    .pen-type-btn.active { background: rgba(255,255,255,0.78); }
+
+    /* ── S6 Bottom action bar ── */
+    .s6-bottom-bar {
+      position: absolute;
+      left: 16px; right: 16px; top: 835px;
+      display: flex; align-items: center; gap: 10px;
+      z-index: 6;
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.4s ease, transform 0.52s cubic-bezier(0.22,1,0.36,1);
+      pointer-events: none;
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 999px;
+      padding: 10px 10px 10px 16px;
+    }
+    .s6-bottom-bar.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    #btnGallery { width: 46px; height: 46px; }
+
+    .s6-circle-btn {
+      width: 52px; height: 52px; flex-shrink: 0;
+      background: rgba(255,255,255,0.12);
+      border: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.1s ease, transform 0.1s ease;
+    }
+    .s6-circle-btn:active { background: rgba(255,255,255,0.22); transform: scale(0.9); }
+    .s6-circle-btn svg { stroke: white; }
+
+    /* ── S6 contributors button — iOS Messages group thumbnail ── */
+    .s6-group-container {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      overflow: hidden;
+      position: relative;
+      background: #1A1A2E; /* fallback */
+      flex-shrink: 0;
+    }
+    .s6-group-av {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      position: absolute;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bedstead', monospace;
+      font-size: 8px; font-weight: 700; color: white;
+      box-shadow: 0 0 0 1.5px white;
+    }
+    #s6BtnAvatarYS { left: 0; top: 0; background: #6A00FF; }
+    #s6BtnAvatarMK { left: 16px; top: 16px; background: #FFAB1A; }
+
+    /* ── S6 center: bar label (mirrors S5 marquee text) ── */
+    .s6-bar-label {
+      flex: 1;
+      text-align: center;
+      font-family: 'Bedstead', monospace;
+      font-size: 18px;
+      color: rgba(255,255,255,0.92);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .s6-bar-actions {
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+
+    /* ── S6 send button (mirrors S5 cam-proceed-btn exactly) ── */
+    .s6-send-btn {
+      width: 56px; height: 56px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 2px 14px rgba(0,0,0,0.28);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .s6-send-btn:active { background: #EEFF01; transform: scale(0.91); box-shadow: 0 1px 6px rgba(0,0,0,0.2); }
+
+    /* ── S6 toast ── */
+    .s6-toast {
+      position: absolute;
+      bottom: 108px; left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      width: fit-content; white-space: nowrap;
+      background: rgba(18,18,28,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 999px;
+      padding: 12px 24px;
+      text-align: center;
+      z-index: 10; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.22,1,0.36,1);
+      font-family: 'Bedstead', monospace;
+      font-size: 15px;
+      color: white;
+    }
+    .s6-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* invitee-s7-pop1 */
+    .s7-pop {
+      position: absolute;
+      left: 20px; right: 20px;
+      bottom: -20px;
+      transform: translateY(100%);
+      background: #C6F0D6;
+      border-radius: 28px 28px 0 0;
+      padding: 28px 28px 44px;
+      display: flex; flex-direction: column; gap: 12px;
+      z-index: 11; opacity: 0; pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.48s cubic-bezier(0.22,1,0.36,1);
+    }
+    .s7-pop.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .s7-pop-title {
+      font-family: 'Bedstead', monospace;
+      font-size: 30px;
+      color: #1A1A2E;
+      line-height: 1;
+    }
+    .s7-pop-subtitle {
+      font-family: 'Bedstead', monospace;
+      font-size: 15px;
+      color: rgba(26,26,46,0.6);
+    }
+    .s7-pop-code-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 8px;
+      background: rgba(26,26,46,0.08);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+    .s7-pop-code {
+      flex: 1;
+      font-family: 'Bedstead', monospace;
+      font-size: 22px;
+      color: #1A1A2E;
+      letter-spacing: 0.12em;
+    }
+    .s7-pop-copy-btn {
+      width: 36px; height: 36px;
+      background: #1A1A2E; border: none; border-radius: 10px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0; flex-shrink: 0;
+      transition: opacity 0.1s ease, transform 0.1s ease;
+    }
+    .s7-pop-copy-btn:active { opacity: 0.7; transform: scale(0.91); }
+    .s7-pop-copy-btn svg { stroke: white; }
+
+    /* ── Shared confirm dialog ── */
+    .confirm-scrim {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.42);
+      z-index: 11; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .confirm-scrim.visible { opacity: 1; pointer-events: auto; }
+
+    .confirm-dialog {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, calc(-50% + 24px));
+      width: 320px;
+      background: #FFFFFF;
+      border-radius: 28px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.16);
+      padding: 28px 24px 22px;
+      z-index: 12; opacity: 0; pointer-events: none;
+      transition: opacity 0.24s ease, transform 0.36s cubic-bezier(0.34,1.2,0.64,1);
+    }
+    .confirm-dialog.visible {
+      opacity: 1; pointer-events: auto;
+      transform: translate(-50%, -50%);
+    }
+    .confirm-message {
+      font-family: 'Bedstead', monospace;
+      font-size: 17px;
+      color: #1A1A2E; text-align: center;
+      line-height: 1.5; margin-bottom: 24px;
+    }
+    .confirm-buttons { display: flex; gap: 10px; }
+    .confirm-btn {
+      flex: 1; height: 52px;
+      border: none; border-radius: 18px;
+      font-family: 'Bedstead', monospace;
+      font-size: 16px;
+      cursor: pointer;
+      transition: opacity 0.12s ease, transform 0.12s ease;
+    }
+    .confirm-btn:active { opacity: 0.78; transform: scale(0.96); }
+    .confirm-btn-cancel { background: rgba(26,26,46,0.08); color: #1A1A2E; }
+    .confirm-btn-ok     { background: #1A1A2E; color: white; }
+    .confirm-btn-ok.danger { background: #FF3B30; }
+
+    /* ── Follow button (in contributors sheet) ── */
+    .follow-btn {
+      height: 32px; padding: 0 14px;
+      background: transparent;
+      border: 2px solid #6A00FF; border-radius: 20px;
+      font-family: 'Bedstead', monospace;
+      font-size: 13px; font-weight: 700; color: #6A00FF;
+      cursor: pointer; flex-shrink: 0;
+      transition: background 0.18s ease, color 0.18s ease,
+                  border-color 0.18s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .follow-btn:active { transform: scale(0.93); }
+    .follow-btn.requested {
+      background: rgba(0,0,0,0.08);
+      border-color: transparent;
+      color: rgba(26,26,46,0.42);
+      transform: scale(1); /* reset */
+    }
+
+    /* ── "You" badge (in contributors sheet — current user row) ── */
+    .you-badge {
+      height: 28px; padding: 0 12px;
+      background: rgba(106,0,255,0.10);
+      border-radius: 20px;
+      font-family: 'Bedstead', monospace;
+      font-size: 12px; font-weight: 700;
+      color: #6A00FF; flex-shrink: 0;
+      display: flex; align-items: center;
+    }
+
+    /* ── Contributors bottom sheet ── */
+    .contrib-scrim {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.38);
+      z-index: 11; opacity: 0; pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+    .contrib-scrim.visible { opacity: 1; pointer-events: auto; }
+
+    .contrib-sheet {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      background: white; border-radius: 24px 24px 0 0;
+      padding: 12px 24px 48px;
+      z-index: 12;
+      transform: translateY(100%);
+      transition: transform 0.42s cubic-bezier(0.22,1,0.36,1);
+    }
+    .contrib-sheet.visible { transform: translateY(0); }
+
+    .contrib-handle {
+      width: 36px; height: 4px;
+      background: rgba(0,0,0,0.18); border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+    .contrib-title {
+      font-family: 'Bedstead', monospace;
+      font-size: 18px; font-weight: 700;
+      color: #1A1A2E; margin-bottom: 20px;
+    }
+    .contrib-list { display: flex; flex-direction: column; gap: 4px; }
+    .contrib-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(26,26,46,0.08);
+    }
+    .contrib-item:last-child { border-bottom: none; }
+    .contrib-avatar {
+      width: 40px; height: 40px;
+      background: #6A00FF; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bedstead', monospace;
+      font-size: 16px; font-weight: 700; color: white;
+      flex-shrink: 0;
+    }
+    .contrib-info { flex: 1; }
+    .contrib-name {
+      font-family: 'Bedstead', monospace;
+      font-size: 15px; font-weight: 600; color: #1A1A2E;
+    }
+    .contrib-role {
+      font-family: 'Bedstead', monospace;
+      font-size: 14px;
+      color: rgba(26,26,46,0.52);
+    }
+    .contrib-me {
+      color: rgba(26,26,46,0.38);
+      font-weight: 400;
+      font-size: 13px;
+    }
+
+    
+    /* Idle breath: gentle float after entrance settles */
+      45%       { transform: rotate(-5.5deg) scale(1.026); }
+    }
+      40%  { transform: rotate(-8deg) scale(1.09); }
+      100% { transform: rotate(-8deg) scale(1); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       FRAME CONTAINER + SLOTS
+    ═══════════════════════════════════════════════════════ */
+    #frameContainer {
+      position: absolute;
+      left: 8px; top: 77px;
+      width: 414px; height: 750px;
+      border-radius: 32px;
+      overflow: hidden;
+      z-index: 1;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,0,0,0.06);
+    }
+
+    /* Inviter's frame overlay — full canvas */
+    #yunchaiPhoto {
+      position: absolute;
+      left: -8px; top: 0;
+      width: 430px; height: 750px;
+      object-fit: cover;
+      z-index: 3;
+      pointer-events: none;
+      display: block;
+      /* Heart cutout: ellipse at center of heart shape, gradient feather border */
+      -webkit-mask-image: radial-gradient(ellipse 105px 105px at 50% 23%, transparent 55%, rgba(0,0,0,0.5) 78%, black 100%);
+      mask-image: radial-gradient(ellipse 105px 105px at 50% 23%, transparent 55%, rgba(0,0,0,0.5) 78%, black 100%);
+    }
+
+    /* ── Breathing glow ring on face cutout (S4 pre-camera only) ── */
+    @keyframes cutoutBreathe {
+      0%, 100% { transform: translate(-50%, -50%) scale(1);   opacity: 0.55; }
+      50%       { transform: translate(-50%, -50%) scale(1.12); opacity: 0.9; }
+    }
+    #cutoutGlow {
+      position: absolute;
+      /* cutout center: 50% x, 23% of 748px ≈ 172px from frameContainer top → screen top = 59+172 = 231px */
+      left: 50%; top: 231px;
+      width: 210px; height: 210px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,220,100,0.55) 0%, rgba(255,180,50,0.28) 45%, transparent 75%);
+      pointer-events: none;
+      z-index: 5;
+      transform: translate(-50%, -50%) scale(1);
+      animation: cutoutBreathe 3.2s ease-in-out infinite;
+      transition: opacity 0.5s ease;
+    }
+    #cutoutGlow.hidden { opacity: 0; animation-play-state: paused; }
+
+    /* Checkerboard — full-frame base layer behind sticker & camera */
+    #mkSlotBg {
+      position: absolute;
+      left: 0; top: 0;
+      width: 422px; height: 750px;
+      z-index: 0;
+      opacity: 1;
+      transition: opacity 0.7s ease;
+      background-color: #e8e8e8;
+      background-image:
+        linear-gradient(45deg, #d0d0d0 25%, transparent 25%),
+        linear-gradient(-45deg, #d0d0d0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #d0d0d0 75%),
+        linear-gradient(-45deg, transparent 75%, #d0d0d0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+
+    /* ── Responsive: fill any iPhone screen ── */
+    @media (max-width: 500px) {
+      body {
+        background: #000;
+        display: block;
+        padding: 0;
+        width: 100vw;
+        height: 100dvh;
+        overflow: hidden;
+      }
+      .screen {
+        position: fixed;
+        top: 0; left: 0;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        transform-origin: 0 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="screen" id="screen">
+
+    <!-- ═══ FRAME CONTAINER ═══ -->
+    <div id="frameContainer"
+         style="position:absolute;left:8px;top:77px;width:414px;height:750px;
+                overflow:hidden;border-radius:32px;z-index:1;">
+
+      <!-- Checkerboard — full frame base layer (422×750) -->
+      <div id="mkSlotBg"
+           style="position:absolute;left:0;top:0;width:414px;height:750px;
+                  background-color:#e8e8e8;
+                  background-image:linear-gradient(45deg,#d0d0d0 25%,transparent 25%),
+                    linear-gradient(-45deg,#d0d0d0 25%,transparent 25%),
+                    linear-gradient(45deg,transparent 75%,#d0d0d0 75%),
+                    linear-gradient(-45deg,transparent 75%,#d0d0d0 75%);
+                  background-size:20px 20px;
+                  background-position:0 0,0 10px,10px -10px,-10px 0;">
+      </div>
+
+
+      
+
+      <!-- Camera — fills MK's slot when active -->
+      <video class="camera-view" id="cameraView" autoplay playsinline muted></video>
+
+      <!-- Captured/gallery photo — fills MK's slot -->
+      <div class="photo-container" id="photoContainer">
+        <img class="photo-overlay" id="photoOverlay" alt="" draggable="false" />
+      </div>
+
+      <img id="yunchaiPhoto" src="canvas-frame-teletubby.png" alt="" />
+
+      <!-- Drawing canvas overlay (transparent, for doodle/eraser strokes) -->
+      <canvas id="editCanvas" class="no-tool" width="414" height="750"></canvas>
+      <!-- Brush cursor -->
+      <svg id="brushCursor" width="40" height="40" viewBox="-20 -20 40 40">
+        <circle id="brushCursorCircle" r="16" fill="rgba(255,255,255,0.1)" stroke="white" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <!-- ── Cutout breathing glow — visible pre-camera, hidden once live feed starts ── -->
+    <div id="cutoutGlow"></div>
+<!-- ── Screen 2: invitation card ── -->
+    <div class="invite-card" id="inviteCard">
+      <div class="app-icon">YS</div>
+      <div class="card-content">
+        <div class="card-text">
+          <span class="card-username">yunchai</span>
+          <span class="card-subtitle">invites you to this frame</span>
+        </div>
+        <div class="card-buttons">
+          <button class="btn btn-decline" id="btnDecline">Decline</button>
+          <button class="btn btn-accept"  id="btnAccept">View Frame</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── Screen 4: "Step into the frame" card ── -->
+    <div class="screen4-card" id="screen4Card">
+      <div class="screen4-img-wrap">
+        <img
+          src="https://www.figma.com/api/mcp/asset/9a4ac1d4-f7db-45ad-870d-9fc3cb88f421"
+          alt="step into the frame"
+        />
+      </div>
+      <p class="screen4-title">Tap anywhere to take a photo</p>
+      <p class="screen4-subtitle">Tap to start</p>
+    </div>
+
+    <!-- ── Shared: watermark ── -->
+    <p class="watermark" id="watermark">Made with Retake! ✦</p>
+
+    <!-- ── Camera top gradient overlay ── -->
+    <div class="cam-top-gradient" id="camTopGradient"></div>
+
+    <!-- ── Screen 5: top camera controls ── -->
+    <div class="cam-top-bar" id="camTopBar">
+      <!-- Group 1: Cancel -->
+      <button class="cam-btn" id="btnCloseCamera" aria-label="Close">
+        <svg width="26" height="26" viewBox="0 0 22 22" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <line x1="4" y1="4" x2="18" y2="18"/><line x1="18" y1="4" x2="4" y2="18"/>
+        </svg>
+      </button>
+      <!-- Group 2: Flash + Timer (gap 8px) -->
+      <div class="cam-top-middle">
+        <button class="cam-btn" id="btnFlash" aria-label="Flash">
+          <svg width="26" height="26" viewBox="0 0 22 22" fill="white">
+            <path d="M12.5 2L4 12.5H10.5L9.5 20l9-10.5H13L12.5 2Z"/>
+          </svg>
+        </button>
+        <button class="cam-btn" id="btnTimer" aria-label="Timer">
+          <svg width="26" height="26" viewBox="0 0 22 22" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="13" r="7"/><path d="M11 10v3l2 1.5"/><path d="M8.5 2.5h5M11 2.5V5"/>
+          </svg>
+          <span class="timer-badge" id="timerBadge"></span>
+        </button>
+      </div>
+      <!-- Gallery mode only: "Take photo instead" -->
+      <button class="cam-btn" id="btnTakePhotoInstead" aria-label="Take photo instead">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        Take photo instead
+      </button>
+      <!-- Capture mode only: "Retake photo" -->
+      <button class="cam-btn" id="btnRetakePhoto" aria-label="Retake photo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 109-9 9 9 0 00-6.37 2.63"/><polyline points="3 3 3 9 9 9"/>
+        </svg>
+        Retake photo
+      </button>
+      <!-- Group 3: Flip camera -->
+      <button class="cam-btn" id="btnFlipCam" aria-label="Flip camera">
+        <svg width="26" height="26" viewBox="0 0 22 22" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 4v5h5"/><path d="M20 18v-5h-5"/>
+          <path d="M18.49 8A8 8 0 005.5 5.5L2 9"/><path d="M3.51 14a8 8 0 0013 3L20 13"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ── Screen 5: popup toast ── -->
+    <div class="cam-popup" id="camPopup">Tap anywhere to take a photo 📸</div>
+
+    <!-- ── Tap anywhere indicator ── -->
+    <div id="tapHint">
+      <div class="tap-rings">
+        <div class="tap-ring"></div>
+        <div class="tap-ring"></div>
+        <div class="tap-ring"></div>
+        <div class="tap-hint-dot"></div>
+      </div>
+      <span class="tap-hint-label">tap anywhere to capture</span>
+    </div>
+
+    <!-- Hidden file input for photo library access -->
+    <input type="file" id="photoLibraryInput" accept="image/*" style="display:none" />
+
+
+    <!-- ── Screen 5: bottom action bar ── -->
+    <div class="cam-bottom-bar" id="camBottomBar">
+      <button class="cam-gallery-btn" id="btnGallery" aria-label="Photo library"></button>
+      <div class="cam-marquee-wrap">
+        <span class="cam-marquee-text"><span class="marquee-username">yunchai</span> <span class="marquee-sep">|</span> babe, wake up &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="marquee-username">yunchai</span> <span class="marquee-sep">|</span> babe, wake up &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      </div>
+      <button class="cam-proceed-btn" id="btnProceed" aria-label="Proceed">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1A1A2E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="11 15 16 10 11 5"/><polyline points="5 15 10 10 5 5"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ── Screen 3: dark scrim ── -->
+    <div class="scrim" id="scrim"></div>
+
+    <!-- ── Screen 3: camera permission bottom sheet ── -->
+    <div class="bottom-sheet" id="bottomSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-inner">
+        <div class="sheet-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        </div>
+        <div class="sheet-body">
+          <div class="sheet-text">
+            <p class="sheet-title">Allow camera access</p>
+            <p class="sheet-subtitle">Retake! needs your camera to let you shoot inside this frame.</p>
+          </div>
+          <div class="sheet-actions">
+            <button class="btn-allow-camera" id="btnAllowCamera">Allow Camera</button>
+            <button class="btn-not-now"      id="btnNotNow">Not now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Countdown overlay (timer countdown before shutter) ── -->
+    <div class="countdown-overlay" id="countdownOverlay">
+      <div class="countdown-number" id="countdownNumber"></div>
+      <div class="countdown-hint">Tap to cancel</div>
+    </div>
+
+    <!-- ── Shutter flash (white blink on capture) ── -->
+    <div class="flash-overlay" id="flashOverlay"></div>
+
+    <!-- ── Dark flash (masks purple → yellow retake swap) ── -->
+    <div class="dark-flash-overlay" id="darkFlashOverlay"></div>
+
+    <!-- ── Hidden canvas for photo capture ── -->
+    <canvas id="captureCanvas" style="display:none"></canvas>
+
+    <!-- ══════════════════════════════════════════════
+         SCREEN 6 — EDIT / SHARE
+    ══════════════════════════════════════════════ -->
+
+    <!-- Edge gradient scrim — keeps top/bottom UI readable on any photo -->
+    <div id="s6ScrimOverlay"></div>
+
+    <!-- Exit button (top-left) -->
+    <button class="s6-exit-btn" id="s6ExitBtn" aria-label="Exit session">
+      <svg width="26" height="26" viewBox="0 0 22 22" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="4" y1="4" x2="18" y2="18"/><line x1="18" y1="4" x2="4" y2="18"/>
+      </svg>
+    </button>
+
+    <!-- Right editing tools panel -->
+    <div class="s6-tools" id="s6Tools">
+      <!-- Text -->
+      <button class="s6-tool-btn" id="s6BtnText" aria-label="Text">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="5" x2="20" y2="5"/>
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="9" y1="19" x2="15" y2="19"/>
+        </svg>
+        <span class="tool-label">Text</span>
+      </button>
+      <!-- Stickers -->
+      <button class="s6-tool-btn" id="s6BtnStickers" aria-label="Stickers">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="overflow:visible">
+          <defs>
+            <mask id="smileyMask">
+              <rect width="24" height="24" fill="white"/>
+              <circle cx="9" cy="10" r="1.5" fill="black"/>
+              <circle cx="15" cy="10" r="1.5" fill="black"/>
+              <path d="M8 14.5 Q12 18 16 14.5" stroke="black" stroke-width="2" stroke-linecap="round" fill="none"/>
+            </mask>
+          </defs>
+          <circle cx="11" cy="13" r="9.5" fill="white" mask="url(#smileyMask)"/>
+          <line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="tool-label">Stickers</span>
+      </button>
+      <!-- Photo -->
+      <button class="s6-tool-btn" id="s6BtnGalleryEdit" aria-label="Photo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="overflow:visible">
+          <defs>
+            <clipPath id="photoClip">
+              <rect x="3" y="4" width="15" height="15" rx="2"/>
+            </clipPath>
+          </defs>
+          <g clip-path="url(#photoClip)" fill="white">
+            <circle cx="7.5" cy="9" r="1.8"/>
+            <path d="M3 19 L8 12.5 L10.5 15.5 L13.5 11.5 L18 19 Z"/>
+          </g>
+          <rect x="3" y="4" width="15" height="15" rx="2" stroke="white" stroke-width="1.5" fill="none"/>
+          <line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="tool-label">Photo</span>
+      </button>
+      <!-- Draw -->
+      <button class="s6-tool-btn" id="s6BtnPen" aria-label="Draw">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+          <line x1="15" y1="5" x2="19" y2="9"/>
+        </svg>
+        <span class="tool-label">Draw</span>
+      </button>
+      <!-- Save -->
+      <button class="s6-tool-btn" id="s6BtnDownload" aria-label="Save">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v11"/>
+          <polyline points="8 10 12 14 16 10"/>
+          <line x1="5" y1="19" x2="19" y2="19"/>
+        </svg>
+        <span class="tool-label">Save</span>
+      </button>
+    </div>
+
+    <!-- ── Tool-mode undo/redo (top-center) ── -->
+    <div id="tmUndoRedo" class="tool-mode-el">
+      <button class="history-btn" id="tmBtnUndo" aria-label="Undo" disabled>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+        </svg>
+      </button>
+      <button class="history-btn" id="tmBtnRedo" aria-label="Redo" disabled>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ── Done button (top-right) ── -->
+    <button id="tmDoneBtn" class="tool-mode-el" aria-label="Done">Done</button>
+
+    <!-- ── Left size-track panel ── -->
+    <div id="tmLeftPanel">
+      <div id="tmTrackTop"></div>
+      <div id="tmTrackBottom"></div>
+      <div id="tmSizeHandle"></div>
+    </div>
+
+    <!-- ── Pen mode bottom bar ── -->
+    <div id="tmPenBar">
+      <div class="tm-swatches">
+        <button class="tm-swatch active" data-color="#FFFFFF" style="background:#FFFFFF" aria-label="White"></button>
+        <button class="tm-swatch" data-color="#1A1A2E" style="background:#1A1A2E" aria-label="Black"></button>
+        <button class="tm-swatch" data-color="#F0E84A" style="background:#F0E84A" aria-label="Yellow"></button>
+        <button class="tm-swatch" data-color="#FF3B30" style="background:#FF3B30" aria-label="Red"></button>
+        <button class="tm-swatch" data-color="#6A00FF" style="background:#6A00FF" aria-label="Purple"></button>
+        <button class="tm-swatch" data-color="#00C2A8" style="background:#00C2A8" aria-label="Teal"></button>
+      </div>
+      <div class="tm-divider"></div>
+      <div class="tm-pen-types">
+        <button class="pen-type-btn active" data-pen="pen" title="Pen">
+          <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="white"/></svg>
+        </button>
+        <button class="pen-type-btn" data-pen="pencil" title="Pencil">
+          <svg width="16" height="16" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="10" rx="1.5" fill="white"/><polygon points="6,11 10,11 8,15" fill="white"/></svg>
+        </button>
+        <button class="pen-type-btn" data-pen="marker" title="Marker">
+          <svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="6" width="14" height="4" rx="2" fill="white"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom action bar: mirrors S5 cam-bottom-bar layout -->
+    <div class="s6-bottom-bar" id="s6BottomBar">
+      <button class="s6-circle-btn" id="s6RetakeBtn" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 15 4 10 9 5"/><polyline points="15 15 10 10 15 5"/>
+        </svg>
+      </button>
+      <span class="s6-bar-label">Share your Retake!</span>
+      <div class="s6-bar-actions">
+        <button class="s6-send-btn" id="s6SharePill" aria-label="Share your Retake">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 2 15 22 11 13 2 9 22 2" fill="#1A1A2E"/>
+          </svg>
+        </button>
+        <button class="s6-circle-btn" id="s6ContribBtn" aria-label="Copy link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="s6-toast" id="s6Toast"></div>
+
+    <!-- invitee-s7-pop1 -->
+    <div class="s7-pop" id="s7Pop">
+      <div class="s7-pop-content">
+        <p class="s7-pop-title">Your turn's done! Pass it on</p>
+        <p class="s7-pop-subtitle">Share the code and let a friend retake this frame</p>
+      </div>
+      <div class="s7-pop-code-row">
+        <span class="s7-pop-code" id="s7PopCode"></span>
+        <button class="s7-pop-copy-btn" id="s7PopCopyBtn" aria-label="Copy code">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <!-- Shared confirm dialog (retake + exit) -->
+    <div class="confirm-scrim"   id="confirmScrim"></div>
+    <div class="confirm-dialog"  id="confirmDialog">
+      <p class="confirm-message" id="confirmMessage"></p>
+      <div class="confirm-buttons">
+        <button class="confirm-btn confirm-btn-cancel" id="confirmCancel">Stay</button>
+        <button class="confirm-btn confirm-btn-ok"     id="confirmOk"></button>
+      </div>
+    </div>
+
+
+  </div><!-- /.screen -->
+
+  <script>
+    /* ── helpers ── */
+    const $ = id => document.getElementById(id);
+    const delay = ms => new Promise(r => setTimeout(r, ms));
+
+
+    const screen      = $('screen');
+    const inviteCard  = $('inviteCard');
+    const screen4Card = $('screen4Card');
+    const scrim       = $('scrim');
+    const sheet       = $('bottomSheet');
+    const cameraView  = $('cameraView');
+    const btnAccept   = $('btnAccept');
+    const btnDecline  = $('btnDecline');
+    const btnAllow    = $('btnAllowCamera');
+    const btnNotNow   = $('btnNotNow');
+
+
+    /* ─────────────────────────────────────────────────────
+       STEP 1: camera permission sheet on load
+    ───────────────────────────────────────────────────── */
+    setTimeout(() => {
+      scrim.classList.add('visible');
+      sheet.classList.add('visible');
+    }, 900);
+
+    /* ─────────────────────────────────────────────────────
+       DECLINE invite card — dismiss
+    ───────────────────────────────────────────────────── */
+    btnDecline.addEventListener('click', () => {
+      inviteCard.classList.remove('visible');
+      scrim.classList.remove('visible');
+    });
+
+    /* ─────────────────────────────────────────────────────
+       VIEW FRAME → enter camera UI immediately
+    ───────────────────────────────────────────────────── */
+    btnAccept.addEventListener('click', () => {
+      inviteCard.classList.remove('visible');
+      scrim.classList.remove('visible');
+      setTimeout(() => enterCameraUI(), 250);
+    });
+
+    /* ─────────────────────────────────────────────────────
+       NOT NOW — close sheet, frame stays visible
+    ───────────────────────────────────────────────────── */
+    btnNotNow.addEventListener('click', () => {
+      sheet.classList.remove('visible');
+      scrim.classList.remove('visible');
+    });
+
+    /* ─────────────────────────────────────────────────────
+       SIMULATE CAMERA — used when real camera unavailable
+       (file:// context, permission denied, or any error)
+    ───────────────────────────────────────────────────── */
+    /* ─────────────────────────────────────────────────────
+       S2 → S3: camera granted → live feed shows through
+       frame cutout → S4: invite card springs in.
+    ───────────────────────────────────────────────────── */
+    async function activateCameraS3() {
+      sheet.classList.remove('visible');
+      scrim.classList.remove('visible');
+      await delay(200);
+      cameraView.classList.add('active');
+      $('mkSlotBg').style.opacity = '0';
+      await delay(1200);
+      scrim.classList.add('visible');
+      inviteCard.classList.add('visible');
+    }
+
+    async function simulateCameraAccept() {
+      sheet.classList.remove('visible');
+      scrim.classList.remove('visible');
+      await delay(200);
+      $('mkSlotBg').style.opacity = '0';
+      cameraView.classList.add('active');
+      cameraView.style.background = '#222';
+      await delay(1200);
+      scrim.classList.add('visible');
+      inviteCard.classList.add('visible');
+    }
+
+    /* ─────────────────────────────────────────────────────
+       ALLOW CAMERA (S2 sheet button)
+       Grant → S3 (live camera through frame) → S4 (invite)
+    ───────────────────────────────────────────────────── */
+    btnAllow.addEventListener('click', async () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        await simulateCameraAccept();
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: 422, height: 750 }
+        });
+        activeStream = stream;
+        cameraView.srcObject = stream;
+        await activateCameraS3();
+      } catch (err) {
+        console.warn('Camera unavailable:', err.name, err.message);
+        await simulateCameraAccept();
+      }
+    });
+
+    /* ─────────────────────────────────────────────────────
+       SCREEN 4 → SCREEN 5
+       Tap anywhere on the card (or screen) to enter
+       camera UI: top controls + popup toast + bottom bar
+    ───────────────────────────────────────────────────── */
+    const camTopBar    = $('camTopBar');
+    const camPopup     = $('camPopup');
+    const camBottomBar = $('camBottomBar');
+    const watermark    = $('watermark');
+    const btnFlipCam   = $('btnFlipCam');
+    const btnCloseCamera = $('btnCloseCamera');
+
+    let activeStream = null; /* shared so flip can swap it */
+    let currentFacing = 'environment';
+
+    async function enterCameraUI() {
+      /* Slide card away */
+      screen4Card.classList.remove('visible');
+      watermark.style.transition = 'opacity 0.3s ease';
+      watermark.style.opacity = '0';
+
+      await delay(280);
+
+      /* Slide top bar down + bottom bar up simultaneously */
+      camTopBar.classList.add('visible');
+      camBottomBar.classList.add('visible');
+
+      $('cutoutGlow').classList.add('hidden');
+
+      /* Show tap hint — fades out on first tap or after 3 seconds */
+      await delay(300);
+      const tapHint = $('tapHint');
+      tapHint.classList.add('visible');
+
+      const dismissHint = (e) => {
+        if (e) e.stopPropagation(); /* block this tap from firing capture */
+        tapHint.classList.add('hiding');
+        setTimeout(() => tapHint.classList.remove('visible', 'hiding'), 500);
+        screen.removeEventListener('click', dismissHint, true);
+        clearTimeout(hintTimer);
+      };
+      const hintTimer = setTimeout(() => dismissHint(null), 10000);
+      screen.addEventListener('click', dismissHint, true); /* capture phase — runs before cameraView handler */
+    }
+
+
+    /* ── CLOSE CAMERA — warn if user hasn't contributed anything ── */
+    btnCloseCamera.addEventListener('click', async () => {
+      const hasContributed = photoContainer.classList.contains('active') || capturedDataUrl;
+      if (!hasContributed) {
+        const ok = await showConfirm(
+          'Skip your turn? 👀\nYunchai is waiting for your photo.',
+          'Skip for now',
+          true,
+          'Stay & Shoot'
+        );
+        if (!ok) return;
+      }
+      camTopBar.classList.remove('visible');
+      camBottomBar.classList.remove('visible');
+
+      camPopup.classList.remove('visible');
+      if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
+      cameraView.srcObject = null;
+      cameraView.classList.remove('active');
+      $('camTopGradient').classList.remove('visible');
+      screen.classList.remove('screen4-bg');
+      watermark.style.opacity = '1';
+      $('cutoutGlow').classList.remove('hidden');
+      $('tapHint').classList.remove('visible', 'hiding');
+    });
+
+    /* ── GALLERY — photo library picker + placement ── */
+    const photoLibraryInput = $('photoLibraryInput');
+    const photoContainer    = $('photoContainer');
+    const photoOverlay      = $('photoOverlay');
+    const btnTakeInstead    = $('btnTakePhotoInstead');
+
+    /* photo transform state */
+    let photoScale    = 1;
+    let photoRotation = 0;
+    /* minimum scale so photo always fills the 421×748 frame (no checkerboard) */
+    function minScaleForAngle(deg) {
+      const r = Math.abs(deg * Math.PI / 180) % (Math.PI / 2);
+      const W = 421, H = 748;
+      return Math.max(
+        1,
+        (W * Math.abs(Math.cos(r)) + H * Math.abs(Math.sin(r))) / W,
+        (H * Math.abs(Math.cos(r)) + W * Math.abs(Math.sin(r))) / H
+      );
+    }
+    function applyPhotoTransform() {
+      const minS = minScaleForAngle(photoRotation);
+      if (photoScale < minS) photoScale = minS;
+      photoOverlay.style.transform =
+        `translate(-50%, -50%) scale(${photoScale}) rotate(${photoRotation}deg) scaleX(-1)`;
+    }
+
+    $('btnGallery').addEventListener('click', () => photoLibraryInput.click());
+
+    photoLibraryInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+
+      /* reset transform */
+      photoScale = 1; photoRotation = 0;
+      photoOverlay.src = url;
+      photoOverlay.onload = () => {
+        applyPhotoTransform();
+        photoContainer.classList.add('active');
+        camTopBar.classList.add('gallery-mode');
+        photoLibraryInput.value = '';
+        /* Gallery photo ready — subtle bounce draws eye to proceed button */
+        const proc = $('btnProceed');
+        proc.style.transition = 'none';
+        proc.style.transform  = 'scale(0.78)';
+        requestAnimationFrame(() => {
+          proc.style.transition = 'transform 0.42s cubic-bezier(0.34,1.56,0.64,1)';
+          proc.style.transform  = 'scale(1)';
+        });
+      };
+    });
+
+    /* "Take photo instead" — discard gallery photo, back to live camera */
+    btnTakeInstead.addEventListener('click', () => {
+      photoContainer.classList.remove('active');
+      photoOverlay.src = '';
+      camTopBar.classList.remove('gallery-mode');
+      /* Reset proceed button transform */
+      if (!capturedDataUrl) {
+        const proc = $('btnProceed');
+        proc.style.transform  = '';
+        proc.style.transition = '';
+      }
+    });
+
+    /* "Retake photo" — S5 post-capture: discard frozen photo, return to live camera */
+    $('btnRetakePhoto').addEventListener('click', () => {
+      capturedDataUrl = null;
+      photoContainer.classList.remove('active');
+      photoOverlay.src = '';
+      photoScale = 1; photoRotation = 0;
+      camTopBar.classList.remove('capture-mode');
+      $('camTopGradient').classList.add('visible');
+      $('btnProceed').style.transform  = '';
+      $('btnProceed').style.transition = '';
+    });
+
+    /* ── TWO-FINGER PINCH + ROTATE on the photo ── */
+    let gesture = { active: false, initDist: 0, initAngle: 0, initScale: 1, initRot: 0 };
+
+    function touchDist(t) {
+      const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+    function touchAngle(t) {
+      return Math.atan2(t[1].clientY - t[0].clientY, t[1].clientX - t[0].clientX) * 180 / Math.PI;
+    }
+
+    photoContainer.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        gesture = {
+          active: true,
+          initDist:  touchDist(e.touches),
+          initAngle: touchAngle(e.touches),
+          initScale: photoScale,
+          initRot:   photoRotation
+        };
+      }
+    }, { passive: false });
+
+    photoContainer.addEventListener('touchmove', (e) => {
+      if (!gesture.active || e.touches.length !== 2) return;
+      e.preventDefault();
+      photoScale    = gesture.initScale * (touchDist(e.touches) / gesture.initDist);
+      photoRotation = gesture.initRot   + (touchAngle(e.touches) - gesture.initAngle);
+      applyPhotoTransform();
+    }, { passive: false });
+
+    let lastPinchEndTime = 0;
+    photoContainer.addEventListener('touchend', () => {
+      if (gesture.active) lastPinchEndTime = Date.now(); /* track for tap cooldown */
+      gesture.active = false;
+    });
+
+    /* ── FLIP CAMERA ── */
+    btnFlipCam.addEventListener('click', async () => {
+      if (!navigator.mediaDevices) return;
+      currentFacing = currentFacing === 'environment' ? 'user' : 'environment';
+      if (activeStream) activeStream.getTracks().forEach(t => t.stop());
+      try {
+        activeStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: currentFacing }
+        });
+        cameraView.srcObject = activeStream;
+      } catch (e) { /* ignore flip errors */ }
+    });
+
+
+    /* ─────────────────────────────────────────────────────
+       TIMER BUTTON  — cycles Off → 3s → 6s → 10s → Off
+    ───────────────────────────────────────────────────── */
+    const TIMER_STEPS = [0, 3, 6, 10];
+    let timerIndex = 0;
+    const btnTimer   = $('btnTimer');
+    const timerBadge = $('timerBadge');
+
+    btnTimer.addEventListener('click', () => {
+      timerIndex = (timerIndex + 1) % TIMER_STEPS.length;
+      const val = TIMER_STEPS[timerIndex];
+      if (val === 0) {
+        btnTimer.classList.remove('timer-active');
+        timerBadge.textContent = '';
+      } else {
+        btnTimer.classList.add('timer-active');
+        timerBadge.textContent = val + 's';
+      }
+    });
+
+
+    /* ─────────────────────────────────────────────────────
+       FLASH HELPER
+       peakOpacity : CSS opacity string e.g. '0.85'
+       holdMs      : ms to hold at peak before fading
+       fadeMs      : fade-out duration in ms
+    ───────────────────────────────────────────────────── */
+    const flashOverlay = $('flashOverlay');
+
+    async function doFlash(peakOpacity, holdMs, fadeMs) {
+      flashOverlay.style.transition = 'none';
+      flashOverlay.style.opacity    = peakOpacity;
+      await delay(holdMs);
+      flashOverlay.style.transition = `opacity ${fadeMs}ms ease-out`;
+      flashOverlay.style.opacity    = '0';
+      await delay(fadeMs);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       PHOTO CAPTURE  — draws camera or gallery photo to canvas
+       Returns a jpeg data-URL.
+    ───────────────────────────────────────────────────── */
+    async function capturePhoto() {
+      const canvas = $('captureCanvas');
+      canvas.width  = 414;
+      canvas.height = 748;
+      const ctx = canvas.getContext('2d');
+
+      if (photoContainer.classList.contains('active')) {
+        /* ── Gallery photo with user pinch/rotate transforms ── */
+        ctx.save();
+        ctx.translate(414 / 2, 748 / 2);
+        ctx.scale(photoScale, photoScale);
+        ctx.rotate(photoRotation * Math.PI / 180);
+
+        /* Replicate object-fit: cover so canvas matches what the user sees */
+        const iw = photoOverlay.naturalWidth, ih = photoOverlay.naturalHeight;
+        const boxAr = 414 / 748, imgAr = iw / ih;
+        let sx, sy, sw, sh;
+        if (imgAr > boxAr) {          /* image wider than frame */
+          sh = ih; sw = sh * boxAr;
+          sx = (iw - sw) / 2; sy = 0;
+        } else {                       /* image taller than frame */
+          sw = iw; sh = sw / boxAr;
+          sx = 0; sy = (ih - sh) / 2;
+        }
+        ctx.drawImage(photoOverlay, sx, sy, sw, sh, -414 / 2, -748 / 2, 414, 748);
+        ctx.restore();
+      } else {
+        /* ── Live camera frame — replicate object-fit: cover ── */
+        const vw = cameraView.videoWidth  || 414;
+        const vh = cameraView.videoHeight || 748;
+        const boxAr = 414 / 748, vidAr = vw / vh;
+        let sx, sy, sw, sh;
+        if (vidAr > boxAr) {   /* video wider than frame → crop sides */
+          sh = vh; sw = sh * boxAr;
+          sx = (vw - sw) / 2; sy = 0;
+        } else {                /* video taller than frame → crop top/bottom */
+          sw = vw; sh = sw / boxAr;
+          sx = 0; sy = (vh - sh) / 2;
+        }
+        ctx.drawImage(cameraView, sx, sy, sw, sh, 0, 0, 414, 748);
+      }
+
+      return canvas.toDataURL('image/jpeg', 0.92);
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       SCREEN 6 STATE
+    ───────────────────────────────────────────────────── */
+    let capturedDataUrl = null;
+    let compositeBlob   = null;   /* pre-built so share() fires in same gesture */
+    const frameName     = "babe, wake up";
+    const darkFlash     = $('darkFlashOverlay');
+
+    /* ─────────────────────────────────────────────────────
+       EXECUTE CAPTURE → transition to Screen 6
+       Called at the moment of shutter (no timer or end of countdown).
+    ───────────────────────────────────────────────────── */
+    async function executeCapture() {
+      /* 1. Grab current frame */
+      const isGallery = photoContainer.classList.contains('active');
+      const dataUrl   = await capturePhoto();
+
+      /* 2. If live camera: freeze frame into photoContainer */
+      if (!isGallery) {
+        photoScale = 1; photoRotation = 0;
+        photoOverlay.src = dataUrl;
+        await new Promise(r => { photoOverlay.onload = r; photoOverlay.onerror = r; });
+        photoContainer.classList.add('active');
+        applyPhotoTransform();
+      }
+      capturedDataUrl = dataUrl;
+
+      /* 3. White shutter flash */
+      flashOverlay.style.transition = 'none';
+      flashOverlay.style.opacity    = '0.88';
+      await delay(45);
+
+      /* 4. Under the white — clean up HUD overlays, stay on S5 */
+      $('camTopGradient').classList.remove('visible');
+      camPopup.classList.remove('visible');
+
+      /* 5. Flash fades — yellow S5 + frozen photo revealed */
+      flashOverlay.style.transition = 'opacity 340ms ease-out';
+      flashOverlay.style.opacity    = '0';
+
+      /* 6. Top bar slides to capture mode: hide controls, show "Retake photo" */
+      camTopBar.classList.add('capture-mode');
+    }
+
+    /* ─────────────────────────────────────────────────────
+       TRANSITION TO S6 — fired by proceed button after capture
+    ───────────────────────────────────────────────────── */
+    let transitionInProgress = false;
+    async function transitionToS6() {
+      if (transitionInProgress || !capturedDataUrl) return;
+      transitionInProgress = true;
+
+      /* Brief flash to mask yellow→purple swap */
+      flashOverlay.style.transition = 'none';
+      flashOverlay.style.opacity    = '0.88';
+      await delay(45);
+
+      /* Under flash: swap to S6 */
+      screen.classList.remove('screen4-bg');
+      screen.classList.add('screen6-bg');
+      camTopBar.classList.remove('visible', 'capture-mode');
+      camBottomBar.classList.remove('visible');
+
+      $('btnProceed').style.transform  = '';
+
+      /* Flash fades — purple S6 revealed */
+      flashOverlay.style.transition = 'opacity 340ms ease-out';
+      flashOverlay.style.opacity    = '0';
+      await delay(200);
+
+      /* Reset drawing canvas for fresh session */
+      clearDrawingCanvas();
+
+      /* S6 elements stagger in */
+      $('s6ExitBtn').classList.add('visible');
+      await delay(80);
+      $('s6Tools').classList.add('visible');
+      await delay(70);
+      $('s6BottomBar').classList.add('visible');
+
+      transitionInProgress = false;
+
+      /* Pre-build composite in background so share() can fire synchronously */
+      compositeBlob = null;
+      buildCompositeBlob()
+        .then(b => { compositeBlob = b; })
+        .catch(() => { compositeBlob = dataUrlToBlob(capturedDataUrl); });
+    }
+
+
+    /* ─────────────────────────────────────────────────────
+       COUNTDOWN + CAPTURE ORCHESTRATOR
+    ───────────────────────────────────────────────────── */
+    const countdownOverlay = $('countdownOverlay');
+    const countdownNumber  = $('countdownNumber');
+    let   countdownActive  = false;
+    let   captureInProgress = false;  /* prevent double-fire */
+
+    async function startCapture() {
+      if (countdownActive || captureInProgress) return;
+      if (!camTopBar.classList.contains('visible')) return; /* only in camera UI */
+
+      const seconds = TIMER_STEPS[timerIndex];
+
+      if (seconds === 0) {
+        captureInProgress = true;
+        await executeCapture();
+        captureInProgress = false;
+        return;
+      }
+
+      /* ── Timed countdown ── */
+      countdownActive = true;
+
+      /* Breathe IN — number springs in from small */
+      async function breatheIn(n) {
+        countdownNumber.textContent = n;
+        countdownNumber.style.cssText = 'opacity:0; transform:scale(0.38); transition:none;';
+        await delay(16); /* one frame */
+        countdownNumber.style.cssText =
+          'opacity:1; transform:scale(1);' +
+          'transition: opacity 0.2s ease-out, transform 0.52s cubic-bezier(0.34,1.46,0.64,1);';
+      }
+
+      /* Breathe OUT — number shrinks and fades away */
+      async function breatheOut() {
+        countdownNumber.style.cssText =
+          'opacity:0; transform:scale(0.52);' +
+          'transition: opacity 0.2s ease-in, transform 0.24s ease-in;';
+        await delay(220);
+      }
+
+      countdownOverlay.classList.add('visible');
+      await breatheIn(seconds);
+      await delay(860); /* hold first number for nearly one full second */
+
+      for (let i = seconds - 1; i >= 1; i--) {
+        if (!countdownActive) break;
+        doFlash('0.09', 20, 160); /* soft tick blink, coincides with exhale */
+        await breatheOut();
+        if (!countdownActive) break;
+        await breatheIn(i);
+        await delay(750); /* hold — total per beat: 220+750 ≈ 970ms ≈ 1s */
+      }
+
+      /* Cancelled mid-countdown */
+      if (!countdownActive) {
+        countdownNumber.style.cssText =
+          'opacity:0; transform:scale(0.6);' +
+          'transition: opacity 0.26s ease, transform 0.26s ease;';
+        await delay(280);
+        countdownOverlay.classList.remove('visible');
+        return;
+      }
+
+      /* Final exhale → fire shutter */
+      countdownActive = false;
+      doFlash('0.09', 20, 160);
+      await breatheOut();
+      countdownOverlay.classList.remove('visible');
+      await delay(40);
+      captureInProgress = true;
+      await executeCapture();
+      captureInProgress = false;
+    }
+
+    /* Tap countdown area to cancel */
+    countdownOverlay.addEventListener('click', () => { countdownActive = false; });
+
+
+    /* ─────────────────────────────────────────────────────
+       TAP-ANYWHERE TO CAPTURE
+       • Live camera view → instant trigger
+       • Gallery photo area → 420ms cooldown after pinch ends
+    ───────────────────────────────────────────────────── */
+    cameraView.addEventListener('click', () => {
+      if (photoContainer.classList.contains('active')) return; /* gallery/capture handles it */
+      if (capturedDataUrl) return; /* already captured — pinch mode only */
+      startCapture();
+    });
+
+    photoContainer.addEventListener('click', () => {
+      if (capturedDataUrl) return;                               /* already captured — pinch only */
+      if (photoContainer.classList.contains('active')) return;   /* gallery mode — pinch to adjust, proceed to capture */
+      if (Date.now() - lastPinchEndTime < 420) return;           /* cooldown after pinch */
+      startCapture();
+    });
+
+    /* Proceed button:
+       • No photo     → trigger camera capture
+       • Gallery mode → silently composite + transition to S6 (single flash)
+       • Captured     → transition to S6 */
+    $('btnProceed').addEventListener('click', async () => {
+      if (capturedDataUrl) {
+        transitionToS6();
+      } else if (photoContainer.classList.contains('active')) {
+        if (captureInProgress || transitionInProgress) return;
+        captureInProgress = true;
+        capturedDataUrl = await capturePhoto();
+        captureInProgress = false;
+        await transitionToS6();
+      } else {
+        if (captureInProgress || transitionInProgress) return;
+        captureInProgress = true;
+        capturedDataUrl = await capturePhoto();
+        captureInProgress = false;
+        await transitionToS6();
+      }
+    });
+
+
+    /* ─────────────────────────────────────────────────────
+       SHARED CONFIRM DIALOG
+    ───────────────────────────────────────────────────── */
+    let confirmResolve = null;
+
+    function showConfirm(message, okLabel, danger = false, cancelLabel = 'Stay') {
+      return new Promise(resolve => {
+        confirmResolve = resolve;
+        $('confirmMessage').textContent  = message;
+        $('confirmOk').textContent       = okLabel;
+        $('confirmCancel').textContent   = cancelLabel;
+        $('confirmOk').classList.toggle('danger', danger);
+        $('confirmScrim').classList.add('visible');
+        $('confirmDialog').classList.add('visible');
+      });
+    }
+    function dismissConfirm() {
+      $('confirmScrim').classList.remove('visible');
+      $('confirmDialog').classList.remove('visible');
+    }
+    $('confirmOk').addEventListener('click', () => {
+      dismissConfirm();
+      if (confirmResolve) { confirmResolve(true);  confirmResolve = null; }
+    });
+    $('confirmCancel').addEventListener('click', () => {
+      dismissConfirm();
+      if (confirmResolve) { confirmResolve(false); confirmResolve = null; }
+    });
+    $('confirmScrim').addEventListener('click', () => {
+      dismissConfirm();
+      if (confirmResolve) { confirmResolve(false); confirmResolve = null; }
+    });
+
+
+    /* ─────────────────────────────────────────────────────
+       RETAKE — go back to live camera from Screen 6
+    ───────────────────────────────────────────────────── */
+    async function retakeFromEdit() {
+      if (activeTool) exitToolMode();
+      /* Fade S6 elements out */
+      $('s6ExitBtn').classList.remove('visible');
+      $('s6Tools').classList.remove('visible');
+      $('s6BottomBar').classList.remove('visible');
+      $('s6Toast').classList.remove('visible');
+
+      /* Brief dark flash to mask the purple→yellow colour swap */
+      darkFlash.style.transition = 'none';
+      darkFlash.style.opacity    = '0.22';
+      await delay(65);
+
+      screen.classList.remove('screen6-bg');
+      screen.classList.add('screen4-bg');
+      photoContainer.classList.remove('active');
+      photoOverlay.src = '';
+      camTopBar.classList.remove('gallery-mode', 'capture-mode');
+      $('camTopGradient').classList.add('visible');
+      capturedDataUrl = null; compositeBlob = null;
+      transitionInProgress = false;
+      /* Reset proceed button to idle */
+      const proc = $('btnProceed');
+      proc.style.transform = '';
+      proc.style.transition = '';
+
+      darkFlash.style.transition = 'opacity 280ms ease-out';
+      darkFlash.style.opacity    = '0';
+      await delay(180);
+
+      /* Camera controls spring back */
+      camTopBar.classList.add('visible');
+      camBottomBar.classList.add('visible');
+
+      /* Reset timer */
+      timerIndex = 0;
+      btnTimer.classList.remove('timer-active');
+      timerBadge.textContent = '';
+    }
+
+    $('s6RetakeBtn').addEventListener('click', async () => {
+      const ok = await showConfirm(
+        'Go back and retake?\nYour photo won\'t be saved.',
+        'Retake', true
+      );
+      if (ok) await retakeFromEdit();
+    });
+
+
+    /* ─────────────────────────────────────────────────────
+       EXIT — abandon session, return to invite card
+    ───────────────────────────────────────────────────── */
+    async function exitSession() {
+      if (activeTool) exitToolMode();
+      $('s6ExitBtn').classList.remove('visible');
+      $('s6Tools').classList.remove('visible');
+      $('s6BottomBar').classList.remove('visible');
+      $('s6Toast').classList.remove('visible');
+
+      if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
+      cameraView.srcObject = null;
+      cameraView.classList.remove('active');
+
+      screen.classList.remove('screen6-bg', 'screen4-bg');
+      photoContainer.classList.remove('active');
+      photoOverlay.src = '';
+      camTopBar.classList.remove('gallery-mode', 'capture-mode', 'visible');
+      camBottomBar.classList.remove('visible');
+
+      $('camTopGradient').classList.remove('visible');
+      watermark.style.opacity = '1';
+      $('cutoutGlow').classList.remove('hidden');
+      $('tapHint').classList.remove('visible', 'hiding');
+      timerIndex = 0;
+      btnTimer.classList.remove('timer-active');
+      timerBadge.textContent = '';
+      capturedDataUrl = null; compositeBlob = null;
+      transitionInProgress = false;
+      currentFacing   = 'environment';
+      /* Reset proceed button */
+      const proc = $('btnProceed');
+      proc.style.transform = '';
+      proc.style.transition = '';
+
+      /* Reset mkSlotBg checkerboard */
+      $('mkSlotBg').style.opacity = '1';
+
+      /* Reset invite card to hidden */
+      inviteCard.classList.remove('visible');
+      scrim.classList.remove('visible');
+    }
+
+    /* ════════════════════════════════════════════
+       DRAWING SYSTEM (doodle + eraser tool mode)
+    ════════════════════════════════════════════ */
+    const editCanvas = $('editCanvas');
+    const ctx        = editCanvas.getContext('2d');
+    const cursorSvg  = $('brushCursor');
+    const cursorCircle = $('brushCursorCircle');
+
+    /* State */
+    let activeTool      = null;   /* 'doodle' | null */
+    let toolRadius      = 32;     /* 4–60px */
+    let doodleColor     = '#FFFFFF';
+    let penType         = 'pen';  /* 'pen' | 'pencil' | 'marker' */
+
+    /* History stacks */
+    let toolUndoStack   = [];
+    let toolRedoStack   = [];
+    let sessionEntrySnap = null;
+
+    /* Track panel constants */
+    const PANEL_W = 56, TRACK_TOP_Y = 38, TRACK_BOT_Y = 210;
+    const HANDLE_MIN = 6, HANDLE_MAX = 38;
+
+    function setFill(input, val) {
+      input.style.setProperty('--fill', val + '%');
+    }
+
+    function setHandlePos(norm) {
+      const size   = Math.round(HANDLE_MIN + norm * (HANDLE_MAX - HANDLE_MIN));
+      const trackY = TRACK_TOP_Y + (1 - norm) * (TRACK_BOT_Y - TRACK_TOP_Y);
+      const h = $('tmSizeHandle');
+      h.style.width  = size + 'px'; h.style.height = size + 'px';
+      h.style.top    = (trackY - size / 2) + 'px';
+      h.style.left   = ((PANEL_W - size) / 2) + 'px';
+    }
+
+    function syncCursor() {
+      const r = toolRadius, d = r * 2 + 8;
+      cursorSvg.setAttribute('width', d); cursorSvg.setAttribute('height', d);
+      cursorSvg.setAttribute('viewBox', `${-d/2} ${-d/2} ${d} ${d}`);
+      cursorCircle.setAttribute('r', r);
+      if (activeTool === 'doodle') {
+        const alpha = doodleColor === '#FFFFFF' ? '44' : '55';
+        cursorCircle.setAttribute('fill', doodleColor + alpha);
+        cursorCircle.setAttribute('stroke', doodleColor);
+        cursorCircle.setAttribute('stroke-dasharray', '');
+        cursorCircle.setAttribute('stroke-width', '2');
+      } else {
+        cursorCircle.setAttribute('fill', 'rgba(255,255,255,0.06)');
+        cursorCircle.setAttribute('stroke', 'rgba(255,255,255,0.8)');
+        cursorCircle.setAttribute('stroke-dasharray', '4 3');
+        cursorCircle.setAttribute('stroke-width', '1.5');
+      }
+    }
+
+    function syncToolHistoryBtns() {
+      $('tmBtnUndo').disabled = toolUndoStack.length <= 1;
+      $('tmBtnRedo').disabled = toolRedoStack.length === 0;
+    }
+
+    function toolUndo() {
+      if (toolUndoStack.length <= 1) return;
+      toolRedoStack.push(toolUndoStack.pop());
+      const img = new Image();
+      img.onload = () => { ctx.clearRect(0,0,editCanvas.width,editCanvas.height); ctx.drawImage(img,0,0); };
+      img.src = toolUndoStack[toolUndoStack.length - 1];
+      syncToolHistoryBtns();
+    }
+
+    function toolRedo() {
+      if (!toolRedoStack.length) return;
+      const snap = toolRedoStack.pop();
+      toolUndoStack.push(snap);
+      const img = new Image();
+      img.onload = () => { ctx.clearRect(0,0,editCanvas.width,editCanvas.height); ctx.drawImage(img,0,0); };
+      img.src = snap;
+      syncToolHistoryBtns();
+    }
+
+    /* Paint stroke */
+    function paintAt(x, y, fx, fy) {
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(x, y);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      if (penType === 'pencil') {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = doodleColor;
+        ctx.lineWidth = Math.max(1, toolRadius * 0.8);
+        ctx.globalAlpha = 0.55; ctx.stroke();
+        ctx.lineWidth = toolRadius * 1.6; ctx.globalAlpha = 0.08; ctx.stroke();
+      } else if (penType === 'marker') {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = doodleColor;
+        ctx.lineWidth = toolRadius * 3.5;
+        ctx.lineCap = 'square'; ctx.lineJoin = 'miter';
+        ctx.globalAlpha = 0.38; ctx.stroke();
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = doodleColor;
+        ctx.lineWidth = toolRadius * 2;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    /* Left panel expand/collapse */
+    let lpCollapseTimer = null;
+    const LP_COLLAPSED_X = '-28px';
+    function expandLeftPanel() {
+      $('tmLeftPanel').style.transform = 'translateX(0)';
+      clearTimeout(lpCollapseTimer);
+      lpCollapseTimer = setTimeout(() => {
+        if (activeTool) $('tmLeftPanel').style.transform = `translateX(${LP_COLLAPSED_X})`;
+      }, 1800);
+    }
+
+    function applyTrackNorm(norm) {
+      norm = Math.max(0, Math.min(1, norm));
+      toolRadius = Math.round(4 + norm * (60 - 4));
+      setHandlePos(norm); syncCursor(); expandLeftPanel();
+    }
+
+    function configureLeftPanel() {
+      toolRadius = Math.round(4 + 0.1 * (60 - 4));
+      setHandlePos(0.1);
+      syncCursor();
+    }
+
+    /* Enter / Exit tool mode */
+    function enterToolMode(tool) {
+      activeTool = tool;
+      sessionEntrySnap = editCanvas.toDataURL();
+      toolUndoStack = [sessionEntrySnap];
+      toolRedoStack = [];
+      configureLeftPanel();
+      syncToolHistoryBtns();
+
+      $('s6ExitBtn').classList.add('out');
+      $('s6Tools').classList.add('out');
+      $('s6BottomBar').classList.add('out');
+      setTimeout(() => { $('s6Tools').classList.remove('visible','out'); }, 400);
+
+      setTimeout(() => {
+        $('tmUndoRedo').classList.add('tm-in');
+        $('tmDoneBtn').classList.add('tm-in');
+        $('tmLeftPanel').classList.add('tm-in');
+        $('tmPenBar').classList.add('tm-in');
+        expandLeftPanel();
+      }, 120);
+
+      editCanvas.classList.remove('no-tool');
+      syncCursor();
+      cursorSvg.style.display = 'none';
+    }
+
+    function exitToolMode() {
+      activeTool = null;
+      clearTimeout(lpCollapseTimer);
+      syncToolHistoryBtns();
+
+      $('tmUndoRedo').classList.remove('tm-in');
+      $('tmDoneBtn').classList.remove('tm-in');
+      $('tmLeftPanel').classList.remove('tm-in');
+      $('tmLeftPanel').style.transform = '';
+      $('tmPenBar').classList.remove('tm-in');
+
+      setTimeout(() => {
+        $('s6ExitBtn').classList.remove('out');
+        $('s6Tools').classList.remove('out');
+        $('s6Tools').classList.add('visible');
+        $('s6BottomBar').classList.remove('out');
+      }, 100);
+
+      editCanvas.classList.add('no-tool');
+      cursorSvg.style.display = 'none';
+    }
+
+    /* ── Tool button handlers ── */
+    ['s6BtnText','s6BtnStickers','s6BtnGalleryEdit'].forEach(id => {
+      $(id).addEventListener('click', () => { if (activeTool) exitToolMode(); });
+    });
+    $('s6BtnPen').addEventListener('click', () => {
+      if (activeTool === 'doodle') { exitToolMode(); return; }
+      if (activeTool) exitToolMode();
+      setTimeout(() => { $('s6BtnPen').classList.add('active'); enterToolMode('doodle'); }, activeTool ? 120 : 0);
+    });
+    $('tmDoneBtn').addEventListener('click', exitToolMode);
+    $('tmBtnUndo').addEventListener('click', toolUndo);
+    $('tmBtnRedo').addEventListener('click', toolRedo);
+
+    /* ── Size track panel drag ── */
+    function normFromClientY(clientY) {
+      const rect = $('tmLeftPanel').getBoundingClientRect();
+      return Math.max(0, Math.min(1, 1 - (clientY - rect.top - TRACK_TOP_Y) / (TRACK_BOT_Y - TRACK_TOP_Y)));
+    }
+    let trackDragging = false;
+    $('tmLeftPanel').addEventListener('mouseenter', expandLeftPanel);
+    $('tmLeftPanel').addEventListener('mousedown', e => { trackDragging = true; applyTrackNorm(normFromClientY(e.clientY)); });
+    document.addEventListener('mousemove', e => { if (trackDragging) applyTrackNorm(normFromClientY(e.clientY)); });
+    document.addEventListener('mouseup',   () => { trackDragging = false; });
+    $('tmLeftPanel').addEventListener('touchstart', e => {
+      expandLeftPanel(); trackDragging = true; applyTrackNorm(normFromClientY(e.touches[0].clientY));
+    }, { passive: true });
+    document.addEventListener('touchmove', e => { if (trackDragging) applyTrackNorm(normFromClientY(e.touches[0].clientY)); }, { passive: true });
+    document.addEventListener('touchend',  () => { trackDragging = false; }, { passive: true });
+
+
+    /* ── Color swatches ── */
+    document.querySelectorAll('.tm-swatch').forEach(s => {
+      s.addEventListener('click', () => {
+        document.querySelectorAll('.tm-swatch').forEach(x => x.classList.remove('active'));
+        s.classList.add('active'); doodleColor = s.dataset.color; syncCursor();
+      });
+    });
+
+    /* ── Pen type buttons ── */
+    document.querySelectorAll('.pen-type-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.pen-type-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active'); penType = b.dataset.pen;
+      });
+    });
+
+    /* ── Canvas drawing events ── */
+    let painting = false, lastX = 0, lastY = 0;
+
+    function getPos(e, canvas) {
+      const r = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / r.width, scaleY = canvas.height / r.height;
+      if (e.touches) {
+        return [(e.touches[0].clientX - r.left) * scaleX, (e.touches[0].clientY - r.top) * scaleY];
+      }
+      return [(e.clientX - r.left) * scaleX, (e.clientY - r.top) * scaleY];
+    }
+
+    editCanvas.addEventListener('mousedown', e => {
+      if (!activeTool) return;
+      painting = true;
+      [lastX, lastY] = getPos(e, editCanvas);
+      paintAt(lastX, lastY, lastX, lastY);
+    });
+    editCanvas.addEventListener('mousemove', e => {
+      if (!activeTool) return;
+      const [x, y] = getPos(e, editCanvas);
+      const r = editCanvas.getBoundingClientRect();
+      cursorSvg.style.left = (e.clientX - r.left) + 'px';
+      cursorSvg.style.top  = (e.clientY - r.top)  + 'px';
+      cursorSvg.style.display = 'block';
+      if (painting) { paintAt(x, y, lastX, lastY); [lastX, lastY] = [x, y]; }
+    });
+    editCanvas.addEventListener('mouseleave', () => { cursorSvg.style.display = 'none'; });
+    document.addEventListener('mouseup', () => {
+      if (painting) { painting = false; toolUndoStack.push(editCanvas.toDataURL()); toolRedoStack = []; syncToolHistoryBtns(); }
+    });
+
+    editCanvas.addEventListener('touchstart', e => {
+      if (!activeTool) return; e.preventDefault();
+      painting = true;
+      [lastX, lastY] = getPos(e, editCanvas);
+      paintAt(lastX, lastY, lastX, lastY);
+    }, { passive: false });
+    editCanvas.addEventListener('touchmove', e => {
+      if (!activeTool || !painting) return; e.preventDefault();
+      const [x, y] = getPos(e, editCanvas);
+      paintAt(x, y, lastX, lastY); [lastX, lastY] = [x, y];
+    }, { passive: false });
+    editCanvas.addEventListener('touchend', () => {
+      if (painting) { painting = false; toolUndoStack.push(editCanvas.toDataURL()); toolRedoStack = []; syncToolHistoryBtns(); }
+    }, { passive: true });
+
+    /* Clear drawing canvas when entering S6 (fresh session) */
+    function clearDrawingCanvas() {
+      ctx.clearRect(0, 0, editCanvas.width, editCanvas.height);
+      toolUndoStack = []; toolRedoStack = [];
+    }
+
+    /* ── Toolbar label expand (hover / long-press) ── */
+    let labelPressTimer = null;
+    let labelCollapseTimer = null;
+    let lpStartX = 0, lpStartY = 0;
+
+    function showToolLabels() {
+      $('s6Tools').classList.add('labels-expanded');
+      clearTimeout(labelCollapseTimer);
+    }
+    function hideToolLabels() {
+      clearTimeout(labelCollapseTimer);
+      labelCollapseTimer = setTimeout(() => {
+        $('s6Tools').classList.remove('labels-expanded');
+      }, 500);
+    }
+
+    document.querySelectorAll('.s6-tool-btn').forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        clearTimeout(labelPressTimer);
+        labelPressTimer = setTimeout(showToolLabels, 800);
+      });
+      btn.addEventListener('mouseleave', () => {
+        clearTimeout(labelPressTimer);
+        hideToolLabels();
+      });
+      btn.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        lpStartX = t.clientX; lpStartY = t.clientY;
+        clearTimeout(labelPressTimer);
+        labelPressTimer = setTimeout(showToolLabels, 2000);
+      }, { passive: true });
+      btn.addEventListener('touchend',    () => { clearTimeout(labelPressTimer); hideToolLabels(); }, { passive: true });
+      btn.addEventListener('touchcancel', () => { clearTimeout(labelPressTimer); hideToolLabels(); }, { passive: true });
+      btn.addEventListener('touchmove', (e) => {
+        const t = e.touches[0];
+        if (Math.abs(t.clientX - lpStartX) > 8 || Math.abs(t.clientY - lpStartY) > 8) clearTimeout(labelPressTimer);
+      }, { passive: true });
+    });
+
+    $('s6ExitBtn').addEventListener('click', async () => {
+      const ok = await showConfirm(
+        'Exit Retake?\nYour photo won\'t be saved.',
+        'Exit', true
+      );
+      if (ok) await exitSession();
+    });
+
+
+    /* Frame name is set by the inviter — read-only in this invitee flow */
+
+    /* ─────────────────────────────────────────────────────
+       AVATAR ENTRANCE — staggered bounce for card chips
+    ───────────────────────────────────────────────────── */
+    function playAvatarEntrance(idFirst, idSecond) {
+      const spring = 'cubic-bezier(0.34,1.56,0.64,1)';
+      [idFirst, idSecond].forEach((id, i) => {
+        const el = $(id);
+        if (!el) return;
+        /* reset to collapsed */
+        el.style.transition = 'none';
+        el.style.opacity = '0';
+        el.style.transform = 'scale(0.55)';
+        /* stagger: first at 80ms, second at 110ms after bar appears */
+        setTimeout(() => {
+          el.style.transition = `opacity 0.18s ease, transform 0.32s ${spring}`;
+          el.style.opacity = '1';
+          el.style.transform = 'scale(1)';
+        }, 80 + i * 35);
+      });
+    }
+
+    /* Spring bounce for the whole group-thumbnail circle */
+    function playGroupEntrance(btnId) {
+      const spring = 'cubic-bezier(0.34,1.56,0.64,1)';
+      const btn = $(btnId);
+      if (!btn) return;
+      const container = btn.querySelector('.s6-group-container');
+      if (!container) return;
+      container.style.transition = 'none';
+      container.style.opacity = '0';
+      container.style.transform = 'scale(0.5)';
+      setTimeout(() => {
+        container.style.transition = `opacity 0.16s ease, transform 0.36s ${spring}`;
+        container.style.opacity = '1';
+        container.style.transform = 'scale(1)';
+      }, 90);
+    }
+
+    /* ─────────────────────────────────────────────────────
+       SHARE LINK — copy current URL to clipboard (S7 bottom-right)
+    ───────────────────────────────────────────────────── */
+    function showToast(msg) {
+      const toast = $('s6Toast');
+      toast.textContent = msg;
+      toast.classList.add('visible');
+      setTimeout(() => toast.classList.remove('visible'), 1600);
+    }
+
+    /* ─────────────────────────────────────────────────────
+       S7 POP — share code popup (invitee-s7-pop1)
+    ───────────────────────────────────────────────────── */
+    let currentShareCode = '';
+    function generateShareCode() {
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      let c = '';
+      for (let i = 0; i < 7; i++) c += chars[Math.floor(Math.random() * chars.length)];
+      return c;
+    }
+    function showS7Pop() {
+      currentShareCode = generateShareCode();
+      $('s7PopCode').textContent = currentShareCode;
+      const pop = $('s7Pop');
+      pop.classList.add('visible');
+      setTimeout(() => pop.classList.remove('visible'), 6000);
+    }
+    $('s7Pop').addEventListener('click', () => $('s7Pop').classList.remove('visible'));
+    $('s7PopCopyBtn').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try { await navigator.clipboard.writeText(currentShareCode); } catch {}
+    });
+
+    $('s6ContribBtn').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(window.location.href); } catch {}
+      showS7Pop();
+    });
+
+
+    /* ─────────────────────────────────────────────────────
+       BUILD COMPOSITE BLOB — photo + frame → JPEG Blob
+       Falls back to raw photo blob if any step fails.
+    ───────────────────────────────────────────────────── */
+    function dataUrlToBlob(dataUrl) {
+      const b64   = dataUrl.split(',')[1];
+      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      return new Blob([bytes], { type: 'image/jpeg' });
+    }
+
+    async function buildCompositeBlob() {
+      try {
+        const W = 414, H = 748;
+        const canvas = document.createElement('canvas');
+        canvas.width = W; canvas.height = H;
+        const ctx = canvas.getContext('2d');
+
+        /* 1. Draw captured photo from data URL (never taints canvas) */
+        const photo = new Image();
+        await new Promise((res, rej) => { photo.onload = res; photo.onerror = rej; photo.src = capturedDataUrl; });
+        ctx.drawImage(photo, 0, 0, W, H);
+
+        /* 2. Load frame image fresh by src string (avoids any DOM element state issues) */
+        const frameSrc = document.getElementById('yunchaiPhoto').src;
+        const frame = new Image();
+        await new Promise((res, rej) => { frame.onload = res; frame.onerror = rej; frame.src = frameSrc; });
+        ctx.drawImage(frame, -8, 0, 430, H);
+
+        /* 3. Canvas → Blob */
+        return await new Promise((res, rej) =>
+          canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob null')), 'image/jpeg', 0.92)
+        );
+      } catch (_) {
+        return dataUrlToBlob(capturedDataUrl);
+      }
+    }
+
+    /* ─────────────────────────────────────────────────────
+       shareImage — shared by both download and share buttons.
+       On iOS: navigator.share() is the only path to camera roll.
+       On desktop: <a download> triggers a file save.
+    ───────────────────────────────────────────────────── */
+    function shareImage(blob) {
+      if (navigator.share) {
+        const file = new File([blob], 'retake.jpg', { type: 'image/jpeg' });
+        const data  = { title: 'My Retake!', text: `${frameName} — Made with Retake!` };
+        const p = (navigator.canShare && navigator.canShare({ files: [file] }))
+          ? navigator.share({ ...data, files: [file] })
+          : navigator.share(data);
+        p.catch(e => { if (e.name !== 'AbortError') showToast('Share failed'); });
+      } else {
+        /* Desktop fallback */
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'retake-' + Date.now() + '.jpg';
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+        showToast('Saved!');
+      }
+    }
+
+    /* Download button — open image in new tab; on iOS long-press → Save to Photos */
+    $('s6BtnDownload').addEventListener('click', async () => {
+      if (!capturedDataUrl) return;
+      /* window.open doesn't need sync gesture, so we can await the full composite */
+      const blob = compositeBlob || await buildCompositeBlob();
+      if (!compositeBlob) compositeBlob = blob;
+      const url  = URL.createObjectURL(blob);
+      const win  = window.open(url, '_blank');
+      /* fallback if popup blocked */
+      if (!win) {
+        const a = document.createElement('a');
+        a.href = url; a.download = 'retake-' + Date.now() + '.jpg';
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
+      } else {
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      }
+      showToast('Saved!');
+    });
+
+    /* Share button — same path, same requirement */
+    $('s6SharePill').addEventListener('click', () => {
+      if (!capturedDataUrl) return;
+      if (compositeBlob) {
+        shareImage(compositeBlob);
+      } else {
+        showToast('Still preparing — tap again in a moment');
+      }
+    });
+
+
+    (function () { return; /* shader removed */
+      const bgCvs = $('bgCanvas');
+      const gl = bgCvs.getContext('webgl2') || bgCvs.getContext('webgl') || bgCvs.getContext('experimental-webgl');
+      if (!gl) return;
+
+      /* ── resize ── */
+      let W = 1, SH = 1;
+      function resize() {
+        const nw = Math.round(bgCvs.offsetWidth * devicePixelRatio);
+        const nh = Math.round(bgCvs.offsetHeight * devicePixelRatio);
+        if (nw === W && nh === SH) return;
+        W = bgCvs.width = nw; SH = bgCvs.height = nh;
+        gl.viewport(0, 0, W, SH);
+      }
+
+      /* ── fullscreen quad ── */
+      const quadBuf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+
+      /* ── compile shader ── */
+      function mkProg(fsrc) {
+        function mk(type, src) {
+          const s = gl.createShader(type);
+          gl.shaderSource(s, src); gl.compileShader(s);
+          if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.warn(gl.getShaderInfoLog(s)); return null; }
+          return s;
+        }
+        const v = mk(gl.VERTEX_SHADER, `attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`);
+        const f = mk(gl.FRAGMENT_SHADER, fsrc);
+        if (!v || !f) return null;
+        const prog = gl.createProgram();
+        gl.attachShader(prog, v); gl.attachShader(prog, f); gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { console.warn(gl.getProgramInfoLog(prog)); return null; }
+        return prog;
+      }
+
+      /* ── Ripple Tide shader ── */
+      const prog = mkProg(`precision highp float;
+uniform vec2 R;uniform float T;
+uniform vec3 C0,C1,C2,C3,C4;
+uniform vec3 taps[8];
+vec3 gr(float t){t=clamp(t,0.,1.);
+if(t<.25)return mix(C0,C1,t*4.);if(t<.5)return mix(C1,C2,(t-.25)*4.);
+if(t<.75)return mix(C2,C3,(t-.5)*4.);return mix(C3,C4,(t-.75)*4.);}
+void main(){vec2 uv=gl_FragCoord.xy/R;float rp=0.;
+for(int i=0;i<8;i++){float a=T-taps[i].z;if(a<0.||a>5.)continue;
+float d=length(uv-taps[i].xy);rp+=sin(d*36.-a*9.)*exp(-a*1.6)*exp(-d*6.)*.12;}
+float base=uv.y+sin(uv.x*3.+T*.08)*.04+rp*.035;
+vec3 col=gr(clamp(base,0.,1.));
+/* desaturate 50%, then lift 60% toward white — softly visible, not dominant */
+float lum=dot(col,vec3(0.299,0.587,0.114));
+col=mix(vec3(lum),col,0.5);
+gl_FragColor=vec4(col,1.);}`);
+      if (!prog) return;
+
+      const u = {
+        R:gl.getUniformLocation(prog,'R'), T:gl.getUniformLocation(prog,'T'),
+        C0:gl.getUniformLocation(prog,'C0'), C1:gl.getUniformLocation(prog,'C1'),
+        C2:gl.getUniformLocation(prog,'C2'), C3:gl.getUniformLocation(prog,'C3'),
+        C4:gl.getUniformLocation(prog,'C4'), taps:gl.getUniformLocation(prog,'taps'),
+      };
+
+      /* ── palette (lerps smoothly toward target on each frame) ── */
+      let pal    = [[.996,.992,.984],[.95,.70,.56],[.10,.10,.18],[.82,.62,.42],[.62,.80,.70]];
+      let target = pal.map(c => [...c]);
+
+      function pickColors(pixels) {
+        if (pixels.length < 10) return;
+        const picked = [pixels[Math.floor(Math.random() * pixels.length)]];
+        for (let k = 1; k < 5; k++) {
+          let best = null, bestD = -1;
+          for (let t = 0; t < 300; t++) {
+            const p = pixels[Math.floor(Math.random() * pixels.length)];
+            let md = Infinity;
+            for (const q of picked) { const d=(p[0]-q[0])**2+(p[1]-q[1])**2+(p[2]-q[2])**2; if(d<md)md=d; }
+            if (md > bestD) { bestD = md; best = p; }
+          }
+          if (best) picked.push(best);
+        }
+        if (picked.length === 5) target = picked;
+      }
+
+      /* Sample the live composite: camera → captured photo → sticker overlay */
+      const sampCvs = Object.assign(document.createElement('canvas'), {width:48, height:48});
+      const sampCtx = sampCvs.getContext('2d', {willReadFrequently:true});
+
+      window.sampleFramePalette = function () {
+        sampCtx.clearRect(0, 0, 48, 48);
+        let drew = false;
+        const vid   = $('cameraView');
+        const photo = $('photoOverlay');
+        const stick = $('yunchaiPhoto');
+        if (vid && vid.classList.contains('active') && vid.readyState >= 2) {
+          try { sampCtx.drawImage(vid, 0, 0, 48, 48); drew = true; } catch(e){}
+        }
+        if (photo && photo.src && $('photoContainer').classList.contains('active')) {
+          try { sampCtx.drawImage(photo, 0, 0, 48, 48); drew = true; } catch(e){}
+        }
+        if (stick && stick.complete && stick.naturalWidth) {
+          try { sampCtx.drawImage(stick, 0, 0, 48, 48); drew = true; } catch(e){}
+        }
+        if (!drew) return;
+        const d = sampCtx.getImageData(0,0,48,48).data;
+        const px = [];
+        for (let i = 0; i < d.length; i += 4) if (d[i+3] > 100) px.push([d[i]/255,d[i+1]/255,d[i+2]/255]);
+        pickColors(px);
+      };
+
+      /* Initial sample from sticker on load */
+      const stick = $('yunchaiPhoto');
+      if (stick.complete && stick.naturalWidth) window.sampleFramePalette();
+      else stick.addEventListener('load', window.sampleFramePalette, {once:true});
+
+      /* Re-sample every 2.5 s when camera or photo is live */
+      setInterval(() => {
+        const vid = $('cameraView');
+        if ((vid && vid.classList.contains('active')) || $('photoContainer').classList.contains('active'))
+          window.sampleFramePalette();
+      }, 2500);
+
+      /* ── tap ring-buffer ── */
+      const tapsXY = new Float32Array(24); tapsXY.fill(-9999);
+      let tapHead = 0, T = 0;
+      function addTap(nx, ny) {
+        tapsXY[tapHead*3]=nx; tapsXY[tapHead*3+1]=ny; tapsXY[tapHead*3+2]=T;
+        tapHead = (tapHead+1) % 8;
+      }
+      bgCvs.addEventListener('click', e => {
+        const r = bgCvs.getBoundingClientRect();
+        addTap((e.clientX-r.left)/r.width, 1-(e.clientY-r.top)/r.height);
+      });
+      bgCvs.addEventListener('touchstart', e => {
+        const r = bgCvs.getBoundingClientRect();
+        [...e.changedTouches].forEach(t => addTap((t.clientX-r.left)/r.width, 1-(t.clientY-r.top)/r.height));
+      }, {passive:true});
+
+      /* ── render loop ── */
+      const t0 = performance.now();
+      const pLoc = gl.getAttribLocation(prog, 'p');
+      function frame(now) {
+        requestAnimationFrame(frame);
+        T = (now - t0) * 0.001;
+        /* Smoothly lerp palette toward target (0.02 per frame ≈ ~1s transition) */
+        for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++)
+          pal[i][j] += (target[i][j] - pal[i][j]) * 0.02;
+        resize();
+        gl.useProgram(prog);
+        gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+        gl.enableVertexAttribArray(pLoc);
+        gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
+        gl.uniform2f(u.R, W, SH);
+        gl.uniform1f(u.T, T);
+        gl.uniform3fv(u.C0, pal[0]); gl.uniform3fv(u.C1, pal[1]);
+        gl.uniform3fv(u.C2, pal[2]); gl.uniform3fv(u.C3, pal[3]);
+        gl.uniform3fv(u.C4, pal[4]);
+        gl.uniform3fv(u.taps, tapsXY);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+      requestAnimationFrame(frame);
+    })();
+
+  /* ── Fit to any iPhone viewport ── */
+  function fitToViewport() {
+    if (window.innerWidth > 500) return;
+    const s = document.querySelector('.screen');
+    const scale = Math.min(window.innerWidth / 430, window.innerHeight / 932);
+    const ox = (window.innerWidth  - 430 * scale) / 2;
+    const oy = (window.innerHeight - 932 * scale) / 2;
+    s.style.transform = `translate(${ox}px, ${oy}px) scale(${scale})`;
+  }
+  fitToViewport();
+  window.addEventListener('resize', fitToViewport);
+
+  </script>
+</body>
+</html>

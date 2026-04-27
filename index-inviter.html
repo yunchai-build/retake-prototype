@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+  <title>Retake! — Create Frame</title>
+  <style>
+    @font-face {
+      font-family: 'Bedstead';
+      src: url('bedstead-extracondensed.otf') format('opentype');
+      font-weight: normal; font-style: normal;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #E8E4DF;
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh;
+    }
+    button { -webkit-tap-highlight-color: transparent; }
+
+
+    /* ── Phone frame ── */
+    .screen {
+      width: 430px; height: 932px;
+      position: relative;
+      background: #F7F5F2;
+      overflow: hidden;
+      border-radius: 52px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06);
+    }
+
+
+    /* ── Frame container ── */
+    #frameContainer {
+      position: absolute;
+      left: 8px; top: 77px;
+      width: 414px; height: 750px;
+      border-radius: 32px;
+      overflow: hidden;
+      z-index: 1;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,0,0,0.06);
+    }
+
+    #checkerBg {
+      position: absolute; left: 0; top: 0;
+      width: 414px; height: 750px;
+      background-color: #e8e8e8;
+      background-image:
+        linear-gradient(45deg, #d0d0d0 25%, transparent 25%),
+        linear-gradient(-45deg, #d0d0d0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #d0d0d0 75%),
+        linear-gradient(-45deg, transparent 75%, #d0d0d0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      z-index: 0;
+    }
+
+    #editCanvas {
+      position: absolute; left: 0; top: 0;
+      width: 414px; height: 750px;
+      z-index: 2;
+      cursor: none;
+      touch-action: none;
+    }
+    #editCanvas.no-tool { cursor: default; pointer-events: none; }
+
+    #brushCursor {
+      position: absolute;
+      pointer-events: none; z-index: 10;
+      transform: translate(-50%, -50%);
+      display: none;
+    }
+
+
+    /* ── Edge gradient scrim (always on when editor is open) ── */
+    #frameScrim {
+      position: absolute;
+      left: 8px; top: 77px;
+      width: 414px; height: 750px;
+      border-radius: 32px;
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.08) 12%, rgba(0,0,0,0) 24%),
+        linear-gradient(to top,   rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.08) 12%, rgba(0,0,0,0) 24%);
+      pointer-events: none; z-index: 5;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+    #frameScrim.visible { opacity: 1; }
+
+
+    /* ════════════════════════════════════════════
+       DEFAULT EDITOR UI  (visible when no tool active)
+    ════════════════════════════════════════════ */
+
+    /* Top-left: × exit */
+    .s6-exit-btn {
+      position: absolute;
+      left: 20px; top: 89px;
+      width: 42px; height: 42px;
+      background: rgba(0,0,0,0.28); border: none; border-radius: 50%;
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 6;
+      opacity: 0; transform: translateY(-16px);
+      transition: opacity 0.32s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
+      pointer-events: none;
+    }
+    .s6-exit-btn.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .s6-exit-btn.out     { opacity: 0; transform: translateY(-16px); pointer-events: none; }
+    .s6-exit-btn:active  { background: rgba(0,0,0,0.45); transform: scale(0.88); }
+
+    /* Top-center: ↩ ↪ undo/redo */
+    #undoRedoCluster {
+      position: absolute;
+      left: 50%; top: 89px;
+      transform: translateX(-50%) translateY(-16px);
+      display: flex; gap: 4px;
+      z-index: 6;
+      opacity: 0;
+      transition: opacity 0.35s ease 0.05s, transform 0.4s cubic-bezier(0.22,1,0.36,1) 0.05s;
+      pointer-events: none;
+    }
+    #undoRedoCluster.visible { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    #undoRedoCluster.out     { opacity: 0; transform: translateX(-50%) translateY(-16px); pointer-events: none; }
+
+    .history-btn {
+      width: 42px; height: 42px;
+      background: transparent; border: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: opacity 0.1s ease, transform 0.1s ease;
+    }
+    .history-btn:active  { opacity: 0.6; transform: scale(0.88); }
+    .history-btn:disabled { opacity: 0.25; pointer-events: none; }
+
+    /* Right vertical toolbar */
+    .s6-tools {
+      position: absolute;
+      right: 20px; top: 89px;
+      display: flex; flex-direction: column; gap: 16px;
+      z-index: 6;
+      opacity: 0; transform: translateX(22px);
+      transition: opacity 0.32s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
+      pointer-events: none;
+      touch-action: manipulation;
+    }
+    .s6-tools.visible { opacity: 1; transform: translateX(0); pointer-events: auto; }
+    .s6-tools.out     { opacity: 0; transform: translateX(32px); pointer-events: none; }
+
+    .s6-tool-btn {
+      width: 42px; height: 42px; padding: 9px;
+      background: rgba(0,0,0,0.28); border: none; border-radius: 50%;
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s ease, opacity 0.1s ease, transform 0.1s ease;
+    }
+    .s6-tool-btn:active { opacity: 0.6; transform: scale(0.88); }
+    .s6-tool-btn.active { background: rgba(255,255,255,0.92); }
+    .s6-tool-btn.active svg { stroke: #1A1A2E; }
+
+    /* Main bottom bar */
+    .s6-bottom-bar {
+      position: absolute;
+      left: 16px; right: 16px; top: 835px;
+      display: flex; align-items: center; gap: 10px;
+      z-index: 6;
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.38s ease, transform 0.48s cubic-bezier(0.22,1,0.36,1);
+      pointer-events: none;
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 999px;
+      padding: 10px 10px 10px 16px;
+    }
+    .s6-bottom-bar.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .s6-bottom-bar.out     { opacity: 0; transform: translateY(32px); pointer-events: none; }
+
+    /* Generic dark circle button */
+    .s6-circle-btn {
+      width: 52px; height: 52px; flex-shrink: 0;
+      background: rgba(255,255,255,0.12); border: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.1s ease, transform 0.1s ease;
+    }
+    .s6-circle-btn:active { background: rgba(255,255,255,0.22); transform: scale(0.9); }
+    .s6-circle-btn svg { stroke: white; }
+
+    /* Gallery — rounded square, same height as send btn so pill gap is uniform */
+    #btnGallery {
+      width: 46px; height: 46px;
+      border-radius: 13px;
+      background: rgba(255,255,255,0.12);
+    }
+
+    /* Frame title tap button (in nav bar) */
+    .s6-frame-title-btn {
+      flex: 1; min-width: 0;
+      background: none; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 4px 8px; border-radius: 999px;
+      transition: background 0.12s ease;
+    }
+    .s6-frame-title-btn:active { background: rgba(255,255,255,0.1); }
+    #frameNameDisplay {
+      font-family: 'Bedstead', monospace; font-size: 16px; font-weight: 400;
+      color: rgba(255,255,255,0.95); letter-spacing: 0.03em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    /* Edit-name bottom sheet (same yellow card as share popup) */
+    .edit-name-field {
+      background: rgba(26,26,46,0.08); border-radius: 16px;
+      padding: 14px 16px; margin-top: 16px;
+    }
+    .edit-name-input {
+      width: 100%; background: none; border: none; outline: none;
+      font-family: 'Bedstead', monospace; font-size: 22px;
+      color: #1A1A2E; letter-spacing: 0.04em;
+      caret-color: #1A1A2E;
+    }
+    .edit-name-input::placeholder { color: rgba(26,26,46,0.3); }
+    .edit-name-save {
+      width: 100%; padding: 18px;
+      background: #1A1A2E; color: white;
+      font-family: 'Bedstead', monospace; font-size: 16px; letter-spacing: 0.05em;
+      border: none; border-radius: 16px;
+      cursor: pointer; margin-top: 12px;
+      transition: opacity 0.1s ease, transform 0.1s ease;
+    }
+    .edit-name-save:active { opacity: 0.8; transform: scale(0.98); }
+
+    /* Share — prominent white circle */
+    .s6-send-btn {
+      width: 56px; height: 56px; background: white;
+      border: none; border-radius: 50%;
+      box-shadow: 0 2px 14px rgba(0,0,0,0.28);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .s6-send-btn:active { background: #EEFF01; transform: scale(0.91); box-shadow: 0 1px 6px rgba(0,0,0,0.2); }
+
+
+    /* ════════════════════════════════════════════
+       IMMERSIVE TOOL MODE UI
+       Replaces all chrome when eraser or doodle is active.
+       The canvas fills the whole screen.
+    ════════════════════════════════════════════ */
+
+    /* Shared enter/exit transitions for tool-mode elements */
+    .tool-mode-el {
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1);
+    }
+    .tool-mode-el.tm-in  { opacity: 1; pointer-events: auto; }
+
+    /* Top-left: undo/redo in tool mode */
+    #tmUndoRedo {
+      position: absolute;
+      left: 50%; top: 89px;
+      transform: translateX(-50%) translateY(-14px);
+      display: flex; gap: 4px;
+      z-index: 8;
+    }
+    #tmUndoRedo.tm-in { transform: translateX(-50%) translateY(0); }
+
+    /* Top-right: "Done" pill */
+    #tmDoneBtn {
+      position: absolute;
+      right: 20px; top: 89px;
+      height: 38px;
+      background: white; border: none; border-radius: 999px;
+      padding: 0 20px;
+      font-family: 'Bedstead', monospace; font-size: 15px;
+      color: #1A1A2E; letter-spacing: 0.02em;
+      cursor: pointer; z-index: 8;
+      display: flex; align-items: center;
+      transform: translateY(-14px);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+      transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1),
+                  background 0.1s ease;
+    }
+    #tmDoneBtn.tm-in { transform: translateY(0); }
+    #tmDoneBtn:active { background: #EEFF01; transform: scale(0.95) translateY(0); }
+
+    /* Shared bottom strip base — appears in place of main bottom bar */
+    .tm-bottom-strip {
+      position: absolute;
+      left: 16px; right: 16px; top: 835px;
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border-radius: 999px;
+      padding: 0 20px;
+      height: 76px;
+      display: flex; align-items: center; gap: 0;
+      z-index: 8;
+      transform: translateY(32px);
+    }
+    .tm-bottom-strip.tm-in { transform: translateY(0); }
+
+    /* Thin divider between control groups */
+    .tm-divider {
+      width: 1px; height: 28px;
+      background: rgba(255,255,255,0.15);
+      flex-shrink: 0; margin: 0 14px;
+    }
+
+    /* Icon in the strip */
+    .tm-icon {
+      width: 20px; height: 20px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      margin-right: 8px;
+    }
+
+    /* Value label */
+    .tm-val {
+      font-family: 'Bedstead', monospace; font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      width: 34px; text-align: right; flex-shrink: 0; margin-left: 8px;
+    }
+
+    /* Range sliders in strips */
+    input[type="range"] {
+      -webkit-appearance: none;
+      flex: 1; height: 3px; border-radius: 2px;
+      outline: none; cursor: pointer; min-width: 0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px; background: white; border-radius: 50%;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.32); cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px; height: 20px; background: white; border-radius: 50%;
+      border: none; box-shadow: 0 1px 6px rgba(0,0,0,0.32);
+    }
+    #eraserSizeSlider {
+      background: linear-gradient(to right,
+        rgba(255,255,255,0.82) var(--fill,25%),
+        rgba(255,255,255,0.15) var(--fill,25%));
+    }
+    #eraserOpacitySlider {
+      background: linear-gradient(to right,
+        #EEFF01 var(--fill,100%),
+        rgba(255,255,255,0.15) var(--fill,100%));
+    }
+    #doodleSizeSlider {
+      background: linear-gradient(to right,
+        rgba(255,255,255,0.82) var(--fill,12%),
+        rgba(255,255,255,0.15) var(--fill,12%));
+    }
+
+    /* Color swatches in doodle strip */
+    .tm-swatches {
+      display: flex; gap: 7px; align-items: center; flex-shrink: 0;
+    }
+    .tm-swatch {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: none; cursor: pointer; flex-shrink: 0;
+      position: relative;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .tm-swatch:active { transform: scale(0.85); }
+    .tm-swatch.active::after {
+      content: '';
+      position: absolute; inset: -3px;
+      border-radius: 50%;
+      border: 2.5px solid white;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    }
+
+
+    /* ── Toolbar labels & expand ── */
+    .s6-tool-btn { position: relative; }
+    .tool-label {
+      position: absolute;
+      right: calc(100% + 10px);
+      top: 50%; transform: translateY(-50%);
+      font-family: 'Bedstead', monospace; font-size: 12px; color: rgba(255,255,255,0.92);
+      white-space: nowrap;
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      padding: 5px 10px; border-radius: 999px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+    .s6-tools.labels-expanded .tool-label { opacity: 1; }
+
+    /* ── Tool-mode left panel (collapsible size bar) ── */
+    #tmLeftPanel {
+      position: absolute;
+      left: 0; top: 332px; /* vertically centered on canvas */
+      width: 56px; height: 240px;
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border-radius: 0 20px 20px 0;
+      z-index: 8;
+      opacity: 0; pointer-events: none;
+      transform: translateX(-36px);
+      transition: opacity 0.28s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
+    }
+    #tmLeftPanel.tm-in {
+      opacity: 1; pointer-events: auto;
+      transform: translateX(0);
+    }
+    #tmLeftPanel.tm-in.lp-collapsed {
+      transform: translateX(-28px);
+    }
+
+    /* Track line — only between the two indicator dots */
+    #tmLeftPanel::before {
+      content: '';
+      position: absolute;
+      left: 50%; top: 38px; bottom: 30px;
+      width: 2px; transform: translateX(-50%);
+      background: rgba(255,255,255,0.2);
+      border-radius: 1px;
+      pointer-events: none;
+    }
+
+    /* Max size indicator (top) */
+    #tmTrackTop {
+      position: absolute;
+      width: 16px; height: 16px;
+      background: rgba(255,255,255,0.45); border-radius: 50%;
+      top: 14px; left: 50%; transform: translateX(-50%);
+    }
+
+    /* Min size indicator (bottom) */
+    #tmTrackBottom {
+      position: absolute;
+      width: 5px; height: 5px;
+      background: rgba(255,255,255,0.45); border-radius: 50%;
+      bottom: 14px; left: 50%; transform: translateX(-50%);
+    }
+
+    #tmSizeHandle {
+      position: absolute;
+      background: white; border-radius: 50%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+      cursor: grab;
+      transition: width 0.06s ease, height 0.06s ease, top 0.06s ease, left 0.06s ease;
+    }
+
+    /* ── Tool-mode bottom bar (styled like main nav bar) ── */
+    #tmToolBar, #tmPenBar, #tmEraserBar {
+      position: absolute;
+      left: 16px; right: 16px; top: 835px;
+      background: rgba(18,18,28,0.82);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border-radius: 999px; padding: 0 20px; height: 76px;
+      display: flex; align-items: center; gap: 0;
+      z-index: 8;
+      opacity: 0; transform: translateY(32px); pointer-events: none;
+      transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1);
+    }
+    #tmToolBar.tm-in, #tmPenBar.tm-in, #tmEraserBar.tm-in {
+      opacity: 1; transform: translateY(0); pointer-events: auto;
+    }
+
+    /* Content inside tool bar */
+    .tm-swatches {
+      display: flex; gap: 8px; align-items: center; flex: 1;
+    }
+    .tm-swatch {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: none; cursor: pointer; flex-shrink: 0;
+      position: relative;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .tm-swatch:active { transform: scale(0.85); }
+    .tm-swatch.active::after {
+      content: '';
+      position: absolute; inset: -3px;
+      border-radius: 50%;
+      border: 2.5px solid white;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    }
+
+    .tm-divider {
+      width: 1px; height: 28px;
+      background: rgba(255,255,255,0.15);
+      flex-shrink: 0; margin: 0 12px;
+    }
+
+    .tm-pen-types { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+    .pen-type-btn {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,0.1); border: none; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0;
+      transition: background 0.15s;
+    }
+    .pen-type-btn.active { background: rgba(255,255,255,0.78); }
+
+    /* Eraser opacity in bar */
+    .tm-icon {
+      width: 22px; height: 22px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      margin-right: 10px;
+    }
+    .tm-val {
+      font-family: 'Bedstead', monospace; font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      width: 38px; text-align: right; flex-shrink: 0; margin-left: 8px;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      flex: 1; height: 3px; border-radius: 2px;
+      outline: none; cursor: pointer; min-width: 0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px; background: white; border-radius: 50%;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.32); cursor: pointer;
+    }
+    #eraserOpacitySlider {
+      background: linear-gradient(to right,
+        #F0E84A var(--fill,100%),
+        rgba(255,255,255,0.15) var(--fill,100%));
+    }
+
+    /* ── Watermark ── */
+    .watermark {
+      position: absolute; left: 50%; transform: translateX(-50%); top: 800px;
+      color: rgba(255,255,255,0.5); font-family: 'Bedstead', monospace;
+      font-size: 11px; letter-spacing: 0.04em; white-space: nowrap;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.3);
+      pointer-events: none; z-index: 6;
+    }
+
+
+    /* ── Toast ── */
+    .s6-toast {
+      position: absolute; bottom: 130px; left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      width: fit-content; white-space: nowrap;
+      background: rgba(18,18,28,0.88);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-radius: 999px; padding: 12px 24px;
+      z-index: 12; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.22,1,0.36,1);
+      font-family: 'Bedstead', monospace; font-size: 15px; color: white;
+    }
+    .s6-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+
+    /* ── Share popup ── */
+    .share-pop {
+      position: absolute; left: 20px; right: 20px; bottom: -20px;
+      transform: translateY(100%);
+      background: #F0E84A; border-radius: 28px 28px 0 0;
+      padding: 28px 28px 44px;
+      display: flex; flex-direction: column; gap: 12px;
+      z-index: 11; opacity: 0; pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.48s cubic-bezier(0.22,1,0.36,1);
+    }
+    .share-pop.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .s7-pop-title { font-family: 'Bedstead', monospace; font-size: 30px; color: #1A1A2E; line-height: 1; }
+    .s7-pop-dim   { font-family: 'Bedstead', monospace; font-size: 30px; color: rgba(26,26,46,0.42); line-height: 1; }
+    .s7-pop-subtitle { font-family: 'Bedstead', monospace; font-size: 15px; color: rgba(26,26,46,0.6); }
+    .s7-pop-code-row {
+      display: flex; align-items: center; gap: 8px; margin-top: 8px;
+      background: rgba(26,26,46,0.08); border-radius: 16px; padding: 14px 16px;
+    }
+    .s7-pop-code { flex: 1; font-family: 'Bedstead', monospace; font-size: 22px; color: #1A1A2E; letter-spacing: 0.12em; }
+    .s7-pop-copy-btn {
+      width: 36px; height: 36px; background: #1A1A2E; border: none; border-radius: 10px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      padding: 0; flex-shrink: 0;
+      transition: opacity 0.1s ease, transform 0.1s ease;
+    }
+    .s7-pop-copy-btn:active { opacity: 0.7; transform: scale(0.91); }
+    .s7-pop-copy-btn svg { stroke: white; }
+
+
+    /* ── Scrim ── */
+    .scrim {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.4);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease; z-index: 10;
+    }
+    .scrim.visible { opacity: 1; pointer-events: auto; }
+
+
+    /* ── Intro card ── */
+    .invite-card {
+      position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -48%) scale(0.88);
+      opacity: 0; pointer-events: none; z-index: 11;
+      background: #F0E84A; border-radius: 28px; padding: 28px; width: 360px;
+      display: flex; flex-direction: column; gap: 24px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.32), 0 4px 16px rgba(0,0,0,0.14);
+      transition: opacity 0.38s ease, transform 0.42s cubic-bezier(0.22,1,0.36,1);
+    }
+    .invite-card.visible { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+    .app-icon {
+      width: 44px; height: 44px; border-radius: 14px; background: #1A1A2E;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bedstead', monospace; font-size: 16px; color: #F0E84A; flex-shrink: 0;
+    }
+    .card-content { display: flex; flex-direction: column; gap: 20px; }
+    .card-text    { display: flex; flex-direction: column; gap: 0; }
+    .card-username { color: #1A1A2E; font-family: 'Bedstead', monospace; font-size: 42px; line-height: 1.0; }
+    .card-subtitle { color: rgba(26,26,46,0.6); font-family: 'Bedstead', monospace; font-size: 42px; line-height: 1.0; }
+    .card-buttons { display: flex; gap: 10px; }
+    .btn {
+      flex: 1; padding: 16px 0; border-radius: 18px;
+      font-family: 'Bedstead', monospace; font-size: 18px;
+      cursor: pointer; border: none; text-align: center;
+      transition: opacity 0.1s ease, transform 0.1s ease;
+    }
+    .btn:active { opacity: 0.78; transform: scale(0.97); }
+    .btn-primary   { background: #1A1A2E; color: #F0E84A; }
+    .btn-secondary { background: rgba(26,26,46,0.10); color: #1A1A2E; }
+
+
+    /* ── Confirm dialog ── */
+    .confirm-scrim {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.42); z-index: 12;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+    }
+    .confirm-scrim.visible { opacity: 1; pointer-events: auto; }
+    .confirm-dialog {
+      position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, calc(-50% + 24px));
+      width: 320px; background: #fff; border-radius: 28px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.16); padding: 28px 24px 22px;
+      z-index: 13; opacity: 0; pointer-events: none;
+      transition: opacity 0.24s ease, transform 0.36s cubic-bezier(0.34,1.2,0.64,1);
+    }
+    .confirm-dialog.visible { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%); }
+    .confirm-message {
+      font-family: 'Bedstead', monospace; font-size: 17px;
+      color: #1A1A2E; text-align: center; line-height: 1.5; margin-bottom: 24px;
+    }
+    .confirm-buttons { display: flex; gap: 10px; }
+    .confirm-btn {
+      flex: 1; height: 52px; border: none; border-radius: 18px;
+      font-family: 'Bedstead', monospace; font-size: 16px;
+      cursor: pointer; transition: opacity 0.12s ease, transform 0.12s ease;
+    }
+    .confirm-btn:active { opacity: 0.78; transform: scale(0.96); }
+    .confirm-btn-cancel { background: rgba(26,26,46,0.08); color: #1A1A2E; }
+    .confirm-btn-ok     { background: #1A1A2E; color: white; }
+    .confirm-btn-ok.danger { background: #FF3B30; }
+
+    /* ── Responsive: fill any iPhone screen ── */
+    @media (max-width: 500px) {
+      body {
+        background: #000;
+        display: block;
+        padding: 0;
+        width: 100vw;
+        height: 100dvh;
+        overflow: hidden;
+      }
+      .screen {
+        position: fixed;
+        top: 0; left: 0;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        transform-origin: 0 0;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="screen" id="screen">
+
+  <!-- Frame canvas -->
+  <div id="frameContainer">
+    <div id="checkerBg"></div>
+    <canvas id="editCanvas" width="414" height="750"></canvas>
+    <div id="brushCursor">
+      <svg id="brushCursorSvg" viewBox="-20 -20 40 40" fill="none">
+        <circle id="brushCursorCircle" cx="0" cy="0" r="14"
+          fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.8)"
+          stroke-width="1.5" stroke-dasharray="4 3"/>
+      </svg>
+    </div>
+  </div>
+
+  <div id="frameScrim"></div>
+
+  <!-- ════ DEFAULT EDITOR UI ════ -->
+
+  <!-- × Exit -->
+  <button class="s6-exit-btn" id="btnExit" aria-label="Back">
+    <svg width="26" height="26" viewBox="0 0 22 22" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+      <line x1="4" y1="4" x2="18" y2="18"/><line x1="18" y1="4" x2="4" y2="18"/>
+    </svg>
+  </button>
+
+  <!-- ↩ ↪ Undo/Redo -->
+  <div id="undoRedoCluster">
+    <button class="history-btn" id="btnUndo" aria-label="Undo" disabled>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+      </svg>
+    </button>
+    <button class="history-btn" id="btnRedo" aria-label="Redo" disabled>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Right vertical toolbar -->
+  <div class="s6-tools" id="s6Tools">
+
+    <!-- Text -->
+    <button class="s6-tool-btn" id="btnToolText" aria-label="Text">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="5" x2="20" y2="5"/>
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="9" y1="19" x2="15" y2="19"/>
+      </svg>
+      <span class="tool-label">Text</span>
+    </button>
+
+    <!-- Stickers: centered smiley + badge fully in overflow -->
+    <button class="s6-tool-btn" id="btnToolStickers" aria-label="Stickers">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="overflow:visible">
+        <defs>
+          <mask id="smileyMask">
+            <rect width="24" height="24" fill="white"/>
+            <circle cx="9" cy="10" r="1.5" fill="black"/>
+            <circle cx="15" cy="10" r="1.5" fill="black"/>
+            <path d="M8 14.5 Q12 18 16 14.5" stroke="black" stroke-width="2" stroke-linecap="round" fill="none"/>
+          </mask>
+        </defs>
+        <circle cx="11" cy="13" r="9.5" fill="white" mask="url(#smileyMask)"/>
+        <line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="tool-label">Stickers</span>
+    </button>
+
+    <!-- Photo: square frame + badge aligned with sticker -->
+    <button class="s6-tool-btn" id="btnToolGallery" aria-label="Photo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="overflow:visible">
+        <defs>
+          <clipPath id="photoClip">
+            <rect x="3" y="4" width="15" height="15" rx="2"/>
+          </clipPath>
+        </defs>
+        <g clip-path="url(#photoClip)" fill="white">
+          <circle cx="7.5" cy="9" r="1.8"/>
+          <path d="M3 19 L8 12.5 L10.5 15.5 L13.5 11.5 L18 19 Z"/>
+        </g>
+        <rect x="3" y="4" width="15" height="15" rx="2" stroke="white" stroke-width="1.5" fill="none"/>
+        <line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="tool-label">Photo</span>
+    </button>
+
+    <!-- Draw -->
+    <button class="s6-tool-btn" id="btnToolDoodle" aria-label="Draw">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+        <line x1="15" y1="5" x2="19" y2="9"/>
+      </svg>
+      <span class="tool-label">Draw</span>
+    </button>
+
+    <!-- Eraser: checkerboard circle, consistent 2px border -->
+    <button class="s6-tool-btn" id="btnToolEraser" aria-label="Eraser">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <defs><clipPath id="circleClip"><circle cx="12" cy="12" r="10"/></clipPath></defs>
+        <rect x="2"  y="2"  width="5" height="5" fill="#c0c0c0" clip-path="url(#circleClip)"/>
+        <rect x="7"  y="2"  width="5" height="5" fill="white"   clip-path="url(#circleClip)"/>
+        <rect x="12" y="2"  width="5" height="5" fill="#c0c0c0" clip-path="url(#circleClip)"/>
+        <rect x="17" y="2"  width="5" height="5" fill="white"   clip-path="url(#circleClip)"/>
+        <rect x="2"  y="7"  width="5" height="5" fill="white"   clip-path="url(#circleClip)"/>
+        <rect x="7"  y="7"  width="5" height="5" fill="#c0c0c0" clip-path="url(#circleClip)"/>
+        <rect x="12" y="7"  width="5" height="5" fill="white"   clip-path="url(#circleClip)"/>
+        <rect x="17" y="7"  width="5" height="5" fill="#c0c0c0" clip-path="url(#circleClip)"/>
+        <rect x="2"  y="12" width="5" height="5" fill="#c0c0c0" clip-path="url(#circleClip)"/>
+        <rect x="7"  y="12" width="5" height="5" fill="white"   clip-path="url(#circleClip)"/>
+        <rect x="12" y="12" width="5" height="5" fill="#c0c0c0" clip-path="url(#circleClip)"/>
+        <rect x="17" y="12" width="5" height="5" fill="white"   clip-path="url(#circleClip)"/>
+        <rect x="2"  y="17" width="5" height="5" fill="white"   clip-path="url(#circleClip)"/>
+        <rect x="7"  y="17" width="5" height="5" fill="#c0c0c0" clip-path="url(#circleClip)"/>
+        <rect x="12" y="17" width="5" height="5" fill="white"   clip-path="url(#circleClip)"/>
+        <rect x="17" y="17" width="5" height="5" fill="#c0c0c0" clip-path="url(#circleClip)"/>
+        <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
+      </svg>
+      <span class="tool-label">Eraser</span>
+    </button>
+
+    <!-- Save / Download -->
+    <button class="s6-tool-btn" id="btnToolDownload" aria-label="Download">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v11"/>
+        <polyline points="8 10 12 14 16 10"/>
+        <line x1="5" y1="19" x2="19" y2="19"/>
+      </svg>
+      <span class="tool-label">Save</span>
+    </button>
+
+  </div>
+
+  <!-- Main bottom bar -->
+  <input type="file" id="galleryInput" accept="image/*" style="display:none">
+  <div class="s6-bottom-bar" id="s6BottomBar">
+    <!-- Gallery picker — plain rounded square, shape is the affordance -->
+    <button class="s6-circle-btn" id="btnGallery" aria-label="Change photo"></button>
+    <!-- Frame title — tap to open edit sheet -->
+    <button class="s6-frame-title-btn" id="btnFrameName" aria-label="Edit frame name">
+      <span id="frameNameDisplay">babe, wake up</span>
+    </button>
+    <!-- Share — white circle, paper plane -->
+    <button class="s6-send-btn" id="btnShare" aria-label="Share">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <polygon points="22 2 15 22 11 13 2 9 22 2" fill="#1A1A2E"/>
+      </svg>
+    </button>
+    <!-- Copy invite link — dark circle, copy icon -->
+    <button class="s6-circle-btn" id="btnCopyLink" aria-label="Copy invite link">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+      </svg>
+    </button>
+  </div>
+
+
+  <!-- ════ IMMERSIVE TOOL MODE UI ════ -->
+
+  <!-- Shared top: ↩ ↪ (left) — reused across both tool modes -->
+  <div id="tmUndoRedo" class="tool-mode-el">
+    <button class="history-btn" id="tmBtnUndo" aria-label="Undo" disabled>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+      </svg>
+    </button>
+    <button class="history-btn" id="tmBtnRedo" aria-label="Redo" disabled>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Shared top: [Done] pill (right) -->
+  <button id="tmDoneBtn" class="tool-mode-el" aria-label="Done">Done</button>
+
+  <!-- Tool-mode left panel: size track -->
+  <div id="tmLeftPanel">
+    <div id="tmTrackTop"></div>
+    <div id="tmTrackBottom"></div>
+    <div id="tmSizeHandle"></div>
+  </div>
+
+  <!-- Tool-mode bottom bar (pen mode) -->
+  <div id="tmPenBar">
+    <div class="tm-swatches">
+      <button class="tm-swatch active" data-color="#FFFFFF" style="background:#FFFFFF" aria-label="White"></button>
+      <button class="tm-swatch" data-color="#1A1A2E" style="background:#1A1A2E" aria-label="Black"></button>
+      <button class="tm-swatch" data-color="#F0E84A" style="background:#F0E84A" aria-label="Yellow"></button>
+      <button class="tm-swatch" data-color="#FF3B30" style="background:#FF3B30" aria-label="Red"></button>
+      <button class="tm-swatch" data-color="#6A00FF" style="background:#6A00FF" aria-label="Purple"></button>
+      <button class="tm-swatch" data-color="#00C2A8" style="background:#00C2A8" aria-label="Teal"></button>
+    </div>
+    <div class="tm-divider"></div>
+    <div class="tm-pen-types">
+      <button class="pen-type-btn active" data-pen="pen" title="Pen">
+        <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="white"/></svg>
+      </button>
+      <button class="pen-type-btn" data-pen="pencil" title="Pencil">
+        <svg width="16" height="16" viewBox="0 0 16 16"><rect x="6" y="1" width="4" height="10" rx="1.5" fill="white"/><polygon points="6,11 10,11 8,15" fill="white"/></svg>
+      </button>
+      <button class="pen-type-btn" data-pen="marker" title="Marker">
+        <svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="6" width="14" height="4" rx="2" fill="white"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tool-mode bottom bar (eraser mode) -->
+  <div id="tmEraserBar">
+    <div class="tm-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path d="M12 2a10 10 0 1 0 0 20V2z" fill="rgba(255,255,255,0.65)"/>
+        <circle cx="12" cy="12" r="10" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <input type="range" id="eraserOpacitySlider" min="5" max="100" value="100">
+    <span class="tm-val" id="eraserOpacityVal">100%</span>
+  </div>
+
+
+  <!-- Watermark -->
+  <p class="watermark">Made with Retake! ✦</p>
+
+  <!-- Toast -->
+  <div class="s6-toast" id="toast"></div>
+
+  <!-- Edit frame name popup -->
+  <div class="share-pop" id="editNamePop">
+    <p class="s7-pop-title">Name your frame</p>
+    <div class="edit-name-field">
+      <input class="edit-name-input" id="editNameInput" type="text"
+             placeholder="what's this frame called?" maxlength="32"
+             autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <button class="edit-name-save" id="btnEditNameDone">Save</button>
+  </div>
+
+  <!-- Share popup -->
+  <div class="share-pop" id="sharePop">
+    <div>
+      <p class="s7-pop-title">Share your frame!</p>
+      <p class="s7-pop-dim">Invite a friend</p>
+    </div>
+    <p class="s7-pop-subtitle">Send them this code — they'll step right into your frame and take a photo</p>
+    <div class="s7-pop-code-row">
+      <span class="s7-pop-code" id="shareCode"></span>
+      <button class="s7-pop-copy-btn" id="btnCopyCode" aria-label="Copy link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Scrim -->
+  <div class="scrim" id="scrim"></div>
+
+  <!-- Intro card -->
+  <div class="invite-card" id="introCard">
+    <div class="app-icon">YS</div>
+    <div class="card-content">
+      <div class="card-text">
+        <span class="card-username">Create a</span>
+        <span class="card-subtitle">frame template</span>
+      </div>
+      <div class="card-buttons">
+        <button class="btn btn-primary" id="btnStartDrawing">Start Drawing</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <div class="confirm-scrim" id="confirmScrim"></div>
+  <div class="confirm-dialog" id="confirmDialog">
+    <p class="confirm-message" id="confirmMessage"></p>
+    <div class="confirm-buttons">
+      <button class="confirm-btn confirm-btn-cancel" id="confirmCancel">Cancel</button>
+      <button class="confirm-btn confirm-btn-ok" id="confirmOk"></button>
+    </div>
+  </div>
+
+</div><!-- /.screen -->
+
+<script>
+  const $ = id => document.getElementById(id);
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  /* snapshot() throws SecurityError on file:// if canvas is tainted */
+  const snapshot = () => { try { return snapshot(); } catch(e) { return null; } };
+
+  /* ── Canvas ── */
+  const canvas  = $('editCanvas');
+  const ctx     = canvas.getContext('2d');
+  const frameEl = $('frameContainer');
+
+  /* Tool state */
+  let activeTool    = null;  /* 'eraser' | 'doodle' | null */
+  let toolRadius    = 32;   /* shared: 4–60px, default 50% */
+  let eraserOpacity = 1.0;
+  let doodleColor   = '#FFFFFF';
+  let penType       = 'pen'; /* 'pen' | 'pencil' | 'marker' */
+  let isDrawing     = false;
+  let lastX = 0, lastY = 0;
+
+  /* History — two-level stacks (declared here for early access in img.onload) */
+  const MAX_HISTORY = 30;
+  let mainUndoStack = [];
+  let mainRedoStack = [];
+  let toolUndoStack = [];
+  let toolRedoStack = [];
+  let sessionEntrySnap = null;
+  const MAX_HIST = 30;
+
+  /* Load image */
+  const img = new Image();
+  img.src = 'canvas-frame-teletubby.png';
+  img.onload = () => {
+    const W = canvas.width, H = canvas.height;
+    const scale = Math.max(W / img.width, H / img.height);
+    const sw = W / scale, sh = H / scale;
+    const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+    mainUndoStack.push(snapshot());
+    syncHistoryBtns();
+  };
+  img.onerror = () => {
+    const g = ctx.createLinearGradient(0,0,0,750);
+    g.addColorStop(0,'#8ecae6'); g.addColorStop(1,'#219ebc');
+    ctx.fillStyle = g; ctx.fillRect(0,0,414,750);
+    mainUndoStack.push(snapshot());
+    syncHistoryBtns();
+  };
+
+
+  /* ── pushHistory: called after each stroke (within a tool session → tool stack) ── */
+  function pushHistory() {
+    if (activeTool) {
+      if (toolUndoStack.length >= MAX_HIST) toolUndoStack.shift();
+      toolUndoStack.push(snapshot());
+      toolRedoStack = [];
+    } else {
+      mainUndoStack.push(snapshot());
+      mainRedoStack = [];
+    }
+    syncHistoryBtns();
+  }
+
+
+  /* ── Drawing ── */
+  function getXY(e) {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return {
+      x: (t.clientX - r.left) * (canvas.width  / r.width),
+      y: (t.clientY - r.top)  * (canvas.height / r.height),
+    };
+  }
+
+  function paintAt(x, y, fx, fy) {
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(x, y);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (activeTool === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.globalAlpha = eraserOpacity;
+      ctx.strokeStyle = 'rgba(0,0,0,1)';
+      ctx.lineWidth = toolRadius * 2;
+      ctx.stroke();
+    } else if (penType === 'pencil') {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = doodleColor;
+      ctx.lineWidth = Math.max(1, toolRadius * 0.8);
+      ctx.globalAlpha = 0.55; ctx.stroke();
+      ctx.lineWidth = toolRadius * 1.6; ctx.globalAlpha = 0.08; ctx.stroke();
+    } else if (penType === 'marker') {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = doodleColor;
+      ctx.lineWidth = toolRadius * 3.5;
+      ctx.lineCap = 'square'; ctx.lineJoin = 'miter';
+      ctx.globalAlpha = 0.38; ctx.stroke();
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = doodleColor;
+      ctx.lineWidth = toolRadius * 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  canvas.addEventListener('mousedown', e => {
+    if (!activeTool) return;
+    isDrawing = true;
+    const p = getXY(e); lastX = p.x; lastY = p.y;
+    paintAt(p.x, p.y, p.x, p.y);
+  });
+  canvas.addEventListener('mousemove', e => {
+    if (!activeTool) return;
+    moveCursor(e.clientX, e.clientY);
+    if (!isDrawing) return;
+    const p = getXY(e);
+    paintAt(p.x, p.y, lastX, lastY);
+    lastX = p.x; lastY = p.y;
+  });
+  canvas.addEventListener('mouseup',    () => { if (isDrawing) { pushHistory(); isDrawing = false; } });
+  canvas.addEventListener('mouseleave', () => {
+    if (isDrawing) { pushHistory(); isDrawing = false; }
+    $('brushCursor').style.display = 'none';
+  });
+  canvas.addEventListener('mouseenter', () => {
+    if (activeTool) $('brushCursor').style.display = 'block';
+  });
+
+  canvas.addEventListener('touchstart', e => {
+    if (!activeTool) return; e.preventDefault();
+    isDrawing = true; const p = getXY(e); lastX = p.x; lastY = p.y;
+    paintAt(p.x, p.y, p.x, p.y);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    if (!activeTool) return; e.preventDefault();
+    if (!isDrawing) return; const p = getXY(e);
+    paintAt(p.x, p.y, lastX, lastY); lastX = p.x; lastY = p.y;
+  }, { passive: false });
+  canvas.addEventListener('touchend', () => {
+    if (isDrawing) { pushHistory(); isDrawing = false; }
+  });
+
+
+  /* ── Brush cursor ── */
+  const cursorEl     = $('brushCursor');
+  const cursorSvg    = $('brushCursorSvg');
+  const cursorCircle = $('brushCursorCircle');
+
+  function moveCursor(cx, cy) {
+    const r = frameEl.getBoundingClientRect();
+    cursorEl.style.left = (cx - r.left) + 'px';
+    cursorEl.style.top  = (cy - r.top)  + 'px';
+  }
+
+  function syncCursor() {
+    const r = toolRadius;
+    const d = r * 2 + 8;
+    cursorSvg.setAttribute('width', d); cursorSvg.setAttribute('height', d);
+    cursorSvg.setAttribute('viewBox', `${-d/2} ${-d/2} ${d} ${d}`);
+    cursorCircle.setAttribute('r', r);
+    if (activeTool === 'doodle') {
+      const alpha = doodleColor === '#FFFFFF' ? '44' : '55';
+      cursorCircle.setAttribute('fill', doodleColor + alpha);
+      cursorCircle.setAttribute('stroke', doodleColor);
+      cursorCircle.setAttribute('stroke-dasharray', '');
+      cursorCircle.setAttribute('stroke-width', '2');
+    } else {
+      cursorCircle.setAttribute('fill', 'rgba(255,255,255,0.06)');
+      cursorCircle.setAttribute('stroke', 'rgba(255,255,255,0.8)');
+      cursorCircle.setAttribute('stroke-dasharray', '4 3');
+      cursorCircle.setAttribute('stroke-width', '1.5');
+    }
+  }
+  syncCursor();
+
+
+  /* ── Slider helpers ── */
+  function setFill(el, pct) { el.style.setProperty('--fill', pct + '%'); }
+
+  /* ── Two-level history ── */
+  /* mainUndoStack: one entry per completed tool session */
+  /* toolUndoStack: one entry per stroke within current tool session */
+  /* (vars declared earlier near top for early img.onload access) */
+
+  function restoreSnapshot(url) {
+    if (!url) return Promise.resolve();
+    return new Promise(res => {
+      const i = new Image();
+      i.onload = () => { ctx.clearRect(0,0,414,750); ctx.drawImage(i,0,0); res(); };
+      i.src = url;
+    });
+  }
+
+  async function toolUndo() {
+    if (toolUndoStack.length <= 1) { showToast('Nothing to undo'); return; }
+    toolRedoStack.push(toolUndoStack.pop());
+    await restoreSnapshot(toolUndoStack[toolUndoStack.length - 1]);
+    syncHistoryBtns();
+  }
+
+  async function toolRedo() {
+    if (!toolRedoStack.length) { showToast('Nothing to redo'); return; }
+    const snap = toolRedoStack.pop();
+    toolUndoStack.push(snap);
+    await restoreSnapshot(snap);
+    syncHistoryBtns();
+  }
+
+  async function mainUndo() {
+    if (mainUndoStack.length <= 1) { showToast('Nothing to undo'); return; }
+    const current = mainUndoStack.pop();
+    mainRedoStack.push(current);
+    await restoreSnapshot(mainUndoStack[mainUndoStack.length - 1]);
+    syncHistoryBtns();
+  }
+
+  async function mainRedo() {
+    if (!mainRedoStack.length) { showToast('Nothing to redo'); return; }
+    const snap = mainRedoStack.pop();
+    mainUndoStack.push(snap);
+    await restoreSnapshot(snap);
+    syncHistoryBtns();
+  }
+
+  function syncHistoryBtns() {
+    if (activeTool) {
+      $('tmBtnUndo').disabled = toolUndoStack.length <= 1;
+      $('tmBtnRedo').disabled = toolRedoStack.length === 0;
+      $('btnUndo').disabled = true;
+      $('btnRedo').disabled = true;
+    } else {
+      $('btnUndo').disabled = mainUndoStack.length <= 1;
+      $('btnRedo').disabled = mainRedoStack.length === 0;
+      $('tmBtnUndo').disabled = true;
+      $('tmBtnRedo').disabled = true;
+    }
+  }
+
+  /* ── Size track: handle scales with brush size ── */
+  const TRACK_H = 240, PANEL_W = 56;
+  const HANDLE_MIN = 6, HANDLE_MAX = 38;
+  const TRACK_TOP_Y = 38, TRACK_BOT_Y = 210; // handle center range (between indicators)
+
+  function setHandlePos(norm) {
+    const size  = Math.round(HANDLE_MIN + norm * (HANDLE_MAX - HANDLE_MIN));
+    const trackY = TRACK_TOP_Y + (1 - norm) * (TRACK_BOT_Y - TRACK_TOP_Y);
+    const h = $('tmSizeHandle');
+    h.style.width  = size + 'px';
+    h.style.height = size + 'px';
+    h.style.top    = (trackY - size / 2) + 'px';
+    h.style.left   = ((PANEL_W - size) / 2) + 'px';
+  }
+
+  function applyTrackNorm(norm) {
+    norm = Math.max(0, Math.min(1, norm));
+    toolRadius = Math.round(4 + norm * (60 - 4));
+    setHandlePos(norm);
+    syncCursor();
+    expandLeftPanel();
+  }
+
+  function normFromClientY(clientY) {
+    const rect = $('tmLeftPanel').getBoundingClientRect();
+    return Math.max(0, Math.min(1,
+      1 - (clientY - rect.top - TRACK_TOP_Y) / (TRACK_BOT_Y - TRACK_TOP_Y)));
+  }
+
+  let trackDragging = false;
+
+  /* Pop out on hover/touch-enter */
+  $('tmLeftPanel').addEventListener('mouseenter', expandLeftPanel);
+  $('tmLeftPanel').addEventListener('touchstart', (e) => {
+    expandLeftPanel();
+    trackDragging = true;
+    applyTrackNorm(normFromClientY(e.touches[0].clientY));
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (trackDragging) applyTrackNorm(normFromClientY(e.touches[0].clientY));
+  }, { passive: true });
+  document.addEventListener('touchend', () => { trackDragging = false; }, { passive: true });
+
+  $('tmLeftPanel').addEventListener('mousedown', (e) => {
+    trackDragging = true;
+    applyTrackNorm(normFromClientY(e.clientY));
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (trackDragging) applyTrackNorm(normFromClientY(e.clientY));
+  });
+  document.addEventListener('mouseup', () => { trackDragging = false; });
+
+  /* ── Opacity slider (eraser) ── */
+  setFill($('eraserOpacitySlider'), 100);
+  $('eraserOpacitySlider').addEventListener('input', () => {
+    eraserOpacity = parseInt($('eraserOpacitySlider').value) / 100;
+    $('eraserOpacityVal').textContent = $('eraserOpacitySlider').value + '%';
+    setFill($('eraserOpacitySlider'), $('eraserOpacitySlider').value);
+  });
+
+  /* ── Color swatches ── */
+  document.querySelectorAll('.tm-swatch').forEach(s => {
+    s.addEventListener('click', () => {
+      document.querySelectorAll('.tm-swatch').forEach(x => x.classList.remove('active'));
+      s.classList.add('active');
+      doodleColor = s.dataset.color;
+      syncCursor();
+    });
+  });
+
+  /* ── Pen type buttons ── */
+  document.querySelectorAll('.pen-type-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.pen-type-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      penType = b.dataset.pen;
+    });
+  });
+
+  /* ── Left panel collapse/expand ── */
+  const LP_COLLAPSED_X = '-28px';
+  let lpCollapseTimer = null;
+  let toolsHideTimer = null;
+  function expandLeftPanel() {
+    $('tmLeftPanel').style.transform = 'translateX(0)';
+    clearTimeout(lpCollapseTimer);
+    lpCollapseTimer = setTimeout(() => {
+      if (activeTool) $('tmLeftPanel').style.transform = `translateX(${LP_COLLAPSED_X})`;
+    }, 1800);
+  }
+
+  /* ── Toolbar label expand ── */
+  let labelPressTimer = null;
+  let labelCollapseTimer = null;
+  let lpStartX = 0, lpStartY = 0;
+
+  function showToolLabels() {
+    $('s6Tools').classList.add('labels-expanded');
+    clearTimeout(labelCollapseTimer);
+  }
+
+  function hideToolLabels() {
+    clearTimeout(labelCollapseTimer);
+    labelCollapseTimer = setTimeout(() => {
+      $('s6Tools').classList.remove('labels-expanded');
+    }, 500);
+  }
+
+  document.querySelectorAll('.s6-tool-btn').forEach(btn => {
+    /* Desktop: show after 400ms hover, hide 0.5s after leave */
+    btn.addEventListener('mouseenter', () => {
+      clearTimeout(labelPressTimer);
+      labelPressTimer = setTimeout(showToolLabels, 800);
+    });
+    btn.addEventListener('mouseleave', () => {
+      clearTimeout(labelPressTimer);
+      hideToolLabels();
+    });
+
+    /* Mobile: long-touch 1.5s to show, hide 0.5s after touch ends */
+    btn.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      lpStartX = t.clientX; lpStartY = t.clientY;
+      clearTimeout(labelPressTimer);
+      labelPressTimer = setTimeout(showToolLabels, 2000);
+    }, { passive: true });
+    btn.addEventListener('touchend', () => {
+      clearTimeout(labelPressTimer);
+      hideToolLabels();
+    }, { passive: true });
+    btn.addEventListener('touchcancel', () => {
+      clearTimeout(labelPressTimer);
+      hideToolLabels();
+    }, { passive: true });
+    btn.addEventListener('touchmove', (e) => {
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - lpStartX) > 8 || Math.abs(t.clientY - lpStartY) > 8) {
+        clearTimeout(labelPressTimer);
+      }
+    }, { passive: true });
+  });
+
+  /* ── Configure left panel per tool — always start at 50% ── */
+  function configureLeftPanel(tool) {
+    if (tool === 'eraser') {
+      eraserOpacity = 0.5;
+      $('eraserOpacitySlider').value = 50;
+      $('eraserOpacityVal').textContent = '50%';
+      setFill($('eraserOpacitySlider'), 50);
+      toolRadius = Math.round(4 + 0.5 * (60 - 4)); /* eraser: 50% = 32px */
+      setHandlePos(0.5);
+    } else {
+      toolRadius = Math.round(4 + 0.1 * (60 - 4)); /* pen: 10% = ~10px */
+      setHandlePos(0.1);
+    }
+    syncCursor();
+  }
+
+  /* ── Tool mode: enter / exit ── */
+  function enterToolMode(tool) {
+    activeTool = tool;
+
+    /* Save pre-session canvas state for main-level undo */
+    sessionEntrySnap = snapshot();
+    mainUndoStack.push(sessionEntrySnap);
+    mainRedoStack = [];
+
+    /* Initialize tool-level history */
+    toolUndoStack = [sessionEntrySnap];
+    toolRedoStack = [];
+
+    configureLeftPanel(tool);
+    syncHistoryBtns();
+
+    /* Slide default UI out */
+    $('btnExit').classList.add('out');
+    $('undoRedoCluster').classList.add('out');
+    $('s6Tools').classList.add('out');
+    $('s6BottomBar').classList.add('out');
+    /* Once the out-animation is done, strip both classes so pointer-events: none
+       comes from the base rule — no cascade conflict when re-entering */
+    clearTimeout(toolsHideTimer);
+    toolsHideTimer = setTimeout(() => {
+      $('s6Tools').classList.remove('visible', 'out');
+    }, 400);
+
+    /* Slide tool-mode UI in */
+    setTimeout(() => {
+      $('tmUndoRedo').classList.add('tm-in');
+      $('tmDoneBtn').classList.add('tm-in');
+      $('tmLeftPanel').classList.add('tm-in');
+      $(tool === 'eraser' ? 'tmEraserBar' : 'tmPenBar').classList.add('tm-in');
+      expandLeftPanel();
+    }, 120);
+
+    canvas.classList.remove('no-tool');
+    syncCursor();
+    $('brushCursor').style.display = 'none';
+  }
+
+  function exitToolMode() {
+    const didChange = toolUndoStack.length > 1;
+
+    /* If nothing was drawn in this session, remove the pre-session push from main stack */
+    if (!didChange && mainUndoStack.length > 0) {
+      mainUndoStack.pop();
+    } else if (didChange) {
+      /* Session ended with changes — push final state to main stack */
+      mainUndoStack.push(snapshot());
+      mainRedoStack = [];
+    }
+
+    toolUndoStack = [];
+    toolRedoStack = [];
+    sessionEntrySnap = null;
+
+    activeTool = null;
+    clearTimeout(lpCollapseTimer);
+    clearTimeout(toolsHideTimer);
+    syncHistoryBtns();
+
+    $('tmUndoRedo').classList.remove('tm-in');
+    $('tmDoneBtn').classList.remove('tm-in');
+    $('tmLeftPanel').classList.remove('tm-in');
+    $('tmLeftPanel').classList.remove('lp-collapsed');
+    $('tmLeftPanel').style.transform = ''; /* clear inline so base CSS hides it */
+    $('tmPenBar').classList.remove('tm-in');
+    $('tmEraserBar').classList.remove('tm-in');
+
+    /* Restore default UI — toolbar timer is already cancelled so no race */
+    $('s6Tools').classList.remove('out');
+    $('s6Tools').classList.add('visible');
+    setTimeout(() => {
+      $('btnExit').classList.remove('out');
+      $('undoRedoCluster').classList.remove('out');
+      $('s6BottomBar').classList.remove('out');
+      $('btnToolDoodle').classList.remove('active');
+      $('btnToolEraser').classList.remove('active');
+    }, 100);
+
+    canvas.classList.add('no-tool');
+    $('brushCursor').style.display = 'none';
+  }
+
+  $('btnToolDoodle').addEventListener('click', () => {
+    if (activeTool === 'doodle') { exitToolMode(); return; }
+    if (activeTool) exitToolMode();
+    setTimeout(() => {
+      $('btnToolDoodle').classList.add('active');
+      enterToolMode('doodle');
+    }, activeTool ? 120 : 0);
+  });
+
+  $('btnToolEraser').addEventListener('click', () => {
+    if (activeTool === 'eraser') { exitToolMode(); return; }
+    if (activeTool) exitToolMode();
+    setTimeout(() => {
+      $('btnToolEraser').classList.add('active');
+      enterToolMode('eraser');
+    }, activeTool ? 120 : 0);
+  });
+
+  ['btnToolText','btnToolStickers','btnToolGallery','btnToolDownload'].forEach(id => {
+    $(id).addEventListener('click', () => { if (activeTool) exitToolMode(); });
+  });
+
+  $('tmDoneBtn').addEventListener('click', exitToolMode);
+
+  $('tmBtnUndo').addEventListener('click', toolUndo);
+  $('tmBtnRedo').addEventListener('click', toolRedo);
+  $('btnUndo').addEventListener('click', mainUndo);
+  $('btnRedo').addEventListener('click', mainRedo);
+
+
+  /* ── Exit / back ── */
+  async function exitToIntro() {
+    if (activeTool) exitToolMode();
+    await delay(180);
+    $('btnExit').classList.remove('visible');
+    $('undoRedoCluster').classList.remove('visible');
+    $('s6Tools').classList.remove('visible');
+    $('s6BottomBar').classList.remove('visible');
+    $('frameScrim').classList.remove('visible');
+    await delay(280);
+    if (img.complete && img.naturalWidth) {
+      const W = canvas.width, H = canvas.height;
+      const sc = Math.max(W / img.width, H / img.height);
+      const sw2 = W / sc, sh2 = H / sc;
+      ctx.clearRect(0,0,W,H);
+      ctx.drawImage(img, (img.width-sw2)/2, (img.height-sh2)/2, sw2, sh2, 0, 0, W, H);
+    }
+    mainUndoStack = []; mainRedoStack = [];
+    toolUndoStack = []; toolRedoStack = [];
+    mainUndoStack.push(snapshot());
+    syncHistoryBtns();
+    await delay(100);
+    $('scrim').classList.add('visible');
+    $('introCard').classList.add('visible');
+  }
+
+  $('btnExit').addEventListener('click', async () => {
+    if (mainUndoStack.length > 1) {
+      const ok = await showConfirm('Discard this frame?','Discard',true,'Keep editing');
+      if (!ok) return;
+    }
+    await exitToIntro();
+  });
+  /* ── Gallery: swap canvas background image ── */
+  $('btnGallery').addEventListener('click', () => $('galleryInput').click());
+  $('galleryInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const newImg = new Image();
+    newImg.onload = () => {
+      const W = canvas.width, H = canvas.height;
+      const scale = Math.max(W / newImg.width, H / newImg.height);
+      const sw = W / scale, sh = H / scale;
+      ctx.clearRect(0, 0, W, H);
+      ctx.drawImage(newImg, (newImg.width-sw)/2, (newImg.height-sh)/2, sw, sh, 0, 0, W, H);
+      mainUndoStack = [snapshot()]; mainRedoStack = [];
+      syncHistoryBtns();
+      URL.revokeObjectURL(url);
+    };
+    newImg.src = url;
+    e.target.value = '';
+  });
+
+  /* ── Share (system share sheet) ── */
+  $('btnShare').addEventListener('click', async () => {
+    const frameName = $('frameNameInput').value.trim() || 'My frame';
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: frameName, text: `Join my Retake frame: ${frameName}`, url: location.href });
+      } catch(e) { /* cancelled */ }
+    } else {
+      showToast('Sharing not supported on this device');
+    }
+  });
+
+  /* ── Edit frame name ── */
+  function openEditName() {
+    $('editNameInput').value = $('frameNameDisplay').textContent;
+    $('editNamePop').classList.add('visible');
+    $('scrim').classList.add('visible');
+    /* Lock scroll so keyboard appearance doesn't shift the frame */
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    setTimeout(() => {
+      $('editNameInput').focus({ preventScroll: true });
+      window.scrollTo(0, 0);
+    }, 60);
+  }
+  function saveEditName() {
+    const val = $('editNameInput').value.trim();
+    if (val) $('frameNameDisplay').textContent = val;
+    $('editNamePop').classList.remove('visible');
+    $('scrim').classList.remove('visible');
+    $('editNameInput').blur();
+    /* Restore scroll */
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    window.scrollTo(0, 0);
+  }
+  $('btnFrameName').addEventListener('click', openEditName);
+  $('btnEditNameDone').addEventListener('click', saveEditName);
+  $('editNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveEditName(); });
+
+  /* ── Copy link → open share panel ── */
+  $('btnCopyLink').addEventListener('click', () => {
+    const code = 'RTKE-' + Math.floor(1000 + Math.random()*9000);
+    $('shareCode').textContent = code;
+    $('sharePop').classList.add('visible');
+    $('scrim').classList.add('visible');
+  });
+
+  $('btnCopyCode').addEventListener('click', () => {
+    const code = $('shareCode').textContent;
+    const link = `https://retake.app/join/${code}`;
+    navigator.clipboard?.writeText(link).catch(()=>{});
+    showToast('Invite link copied!');
+  });
+  $('scrim').addEventListener('click', () => {
+    if ($('editNamePop').classList.contains('visible')) {
+      saveEditName(); return;
+    }
+    if ($('sharePop').classList.contains('visible')) {
+      $('sharePop').classList.remove('visible'); $('scrim').classList.remove('visible');
+    }
+  });
+
+
+  /* ── Start drawing ── */
+  $('btnStartDrawing').addEventListener('click', async () => {
+    $('introCard').classList.remove('visible'); $('scrim').classList.remove('visible');
+    await delay(260);
+    $('frameScrim').classList.add('visible');
+    $('btnExit').classList.add('visible');
+    await delay(50); $('undoRedoCluster').classList.add('visible');
+    await delay(40); $('s6Tools').classList.add('visible');
+    await delay(60); $('s6BottomBar').classList.add('visible');
+    canvas.classList.add('no-tool');
+  });
+
+
+  /* ── Toast ── */
+  let toastTimer = null;
+  function showToast(msg, ms = 1800) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('visible'), ms);
+  }
+
+
+  /* ── Confirm dialog ── */
+  function showConfirm(message, okLabel, isDanger, cancelLabel = 'Cancel') {
+    return new Promise(resolve => {
+      $('confirmMessage').textContent = message;
+      $('confirmOk').textContent = okLabel;
+      $('confirmOk').className = 'confirm-btn confirm-btn-ok' + (isDanger ? ' danger' : '');
+      $('confirmCancel').textContent = cancelLabel;
+      $('confirmScrim').classList.add('visible'); $('confirmDialog').classList.add('visible');
+      const done = v => {
+        $('confirmScrim').classList.remove('visible'); $('confirmDialog').classList.remove('visible');
+        resolve(v);
+      };
+      $('confirmOk').onclick = () => done(true);
+      $('confirmCancel').onclick = () => done(false);
+      $('confirmScrim').onclick = () => done(false);
+    });
+  }
+
+
+  /* ── Init ── */
+  const showIntro = () => setTimeout(() => {
+    $('scrim').classList.add('visible'); $('introCard').classList.add('visible');
+  }, 900);
+  if (img.complete && img.naturalWidth) showIntro();
+  else { img.addEventListener('load', showIntro); img.addEventListener('error', showIntro); }
+
+  /* ── Fit to any iPhone viewport ── */
+  function fitToViewport() {
+    if (window.innerWidth > 500) return;
+    const s = document.querySelector('.screen');
+    const scale = Math.min(window.innerWidth / 430, window.innerHeight / 932);
+    const ox = (window.innerWidth  - 430 * scale) / 2;
+    const oy = (window.innerHeight - 932 * scale) / 2;
+    s.style.transform = `translate(${ox}px, ${oy}px) scale(${scale})`;
+  }
+  fitToViewport();
+  window.addEventListener('resize', fitToViewport);
+</script>
+</body>
+</html>
