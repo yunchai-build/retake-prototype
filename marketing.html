@@ -8,279 +8,225 @@
     @font-face {
       font-family: 'Bedstead';
       src: url('bedstead-semicondensed.otf') format('opentype');
-      font-weight: normal;
-      font-style: normal;
     }
     @font-face {
       font-family: 'BedsteadXC';
       src: url('bedstead-extracondensed.otf') format('opentype');
-      font-weight: normal;
-      font-style: normal;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #14141C;
+      background: #111118;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 60px;
-      padding: 64px 40px 80px;
+      gap: 72px;
+      padding: 72px 40px 96px;
       font-family: -apple-system, sans-serif;
     }
 
     .page-label {
-      font-size: 11px; font-weight: 600;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: #555; align-self: flex-start; margin-bottom: -40px;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #444; align-self: flex-start;
+      margin-bottom: -52px;
     }
 
-    /* ─────────────────────────────────────
-       SLIDE — 430 × 932  (App Store size)
-    ───────────────────────────────────── */
+    /* ── SLIDE ── */
     .slide {
       width: 430px; height: 932px;
       position: relative; overflow: hidden;
-      border-radius: 16px; flex-shrink: 0;
-      box-shadow: 0 40px 100px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.07);
+      border-radius: 20px; flex-shrink: 0;
+      box-shadow:
+        0 2px 0 rgba(255,255,255,0.04),
+        0 60px 120px rgba(0,0,0,0.6),
+        0 20px 40px rgba(0,0,0,0.3);
     }
-    .cool  { background: #FFFFFF; }
-    .yellow { background: #F0E84A; }
 
-    /* ─── Headline ─── */
+    /* ── PER-SLIDE BACKGROUNDS ── */
+    .s1 { background: linear-gradient(145deg, #FDF8F2 0%, #F5EBDA 100%); }
+    .s2 { background: linear-gradient(145deg, #F0F6FF 0%, #DCE9FF 100%); }
+    .s3 { background: linear-gradient(145deg, #F4F0FF 0%, #E6DCFF 100%); }
+    .s4 { background: #F0E84A; }
+
+    /* ── HEADLINE BLOCK ── */
     .hl {
       position: absolute; top: 0; left: 0; right: 0;
-      padding: 54px 38px 0; z-index: 30;
-      text-align: center;
+      padding: 56px 36px 0;
+      z-index: 30;
     }
+
+    /* Pill kicker badge */
     .kicker {
-      font-size: 11px; font-weight: 700;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(0,0,0,0.3); margin-bottom: 10px;
+      display: inline-flex; align-items: center;
+      background: rgba(0,0,0,0.07);
+      border-radius: 100px;
+      font-size: 9.5px; font-weight: 700;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(0,0,0,0.4);
+      padding: 5px 11px; margin-bottom: 18px;
     }
+    .s4 .kicker { background: rgba(0,0,0,0.1); color: rgba(0,0,0,0.45); }
+
+    /* Main headline */
     .title {
       font-family: 'Bedstead', monospace;
-      font-size: 52px;
-      line-height: 1.04; letter-spacing: 0.01em; color: #111;
+      font-size: 62px;
+      line-height: 1.0; color: #111;
     }
-    .title em { font-style: normal; color: #C8A800; }
-    .yellow .title { color: #12121C; }
-    .yellow .title em { color: rgba(18,18,28,0.38); }
-    .yellow .kicker { color: rgba(18,18,28,0.38); }
+    .title em { font-style: normal; color: #B89600; }
+    .s4 .title { color: #111; }
+    .s4 .title em { color: rgba(0,0,0,0.3); }
 
-    /* ─── Wordmark ─── */
+    /* ── WORDMARK ── */
     .wm {
-      position: absolute; top: 54px; right: 36px;
+      position: absolute; top: 60px; right: 36px;
       font-family: 'Bedstead', monospace;
-      font-size: 12px; letter-spacing: 0.08em;
-      color: #111; opacity: 0.12; z-index: 30;
+      font-size: 11px; letter-spacing: 0.1em;
+      color: #000; opacity: 0.1; z-index: 30;
     }
-    .yellow .wm { color: #12121C; opacity: 0.18; }
 
-    /* ─── Phone shell ─── */
+    /* ── PHONE SHELL ── */
     .phone {
       position: absolute;
-      bottom: -70px; left: 50%; transform: translateX(-50%);
-      width: 320px; z-index: 10;
+      bottom: -80px; left: 50%; transform: translateX(-50%);
+      width: 310px; z-index: 10;
     }
     .shell {
-      width: 320px; height: 712px;
-      background: #0d0d12; border-radius: 52px;
+      width: 310px; height: 690px;
+      background: #080810; border-radius: 50px;
       position: relative;
       box-shadow:
-        0 0 0 1px rgba(255,255,255,0.07),
-        inset 0 0 0 1.5px rgba(255,255,255,0.09),
-        0 48px 96px rgba(0,0,0,0.52);
+        0 0 0 1px rgba(255,255,255,0.08),
+        inset 0 0 0 1px rgba(255,255,255,0.06),
+        0 40px 80px rgba(0,0,0,0.55),
+        0 8px 20px rgba(0,0,0,0.3);
     }
     .shell::before {
-      content:''; position:absolute;
-      left:-3px; top:108px; width:3px; height:34px;
-      background:#1e1e1e; border-radius:2px 0 0 2px;
-      box-shadow: 0 52px 0 #1e1e1e, 0 104px 0 #1e1e1e;
+      content: ''; position: absolute;
+      left: -2.5px; top: 106px; width: 2.5px; height: 32px;
+      background: #222; border-radius: 2px 0 0 2px;
+      box-shadow: 0 50px 0 #222, 0 100px 0 #222;
     }
     .shell::after {
-      content:''; position:absolute;
-      right:-3px; top:138px; width:3px; height:66px;
-      background:#1e1e1e; border-radius:0 2px 2px 0;
+      content: ''; position: absolute;
+      right: -2.5px; top: 135px; width: 2.5px; height: 64px;
+      background: #222; border-radius: 0 2px 2px 0;
     }
     .screen {
-      position: absolute; left:8px; top:8px; right:8px; bottom:8px;
-      border-radius:44px; overflow:hidden; background:#000;
+      position: absolute; left: 8px; top: 8px; right: 8px; bottom: 8px;
+      border-radius: 42px; overflow: hidden; background: #000;
     }
-    /* Dynamic Island */
     .di {
-      position:absolute; top:14px; left:50%; transform:translateX(-50%);
-      width:88px; height:26px; background:#000;
-      border-radius:20px; z-index:40;
+      position: absolute; top: 13px; left: 50%; transform: translateX(-50%);
+      width: 84px; height: 25px; background: #000;
+      border-radius: 20px; z-index: 40;
     }
 
-    /* ─── Toolbar — scaled to ~0.72× the prototype ─── */
+    /* ── TOOLBAR ── */
     .app-toolbar {
-      position:absolute; right:6px; top:68px;
-      display:flex; flex-direction:column; gap:5px; z-index:20;
+      position: absolute; right: 6px; top: 65px;
+      display: flex; flex-direction: column; gap: 5px; z-index: 20;
     }
     .tb-btn {
-      width:30px; height:30px; border-radius:50%;
-      background:rgba(0,0,0,0.28); backdrop-filter:blur(10px);
-      -webkit-backdrop-filter:blur(10px);
-      display:flex; align-items:center; justify-content:center;
-      flex-shrink:0;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(0,0,0,0.28); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
-    .tb-btn svg { display:block; }
-    .tb-btn.active {
-      background: rgba(255,255,255,0.92);
-    }
+    .tb-btn svg { display: block; }
+    .tb-btn.active { background: rgba(255,255,255,0.92); }
     .tb-btn.active svg { stroke: #1A1A2E; }
 
-    /* ─── Bottom bar ─── */
+    /* ── BOTTOM BAR ── */
     .app-btmbar {
-      position:absolute; bottom:6px; left:6px; right:6px; height:48px;
-      background:rgba(18,18,28,0.84); border-radius:30px;
-      backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-      z-index:20;
+      position: absolute; bottom: 6px; left: 6px; right: 6px; height: 46px;
+      background: rgba(18,18,28,0.84); border-radius: 28px;
+      backdrop-filter: blur(14px); z-index: 20;
     }
 
-    /* ─── Sticker pills ─── */
+    /* ── STICKERS ── */
     .stk {
-      position:absolute; z-index:15;
-      font-family:-apple-system,sans-serif; font-weight:900;
-      border-radius:5px;
-      box-shadow: 2px 3px 0 rgba(0,0,0,0.18), 0 0 0 2px rgba(255,255,255,0.6);
+      position: absolute; z-index: 15;
+      font-family: -apple-system, sans-serif; font-weight: 900;
+      border-radius: 5px;
+      box-shadow: 2px 3px 0 rgba(0,0,0,0.15), 0 0 0 2px rgba(255,255,255,0.6);
     }
 
-    /* ─── Floating chips outside phone ─── */
+    /* ── FLOATING CHIPS ── */
     .chip {
-      position:absolute; z-index:25; border-radius:40px;
-      font-family:-apple-system,sans-serif; font-size:13px;
-      font-weight:700; padding:10px 18px;
-      white-space:nowrap;
-      box-shadow:0 8px 28px rgba(0,0,0,0.14);
+      position: absolute; z-index: 25; border-radius: 100px;
+      font-family: -apple-system, sans-serif;
+      font-weight: 700; padding: 10px 18px;
+      white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
     }
-    .chip-dark  { background:#12121C; color:#F0E84A; }
-    .chip-white { background:#fff;    color:#111; }
+    .chip-dark  { background: #111; color: #F0E84A; font-size: 12px; }
+    .chip-white { background: #fff; color: #111; font-size: 12px; }
 
-    /* ─── Invite code badge ─── */
+    /* ── INVITE CODE BADGE ── */
     .code-badge {
-      position:absolute; z-index:25;
-      background:#12121C; color:#F0E84A;
-      font-family:'Bedstead','BedsteadXC',monospace;
-      font-size:26px; letter-spacing:0.06em;
-      padding:16px 24px; border-radius:18px;
-      box-shadow:0 16px 48px rgba(0,0,0,0.30);
+      position: absolute; z-index: 25;
+      background: #111; color: #F0E84A;
+      font-family: 'Bedstead', monospace;
+      font-size: 24px; letter-spacing: 0.08em;
+      padding: 15px 22px; border-radius: 16px;
+      box-shadow: 0 20px 56px rgba(0,0,0,0.28);
     }
 
-    /* ─── Caption ─── */
+    /* ── CAPTION ── */
     .caption {
-      position:absolute; bottom:36px; left:0; right:0;
-      text-align:center; font-size:12px; font-weight:600;
-      letter-spacing:0.05em; color:#111827; opacity:0.25; z-index:30;
-      text-transform: uppercase;
+      position: absolute; bottom: 32px; left: 0; right: 0;
+      text-align: center; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: #000; opacity: 0.18; z-index: 30;
     }
-    .yellow .caption { color:#12121C; }
+    .s4 .caption { color: #111; opacity: 0.22; }
+
+    /* ── TOOLBAR SVG HELPER ── */
+    .tb-icon { width: 17px; height: 17px; display: block; }
   </style>
 </head>
 <body>
 
-<p class="page-label">Retake! — Marketing Slides · Screenshot each one</p>
+<p class="page-label">Retake! — Marketing Slides</p>
 
 
-<!-- ══════════════════════════════════════════
-     SLIDE 1  —  STICKERS
-══════════════════════════════════════════ -->
-<div class="slide cool">
+<!-- ══════════════════════════════════════
+     SLIDE 1 — ADD YOUR TOUCH
+     Warm cream / golden paper
+══════════════════════════════════════ -->
+<div class="slide s1">
   <span class="wm">RETAKE!</span>
 
   <div class="hl">
     <p class="kicker">Make your frame</p>
-    <h1 class="title">Add your<br>touch.</h1>
+    <h1 class="title">Add your<br><em>touch.</em></h1>
   </div>
 
-  <!-- Bleeding chips -->
-  <div class="chip chip-dark"  style="left:-14px; top:326px; transform:rotate(-7deg); font-size:13px">✦ RISE AND SHINE</div>
-  <div class="chip chip-white" style="right:2px;  top:280px; transform:rotate(5deg);  font-size:12px">😊 Stickers</div>
-  <div class="chip chip-white" style="left:8px;   top:448px; transform:rotate(-4deg); font-size:11px">⭐ 3D</div>
+  <!-- Floating label chips -->
+  <div class="chip chip-dark" style="left:-16px; top:334px; transform:rotate(-8deg)">✦ RISE AND SHINE</div>
+  <div class="chip chip-white" style="right:-4px; top:288px; transform:rotate(6deg)">😊 Stickers</div>
+  <div class="chip chip-white" style="left:14px; top:462px; transform:rotate(-3deg); font-size:11px">⭐ 3D</div>
 
   <div class="phone">
     <div class="shell">
       <div class="screen">
         <div class="di"></div>
-
-        <!-- Frame bg -->
         <img src="canvas-frame-teletubby.png"
-          style="position:absolute;left:3px;top:48px;width:298px;height:538px;object-fit:cover;border-radius:20px;z-index:2;">
-
-        <!-- Stickers -->
-        <div class="stk" style="top:106px;left:32px;background:#F0E84A;color:#111;font-size:14px;padding:6px 11px;transform:rotate(-6deg);z-index:12">RISE AND SHINE</div>
-        <div class="stk" style="top:186px;right:20px;background:#FF3B30;color:#fff;font-size:10px;padding:5px 10px;transform:rotate(7deg);letter-spacing:0.04em">HOT 🔥</div>
-        <div style="position:absolute;top:164px;left:16px;font-size:32px;transform:rotate(-10deg);z-index:14;filter:drop-shadow(2px 3px 0 rgba(0,0,0,0.2))">⭐</div>
-        <div class="stk" style="top:258px;left:26px;background:#fff;color:#111;font-size:10px;padding:5px 10px;transform:rotate(-3deg)">babe, wake up</div>
-        <div style="position:absolute;bottom:196px;right:24px;font-size:26px;transform:rotate(8deg);z-index:14;filter:drop-shadow(1px 2px 0 rgba(0,0,0,0.15))">💜</div>
-
-        <!-- Toolbar — exact prototype SVGs at 0.72× -->
+          style="position:absolute;left:3px;top:46px;width:288px;height:520px;object-fit:cover;border-radius:18px;z-index:2;">
+        <div class="stk" style="top:103px;left:30px;background:#F0E84A;color:#111;font-size:13px;padding:6px 10px;transform:rotate(-6deg);z-index:12">RISE AND SHINE</div>
+        <div class="stk" style="top:180px;right:18px;background:#FF3B30;color:#fff;font-size:9px;padding:5px 9px;transform:rotate(7deg);letter-spacing:0.04em">HOT 🔥</div>
+        <div style="position:absolute;top:158px;left:14px;font-size:30px;transform:rotate(-10deg);z-index:14;filter:drop-shadow(2px 3px 0 rgba(0,0,0,0.2))">⭐</div>
+        <div class="stk" style="top:250px;left:24px;background:#fff;color:#111;font-size:9px;padding:4px 10px;transform:rotate(-3deg)">babe, wake up</div>
+        <div style="position:absolute;bottom:190px;right:22px;font-size:24px;transform:rotate(8deg);z-index:14;filter:drop-shadow(1px 2px 0 rgba(0,0,0,0.15))">💜</div>
         <div class="app-toolbar">
-
-          <!-- Text -->
-          <div class="tb-btn">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="4" y1="5" x2="20" y2="5"/>
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="9" y1="19" x2="15" y2="19"/>
-            </svg>
-          </div>
-
-          <!-- Stickers: smiley + plus badge -->
-          <div class="tb-btn" style="overflow:visible">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" style="overflow:visible">
-              <defs>
-                <mask id="smileyMaskM1">
-                  <rect width="24" height="24" fill="white"/>
-                  <circle cx="8.5" cy="10.5" r="1.1" fill="black"/>
-                  <circle cx="13.5" cy="10.5" r="1.1" fill="black"/>
-                  <path d="M8.5 14 Q11 16.5 13.5 14" stroke="black" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-                </mask>
-              </defs>
-              <circle cx="11" cy="13" r="9.5" fill="white" mask="url(#smileyMaskM1)"/>
-              <line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-
-          <!-- Photo -->
-          <div class="tb-btn" style="overflow:visible">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" style="overflow:visible">
-              <defs>
-                <clipPath id="photoClipM1">
-                  <rect x="3" y="4" width="15" height="15" rx="2"/>
-                </clipPath>
-              </defs>
-              <g clip-path="url(#photoClipM1)" fill="white">
-                <circle cx="7.5" cy="9" r="1.8"/>
-                <path d="M3 19 L8 12.5 L10.5 15.5 L13.5 11.5 L18 19 Z"/>
-              </g>
-              <rect x="3" y="4" width="15" height="15" rx="2" stroke="white" stroke-width="1.5" fill="none"/>
-              <line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-
-          <!-- Draw -->
-          <div class="tb-btn">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
-              <line x1="15" y1="5" x2="19" y2="9"/>
-            </svg>
-          </div>
-
-          <!-- Download -->
-          <div class="tb-btn">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3v11"/><path d="M8 10l4 4 4-4"/>
-              <path d="M5 19h14"/>
-            </svg>
-          </div>
+          <div class="tb-btn"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="5" x2="20" y2="5"/><line x1="12" y1="5" x2="12" y2="19"/><line x1="9" y1="19" x2="15" y2="19"/></svg></div>
+          <div class="tb-btn" style="overflow:visible"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" style="overflow:visible"><defs><mask id="sm1"><rect width="24" height="24" fill="white"/><circle cx="8.5" cy="10.5" r="1.1" fill="black"/><circle cx="13.5" cy="10.5" r="1.1" fill="black"/><path d="M8.5 14 Q11 16.5 13.5 14" stroke="black" stroke-width="1.4" fill="none" stroke-linecap="round"/></mask></defs><circle cx="11" cy="13" r="9.5" fill="white" mask="url(#sm1)"/><line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="tb-btn" style="overflow:visible"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" style="overflow:visible"><defs><clipPath id="pc1"><rect x="3" y="4" width="15" height="15" rx="2"/></clipPath></defs><g clip-path="url(#pc1)" fill="white"><circle cx="7.5" cy="9" r="1.8"/><path d="M3 19 L8 12.5 L10.5 15.5 L13.5 11.5 L18 19 Z"/></g><rect x="3" y="4" width="15" height="15" rx="2" stroke="white" stroke-width="1.5" fill="none"/><line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="tb-btn"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/><line x1="15" y1="5" x2="19" y2="9"/></svg></div>
+          <div class="tb-btn"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M5 19h14"/></svg></div>
         </div>
-
         <div class="app-btmbar"></div>
       </div>
     </div>
@@ -290,22 +236,22 @@
 </div>
 
 
-<!-- ══════════════════════════════════════════
-     SLIDE 2  —  OPEN UP THE SCENE
-══════════════════════════════════════════ -->
-<div class="slide cool">
+<!-- ══════════════════════════════════════
+     SLIDE 2 — OPEN UP THE SCENE
+     Cool periwinkle / sky blue
+══════════════════════════════════════ -->
+<div class="slide s2">
   <span class="wm">RETAKE!</span>
 
   <div class="hl">
     <p class="kicker">Make your frame</p>
-    <h1 class="title">Open up the<br><em>scene.</em></h1>
+    <h1 class="title">Open up<br>the <em>scene.</em></h1>
   </div>
 
-  <!-- Dashed ring bleeding out left -->
-  <div style="position:absolute;left:-56px;top:394px;width:176px;height:176px;
-    border:2.5px dashed rgba(0,0,0,0.13);border-radius:50%;z-index:28;pointer-events:none"></div>
-  <!-- Label on the ring -->
-  <div class="chip chip-dark" style="left:80px;top:358px;transform:rotate(-4deg);font-size:11px;padding:7px 14px">
+  <!-- Dashed ring bleeding left -->
+  <div style="position:absolute;left:-60px;top:398px;width:172px;height:172px;
+    border:2px dashed rgba(0,0,80,0.12);border-radius:50%;z-index:28;pointer-events:none"></div>
+  <div class="chip chip-dark" style="left:72px;top:362px;transform:rotate(-4deg);font-size:10.5px;padding:7px 14px">
     👤 face goes here
   </div>
 
@@ -313,102 +259,30 @@
     <div class="shell">
       <div class="screen">
         <div class="di"></div>
-
-        <div style="position:absolute;inset:0;background:#1a1928;z-index:1"></div>
-
+        <div style="position:absolute;inset:0;background:#12101E;z-index:1"></div>
         <img src="canvas-frame-teletubby.png"
-          style="position:absolute;left:3px;top:48px;width:298px;height:538px;object-fit:cover;border-radius:20px;z-index:3;">
-
-        <!-- Checkerboard cutout -->
-        <div style="
-          position:absolute; left:50%; top:224px;
-          transform:translateX(-50%);
-          width:110px; height:110px; border-radius:50%;
+          style="position:absolute;left:3px;top:46px;width:288px;height:520px;object-fit:cover;border-radius:18px;z-index:3;">
+        <!-- Cutout -->
+        <div style="position:absolute;left:50%;top:218px;transform:translateX(-50%);
+          width:108px;height:108px;border-radius:50%;
           background-color:#ccc;
-          background-image:
-            linear-gradient(45deg,#b8b8b8 25%,transparent 25%),
-            linear-gradient(-45deg,#b8b8b8 25%,transparent 25%),
-            linear-gradient(45deg,transparent 75%,#b8b8b8 75%),
-            linear-gradient(-45deg,transparent 75%,#b8b8b8 75%);
-          background-size:10px 10px;
-          background-position:0 0,0 5px,5px -5px,-5px 0;
-          z-index:8;
-          box-shadow:0 0 0 2.5px rgba(255,255,255,0.55), 0 8px 24px rgba(0,0,0,0.28);
-        "></div>
-
-        <!-- Eraser cursor ring -->
-        <div style="
-          position:absolute; left:50%; top:224px;
-          transform:translate(-50%,10px);
-          width:36px; height:36px; border-radius:50%;
-          border:2px solid rgba(255,255,255,0.7);
-          z-index:12; pointer-events:none;
-        "></div>
-
-        <!-- Toolbar — eraser active -->
+          background-image:linear-gradient(45deg,#b4b4b4 25%,transparent 25%),linear-gradient(-45deg,#b4b4b4 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#b4b4b4 75%),linear-gradient(-45deg,transparent 75%,#b4b4b4 75%);
+          background-size:10px 10px;background-position:0 0,0 5px,5px -5px,-5px 0;
+          z-index:8;box-shadow:0 0 0 2px rgba(255,255,255,0.5),0 8px 24px rgba(0,0,0,0.26)"></div>
+        <!-- Eraser cursor -->
+        <div style="position:absolute;left:50%;top:218px;transform:translate(-50%,10px);
+          width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,0.65);z-index:12"></div>
         <div class="app-toolbar">
-          <div class="tb-btn">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="4" y1="5" x2="20" y2="5"/>
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="9" y1="19" x2="15" y2="19"/>
-            </svg>
-          </div>
-          <div class="tb-btn" style="overflow:visible">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" style="overflow:visible">
-              <defs>
-                <mask id="smileyMaskM2">
-                  <rect width="24" height="24" fill="white"/>
-                  <circle cx="8.5" cy="10.5" r="1.1" fill="black"/>
-                  <circle cx="13.5" cy="10.5" r="1.1" fill="black"/>
-                  <path d="M8.5 14 Q11 16.5 13.5 14" stroke="black" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-                </mask>
-              </defs>
-              <circle cx="11" cy="13" r="9.5" fill="white" mask="url(#smileyMaskM2)"/>
-              <line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="tb-btn" style="overflow:visible">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" style="overflow:visible">
-              <defs>
-                <clipPath id="photoClipM2">
-                  <rect x="3" y="4" width="15" height="15" rx="2"/>
-                </clipPath>
-              </defs>
-              <g clip-path="url(#photoClipM2)" fill="white">
-                <circle cx="7.5" cy="9" r="1.8"/>
-                <path d="M3 19 L8 12.5 L10.5 15.5 L13.5 11.5 L18 19 Z"/>
-              </g>
-              <rect x="3" y="4" width="15" height="15" rx="2" stroke="white" stroke-width="1.5" fill="none"/>
-              <line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/>
-              <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="tb-btn">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
-              <line x1="15" y1="5" x2="19" y2="9"/>
-            </svg>
-          </div>
-          <!-- Eraser active -->
-          <div class="tb-btn active">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/>
-              <path d="M6.0 11.0 L13 18"/>
-            </svg>
-          </div>
-          <div class="tb-btn">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3v11"/><path d="M8 10l4 4 4-4"/>
-              <path d="M5 19h14"/>
-            </svg>
-          </div>
+          <div class="tb-btn"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="5" x2="20" y2="5"/><line x1="12" y1="5" x2="12" y2="19"/><line x1="9" y1="19" x2="15" y2="19"/></svg></div>
+          <div class="tb-btn" style="overflow:visible"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" style="overflow:visible"><defs><mask id="sm2"><rect width="24" height="24" fill="white"/><circle cx="8.5" cy="10.5" r="1.1" fill="black"/><circle cx="13.5" cy="10.5" r="1.1" fill="black"/><path d="M8.5 14 Q11 16.5 13.5 14" stroke="black" stroke-width="1.4" fill="none" stroke-linecap="round"/></mask></defs><circle cx="11" cy="13" r="9.5" fill="white" mask="url(#sm2)"/><line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="tb-btn" style="overflow:visible"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" style="overflow:visible"><defs><clipPath id="pc2"><rect x="3" y="4" width="15" height="15" rx="2"/></clipPath></defs><g clip-path="url(#pc2)" fill="white"><circle cx="7.5" cy="9" r="1.8"/><path d="M3 19 L8 12.5 L10.5 15.5 L13.5 11.5 L18 19 Z"/></g><rect x="3" y="4" width="15" height="15" rx="2" stroke="white" stroke-width="1.5" fill="none"/><line x1="18" y1="4" x2="23" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="tb-btn"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/><line x1="15" y1="5" x2="19" y2="9"/></svg></div>
+          <div class="tb-btn active"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/><path d="M6 11L13 18"/></svg></div>
+          <div class="tb-btn"><svg class="tb-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M5 19h14"/></svg></div>
         </div>
-
         <div class="app-btmbar" style="display:flex;align-items:center;justify-content:space-between;padding:0 16px">
-          <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:0.08em;font-weight:600">Erase</span>
-          <span style="font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:0.08em;font-weight:600">Face</span>
+          <span style="font-size:8.5px;color:rgba(255,255,255,0.35);letter-spacing:0.1em;font-weight:700;text-transform:uppercase">Erase</span>
+          <span style="font-size:8.5px;color:rgba(255,255,255,0.35);letter-spacing:0.1em;font-weight:700;text-transform:uppercase">Face</span>
         </div>
       </div>
     </div>
@@ -418,59 +292,49 @@
 </div>
 
 
-<!-- ══════════════════════════════════════════
-     SLIDE 3  —  MAKE MEMORIES TOGETHER
-══════════════════════════════════════════ -->
-<div class="slide cool">
+<!-- ══════════════════════════════════════
+     SLIDE 3 — MAKE MEMORIES TOGETHER
+     Soft lavender / purple mist
+══════════════════════════════════════ -->
+<div class="slide s3">
   <span class="wm">RETAKE!</span>
 
   <div class="hl">
     <p class="kicker">Together</p>
-    <h1 class="title" style="font-size:44px">Make memories<br><em>together.</em></h1>
+    <h1 class="title" style="font-size:50px">Make memories<br><em>together.</em></h1>
   </div>
 
-  <!-- Polaroid bleeds -->
-  <div style="position:absolute;left:-30px;top:408px;width:112px;height:134px;
-    background:#fff;border-radius:4px;transform:rotate(-9deg);
-    box-shadow:0 10px 30px rgba(0,0,0,0.18);z-index:28;overflow:hidden">
-    <div style="width:100%;height:100px;background:linear-gradient(135deg,#8abadc 0%,#5a94c0 100%)"></div>
-    <div style="padding:5px;text-align:center;font-size:8px;font-weight:800;color:#555;letter-spacing:0.06em">RETAKE ✦</div>
+  <!-- Polaroid cards bleeding out -->
+  <div style="position:absolute;left:-34px;top:414px;width:110px;height:132px;
+    background:#fff;border-radius:4px;transform:rotate(-10deg);
+    box-shadow:0 12px 40px rgba(80,60,140,0.18),0 2px 8px rgba(0,0,0,0.1);z-index:28;overflow:hidden">
+    <div style="width:100%;height:98px;background:linear-gradient(145deg,#9ab8e0 0%,#6090c4 100%)"></div>
+    <div style="padding:5px 5px 3px;text-align:center;font-size:7.5px;font-weight:800;color:#666;letter-spacing:0.08em">RETAKE ✦</div>
   </div>
-
-  <div style="position:absolute;right:-20px;top:356px;width:104px;height:126px;
-    background:#fff;border-radius:4px;transform:rotate(7deg);
-    box-shadow:0 10px 30px rgba(0,0,0,0.18);z-index:28;overflow:hidden">
-    <div style="width:100%;height:93px;background:linear-gradient(135deg,#e8c87a 0%,#c4943a 100%)"></div>
-    <div style="padding:5px;text-align:center;font-size:8px;font-weight:800;color:#555;letter-spacing:0.06em">RETAKE ✦</div>
+  <div style="position:absolute;right:-22px;top:362px;width:102px;height:124px;
+    background:#fff;border-radius:4px;transform:rotate(8deg);
+    box-shadow:0 12px 40px rgba(80,60,140,0.18),0 2px 8px rgba(0,0,0,0.1);z-index:28;overflow:hidden">
+    <div style="width:100%;height:92px;background:linear-gradient(145deg,#e4c882 0%,#c49838 100%)"></div>
+    <div style="padding:5px 5px 3px;text-align:center;font-size:7.5px;font-weight:800;color:#666;letter-spacing:0.08em">RETAKE ✦</div>
   </div>
 
   <div class="phone">
     <div class="shell">
       <div class="screen">
         <div class="di"></div>
-
-        <!-- Invitee camera feed bg -->
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,#8ab0d8 0%,#4a7ab0 40%,#1e3a5a 100%);z-index:1"></div>
-
-        <!-- Frame overlay -->
+        <!-- Camera bg — cool blue sky -->
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,#a8c8e8 0%,#6090c0 45%,#203858 100%);z-index:1"></div>
         <img src="canvas-frame-teletubby.png"
-          style="position:absolute;left:3px;top:48px;width:298px;height:538px;object-fit:cover;border-radius:20px;z-index:4;">
-
-        <!-- Face / warm glow through cutout -->
-        <div style="
-          position:absolute; left:50%; top:226px;
-          transform:translateX(-50%);
-          width:106px; height:106px; border-radius:50%;
-          background:radial-gradient(circle, #e8c090 0%, #c89060 50%, #9a6030 80%, transparent 100%);
-          z-index:6;
-          box-shadow: 0 0 30px 10px rgba(220,160,90,0.35);
-        "></div>
-
-        <!-- Invitee camera shutter bar -->
-        <div style="position:absolute;bottom:0;left:0;right:0;height:106px;
-          background:rgba(0,0,0,0.72);z-index:20;
-          display:flex;align-items:center;justify-content:center">
-          <div style="width:54px;height:54px;border-radius:50%;border:3px solid #fff;background:rgba(255,255,255,0.08)"></div>
+          style="position:absolute;left:3px;top:46px;width:288px;height:520px;object-fit:cover;border-radius:18px;z-index:4;">
+        <!-- Face glow through cutout -->
+        <div style="position:absolute;left:50%;top:220px;transform:translateX(-50%);
+          width:104px;height:104px;border-radius:50%;
+          background:radial-gradient(circle,#f0d0a0 0%,#d0a060 50%,#906028 80%,transparent 100%);
+          z-index:6;box-shadow:0 0 40px 12px rgba(220,160,80,0.3)"></div>
+        <!-- Shutter bar -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:100px;
+          background:rgba(0,0,0,0.7);z-index:20;display:flex;align-items:center;justify-content:center">
+          <div style="width:52px;height:52px;border-radius:50%;border:3px solid #fff;background:rgba(255,255,255,0.06)"></div>
         </div>
       </div>
     </div>
@@ -480,49 +344,45 @@
 </div>
 
 
-<!-- ══════════════════════════════════════════
-     SLIDE 4  —  PASS IT ON  (yellow)
-══════════════════════════════════════════ -->
-<div class="slide yellow">
+<!-- ══════════════════════════════════════
+     SLIDE 4 — PASS IT ON (yellow)
+══════════════════════════════════════ -->
+<div class="slide s4">
   <span class="wm">RETAKE!</span>
 
   <div class="hl">
-    <p class="kicker">Step 3</p>
+    <p class="kicker">Share</p>
     <h1 class="title">Pass<br>it <em>on.</em></h1>
   </div>
 
   <!-- Code badge bleeding left -->
-  <div class="code-badge" style="left:-10px; top:322px; transform:rotate(-6deg)">RTKE-4821</div>
+  <div class="code-badge" style="left:-12px; top:328px; transform:rotate(-7deg)">RTKE-4821</div>
   <!-- Copied chip -->
-  <div class="chip chip-white" style="right:8px; top:376px; transform:rotate(5deg); font-size:12px">📋 Copied!</div>
+  <div class="chip chip-white" style="right:6px; top:378px; transform:rotate(5deg)">📋 Copied!</div>
 
   <div class="phone">
     <div class="shell">
       <div class="screen">
         <div class="di"></div>
-
         <img src="canvas-frame-teletubby.png"
-          style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(0.42);z-index:1;">
+          style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(0.38);z-index:1;">
 
-        <!-- Share bottom sheet — matches real inviter.html design -->
-        <div style="
-          position:absolute; bottom:0; left:0; right:0; height:286px;
-          background:#F0E84A; border-radius:20px 20px 0 0; z-index:20;
-          padding:14px 18px 0;
-          display:flex; flex-direction:column; gap:8px;
-        ">
+        <!-- Share popup — exact match to inviter.html design -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:278px;
+          background:#F0E84A;border-radius:20px 20px 0 0;z-index:20;
+          padding:14px 18px 0;display:flex;flex-direction:column;gap:7px">
           <!-- Handle -->
-          <div style="width:26px;height:3px;background:rgba(0,0,0,0.18);border-radius:2px;margin:0 auto 4px"></div>
-          <!-- Title stacked like real app -->
+          <div style="width:28px;height:3px;background:rgba(0,0,0,0.16);border-radius:2px;margin:0 auto 4px"></div>
+          <!-- Title -->
           <div style="font-family:'Bedstead',monospace;font-size:19px;color:#1A1A2E;line-height:1.1">Share your frame!</div>
-          <div style="font-family:'Bedstead',monospace;font-size:19px;color:rgba(26,26,46,0.38);line-height:1.1">Invite a friend</div>
+          <div style="font-family:'Bedstead',monospace;font-size:19px;color:rgba(26,26,46,0.36);line-height:1.1">Invite a friend</div>
           <!-- Subtitle -->
-          <p style="font-family:'Bedstead',monospace;font-size:10px;color:rgba(26,26,46,0.55);line-height:1.45">
+          <p style="font-family:'Bedstead',monospace;font-size:9.5px;color:rgba(26,26,46,0.52);line-height:1.5">
             Send them this code — they'll step right into your frame and take a photo
           </p>
-          <!-- Code row with copy icon -->
-          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;
-            background:rgba(26,26,46,0.08);border-radius:12px;padding:12px 14px">
+          <!-- Code row -->
+          <div style="display:flex;align-items:center;gap:8px;margin-top:2px;
+            background:rgba(26,26,46,0.08);border-radius:12px;padding:11px 14px">
             <span style="flex:1;font-family:'Bedstead',monospace;font-size:16px;color:#1A1A2E;letter-spacing:0.12em">RTKE-4821</span>
             <div style="width:28px;height:28px;background:#1A1A2E;border-radius:8px;
               display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -533,7 +393,6 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
