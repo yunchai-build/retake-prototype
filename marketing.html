@@ -21,11 +21,11 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #BCC4D4;
+      background: #14141C;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 48px;
+      gap: 60px;
       padding: 64px 40px 80px;
       font-family: -apple-system, sans-serif;
     }
@@ -33,7 +33,7 @@
     .page-label {
       font-size: 11px; font-weight: 600;
       letter-spacing: 0.1em; text-transform: uppercase;
-      color: #7a849a; align-self: flex-start; margin-bottom: -28px;
+      color: #555; align-self: flex-start; margin-bottom: -40px;
     }
 
     /* ─────────────────────────────────────
@@ -45,37 +45,38 @@
       border-radius: 16px; flex-shrink: 0;
       box-shadow: 0 40px 100px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.07);
     }
-    .cool  { background: #E6EDF8; }
+    .cool  { background: #FFFFFF; }
     .yellow { background: #F0E84A; }
 
     /* ─── Headline ─── */
     .hl {
       position: absolute; top: 0; left: 0; right: 0;
       padding: 54px 38px 0; z-index: 30;
+      text-align: center;
     }
     .kicker {
       font-size: 11px; font-weight: 700;
-      letter-spacing: 0.16em; text-transform: uppercase;
-      color: #5a6880; margin-bottom: 10px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(0,0,0,0.3); margin-bottom: 10px;
     }
     .title {
       font-family: 'Bedstead', monospace;
       font-size: 52px;
-      line-height: 1.04; letter-spacing: 0.01em; color: #111827;
+      line-height: 1.04; letter-spacing: 0.01em; color: #111;
     }
-    .title em { font-style: normal; color: #F0E84A; -webkit-text-stroke: 1px rgba(0,0,0,0.08); }
+    .title em { font-style: normal; color: #C8A800; }
     .yellow .title { color: #12121C; }
-    .yellow .title em { color: #12121C; -webkit-text-stroke: none; opacity: 0.5; }
-    .yellow .kicker { color: rgba(18,18,28,0.45); }
+    .yellow .title em { color: rgba(18,18,28,0.38); }
+    .yellow .kicker { color: rgba(18,18,28,0.38); }
 
     /* ─── Wordmark ─── */
     .wm {
-      position: absolute; top: 56px; right: 38px;
+      position: absolute; top: 54px; right: 36px;
       font-family: 'Bedstead', monospace;
-      font-size: 14px; letter-spacing: 0.06em;
-      color: #111827; opacity: 0.15; z-index: 30;
+      font-size: 12px; letter-spacing: 0.08em;
+      color: #111; opacity: 0.12; z-index: 30;
     }
-    .yellow .wm { color: #12121C; opacity: 0.2; }
+    .yellow .wm { color: #12121C; opacity: 0.18; }
 
     /* ─── Phone shell ─── */
     .phone {
@@ -302,7 +303,7 @@
 
   <!-- Dashed ring bleeding out left -->
   <div style="position:absolute;left:-56px;top:394px;width:176px;height:176px;
-    border:2.5px dashed rgba(30,40,70,0.18);border-radius:50%;z-index:28;pointer-events:none"></div>
+    border:2.5px dashed rgba(0,0,0,0.13);border-radius:50%;z-index:28;pointer-events:none"></div>
   <!-- Label on the ring -->
   <div class="chip chip-dark" style="left:80px;top:358px;transform:rotate(-4deg);font-size:11px;padding:7px 14px">
     👤 face goes here
@@ -503,30 +504,34 @@
         <img src="canvas-frame-teletubby.png"
           style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(0.42);z-index:1;">
 
-        <!-- Share bottom sheet -->
+        <!-- Share bottom sheet — matches real inviter.html design -->
         <div style="
-          position:absolute; bottom:0; left:0; right:0; height:306px;
-          background:#F0E84A; border-radius:26px 26px 0 0; z-index:20;
-          padding:18px 18px 0;
+          position:absolute; bottom:0; left:0; right:0; height:286px;
+          background:#F0E84A; border-radius:20px 20px 0 0; z-index:20;
+          padding:14px 18px 0;
+          display:flex; flex-direction:column; gap:8px;
         ">
-          <div style="width:34px;height:4px;background:rgba(0,0,0,0.16);border-radius:2px;margin:0 auto 16px"></div>
-          <div style="font-weight:900;font-size:15px;color:#12121C;margin-bottom:3px">Share your frame!</div>
-          <div style="font-size:10.5px;color:rgba(0,0,0,0.42);margin-bottom:16px;line-height:1.4">
-            Send them this code — they'll step right into your frame
+          <!-- Handle -->
+          <div style="width:26px;height:3px;background:rgba(0,0,0,0.18);border-radius:2px;margin:0 auto 4px"></div>
+          <!-- Title stacked like real app -->
+          <div style="font-family:'Bedstead',monospace;font-size:19px;color:#1A1A2E;line-height:1.1">Share your frame!</div>
+          <div style="font-family:'Bedstead',monospace;font-size:19px;color:rgba(26,26,46,0.38);line-height:1.1">Invite a friend</div>
+          <!-- Subtitle -->
+          <p style="font-family:'Bedstead',monospace;font-size:10px;color:rgba(26,26,46,0.55);line-height:1.45">
+            Send them this code — they'll step right into your frame and take a photo
+          </p>
+          <!-- Code row with copy icon -->
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;
+            background:rgba(26,26,46,0.08);border-radius:12px;padding:12px 14px">
+            <span style="flex:1;font-family:'Bedstead',monospace;font-size:16px;color:#1A1A2E;letter-spacing:0.12em">RTKE-4821</span>
+            <div style="width:28px;height:28px;background:#1A1A2E;border-radius:8px;
+              display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+            </div>
           </div>
-          <!-- Code box -->
-          <div style="
-            background:#12121C; color:#F0E84A;
-            font-family:'Bedstead',monospace; font-size:19px;
-            letter-spacing:0.1em; padding:13px 16px; border-radius:11px;
-            text-align:center; margin-bottom:10px;
-          ">RTKE-4821</div>
-          <!-- Copy button -->
-          <div style="
-            background:#12121C; color:#fff;
-            font-weight:700; font-size:12px; padding:12px;
-            border-radius:11px; text-align:center;
-          ">Copy invite link</div>
         </div>
 
       </div>
