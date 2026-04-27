@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Retake! — Marketing Slides</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #CAC6C0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 48px;
+      padding: 64px 40px 80px;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    .page-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: #888; align-self: flex-start; margin-bottom: -28px;
+    }
+
+    /* ─────────────────────────────────────
+       SLIDE — 430 × 932  (App Store size)
+    ───────────────────────────────────── */
+    .slide {
+      width: 430px; height: 932px;
+      position: relative; overflow: hidden;
+      border-radius: 16px; flex-shrink: 0;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.07);
+    }
+    .cream  { background: #F5F1EB; }
+    .yellow { background: #F0E84A; }
+
+    /* ─── Headline ─── */
+    .hl {
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: 54px 38px 0; z-index: 30;
+    }
+    .kicker {
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: #111; opacity: 0.32; margin-bottom: 12px;
+    }
+    .title {
+      font-size: 60px; font-weight: 900;
+      line-height: 1.0; letter-spacing: -0.03em; color: #111;
+    }
+    .title em { font-style: normal; color: #F0E84A; }
+    .yellow .title em { color: #12121C; }
+    .yellow .kicker   { color: #12121C; opacity: 0.42; }
+
+    /* ─── Wordmark ─── */
+    .wm {
+      position: absolute; top: 56px; right: 38px;
+      font-size: 13px; font-weight: 800; letter-spacing: 0.08em;
+      color: #111; opacity: 0.12; z-index: 30;
+    }
+    .yellow .wm { color: #12121C; }
+
+    /* ─── Phone shell ─── */
+    /*  Inner screen: 304 × 676 px
+        Scale vs app (430 × 932): 304/430 = 0.707
+        Frame area (414×750) → 293×530 at y=54 */
+    .phone {
+      position: absolute;
+      bottom: -28px; left: 50%; transform: translateX(-50%);
+      width: 320px; z-index: 10;
+    }
+    .shell {
+      width: 320px; height: 712px;
+      background: #0f0f0f; border-radius: 52px;
+      position: relative;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.07),
+        inset 0 0 0 1.5px rgba(255,255,255,0.09),
+        0 48px 96px rgba(0,0,0,0.50);
+    }
+    /* Volume + power buttons */
+    .shell::before {
+      content:''; position:absolute;
+      left:-3px; top:108px; width:3px; height:34px;
+      background:#1e1e1e; border-radius:2px 0 0 2px;
+      box-shadow: 0 52px 0 #1e1e1e, 0 104px 0 #1e1e1e;
+    }
+    .shell::after {
+      content:''; position:absolute;
+      right:-3px; top:138px; width:3px; height:66px;
+      background:#1e1e1e; border-radius:0 2px 2px 0;
+    }
+    .screen {
+      position: absolute; left:8px; top:8px; right:8px; bottom:8px;
+      border-radius:44px; overflow:hidden; background:#000;
+    }
+    /* Dynamic Island */
+    .di {
+      position:absolute; top:16px; left:50%; transform:translateX(-50%);
+      width:90px; height:28px; background:#000;
+      border-radius:20px; z-index:40;
+    }
+
+    /* ─── App chrome reused across slides ─── */
+    .app-toolbar {
+      position:absolute; right:7px; top:76px;
+      display:flex; flex-direction:column; gap:6px; z-index:20;
+    }
+    .tb-btn {
+      width:30px; height:30px; border-radius:50%;
+      background:rgba(0,0,0,0.30); backdrop-filter:blur(10px);
+      display:flex; align-items:center; justify-content:center;
+      font-size:13px; color:#fff; font-weight:700;
+      font-family:'Inter',sans-serif;
+    }
+    .app-btmbar {
+      position:absolute; bottom:8px; left:8px; right:8px; height:52px;
+      background:rgba(18,18,28,0.84); border-radius:34px;
+      backdrop-filter:blur(14px); z-index:20;
+    }
+
+    /* ─── Sticker elements ─── */
+    .stk {
+      position:absolute; z-index:15;
+      font-family:'Inter',sans-serif; font-weight:900;
+      border-radius:6px;
+      box-shadow: 2px 3px 0 rgba(0,0,0,0.18), 0 0 0 2px rgba(255,255,255,0.65);
+    }
+
+    /* ─── Floating chips outside phone ─── */
+    .chip {
+      position:absolute; z-index:25; border-radius:40px;
+      font-family:'Inter',sans-serif; font-size:13px;
+      font-weight:700; padding:10px 18px;
+      white-space:nowrap;
+      box-shadow:0 8px 28px rgba(0,0,0,0.16);
+    }
+    .chip-dark   { background:#12121C; color:#F0E84A; }
+    .chip-white  { background:#fff;    color:#111; }
+
+    /* ─── Invite code ─── */
+    .code-badge {
+      position:absolute; z-index:25;
+      background:#12121C; color:#F0E84A;
+      font-family:'Courier New', monospace;
+      font-size:24px; font-weight:700; letter-spacing:0.1em;
+      padding:18px 26px; border-radius:18px;
+      box-shadow:0 16px 48px rgba(0,0,0,0.32);
+    }
+
+    /* ─── Caption ─── */
+    .caption {
+      position:absolute; bottom:38px; left:0; right:0;
+      text-align:center; font-size:13px; font-weight:600;
+      letter-spacing:0.04em; color:#111; opacity:0.28; z-index:30;
+    }
+    .yellow .caption { color:#12121C; }
+  </style>
+</head>
+<body>
+
+<p class="page-label">Retake! — Marketing Slides · Screenshot each one</p>
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 1  —  STICKERS
+══════════════════════════════════════════ -->
+<div class="slide cream">
+  <span class="wm">RETAKE!</span>
+
+  <div class="hl">
+    <p class="kicker">Make your frame</p>
+    <h1 class="title">Add<br>stickers.</h1>
+  </div>
+
+  <!-- Bleeding chips -->
+  <div class="chip chip-dark"  style="left:-14px; top:318px; transform:rotate(-7deg); font-size:14px">✦ RISE AND SHINE</div>
+  <div class="chip chip-white" style="right:6px;  top:272px; transform:rotate(5deg);  font-size:12px">😊 Stickers</div>
+  <div class="chip chip-white" style="left:10px;  top:440px; transform:rotate(-4deg); font-size:11px">⭐ 3D</div>
+
+  <div class="phone">
+    <div class="shell">
+      <div class="screen">
+        <div class="di"></div>
+
+        <!-- Frame bg -->
+        <img src="canvas-frame-teletubby.png"
+          style="position:absolute;left:3px;top:52px;width:298px;height:532px;object-fit:cover;border-radius:22px;z-index:2;">
+
+        <!-- Stickers layered on frame -->
+        <!-- Yellow text sticker -->
+        <div class="stk" style="top:108px;left:34px;background:#F0E84A;color:#111;font-size:16px;padding:7px 13px;transform:rotate(-6deg);z-index:12">RISE AND SHINE</div>
+        <!-- Red hot sticker -->
+        <div class="stk" style="top:192px;right:22px;background:#FF3B30;color:#fff;font-size:12px;padding:6px 12px;transform:rotate(7deg);letter-spacing:0.04em">HOT 🔥</div>
+        <!-- Star emoji -->
+        <div style="position:absolute;top:170px;left:18px;font-size:36px;transform:rotate(-10deg);z-index:14;filter:drop-shadow(2px 3px 0 rgba(0,0,0,0.2))">⭐</div>
+        <!-- White pill sticker -->
+        <div class="stk" style="top:268px;left:28px;background:#fff;color:#111;font-size:11px;padding:5px 12px;transform:rotate(-3deg)">babe, wake up</div>
+        <!-- Heart -->
+        <div style="position:absolute;bottom:200px;right:26px;font-size:30px;transform:rotate(8deg);z-index:14;filter:drop-shadow(1px 2px 0 rgba(0,0,0,0.15))">💜</div>
+
+        <!-- Toolbar -->
+        <div class="app-toolbar">
+          <div class="tb-btn">T</div>
+          <div class="tb-btn" style="font-size:15px">😊</div>
+          <div class="tb-btn" style="font-size:12px">🖼</div>
+          <div class="tb-btn" style="font-size:14px">✏️</div>
+          <div class="tb-btn" style="font-size:11px">⬇</div>
+        </div>
+
+        <div class="app-btmbar"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="caption">Stack stickers, text and photos on your frame</p>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 2  —  CUTOUT
+══════════════════════════════════════════ -->
+<div class="slide cream">
+  <span class="wm">RETAKE!</span>
+
+  <div class="hl">
+    <p class="kicker">Make your frame</p>
+    <h1 class="title">Cut out<br>a <em>hole.</em></h1>
+  </div>
+
+  <!-- Dashed ring bleeding out left -->
+  <div style="position:absolute;left:-52px;top:388px;width:180px;height:180px;
+    border:3px dashed rgba(0,0,0,0.14);border-radius:50%;z-index:28;pointer-events:none"></div>
+  <!-- Label on the ring -->
+  <div class="chip chip-dark" style="left:84px;top:356px;transform:rotate(-4deg);font-size:11px;padding:7px 14px">
+    👤 face goes here
+  </div>
+
+  <div class="phone">
+    <div class="shell">
+      <div class="screen">
+        <div class="di"></div>
+
+        <!-- Dark canvas bg -->
+        <div style="position:absolute;inset:0;background:#1a1928;z-index:1"></div>
+
+        <!-- Frame image -->
+        <img src="canvas-frame-teletubby.png"
+          style="position:absolute;left:3px;top:52px;width:298px;height:532px;object-fit:cover;border-radius:22px;z-index:3;">
+
+        <!-- Checkerboard cutout hole — centred at ~46% down the frame area -->
+        <div style="
+          position:absolute; left:50%; top:220px;
+          transform:translateX(-50%);
+          width:114px; height:114px; border-radius:50%;
+          background-color:#ddd;
+          background-image:
+            linear-gradient(45deg,#c4c4c4 25%,transparent 25%),
+            linear-gradient(-45deg,#c4c4c4 25%,transparent 25%),
+            linear-gradient(45deg,transparent 75%,#c4c4c4 75%),
+            linear-gradient(-45deg,transparent 75%,#c4c4c4 75%);
+          background-size:12px 12px;
+          background-position:0 0,0 6px,6px -6px,-6px 0;
+          z-index:8;
+          box-shadow:0 0 0 3px rgba(255,255,255,0.6), 0 8px 24px rgba(0,0,0,0.3);
+        "></div>
+
+        <!-- Eraser cursor ring -->
+        <div style="
+          position:absolute; left:50%; top:220px;
+          transform:translate(-50%,12px);
+          width:40px; height:40px; border-radius:50%;
+          border:2.5px solid rgba(255,255,255,0.75);
+          z-index:12; pointer-events:none;
+        "></div>
+
+        <!-- Toolbar (eraser active) -->
+        <div class="app-toolbar">
+          <div class="tb-btn">T</div>
+          <div class="tb-btn" style="font-size:15px">😊</div>
+          <div class="tb-btn" style="font-size:12px">🖼</div>
+          <div class="tb-btn" style="font-size:14px">✏️</div>
+          <div class="tb-btn" style="background:rgba(255,255,255,0.92);font-size:10px;color:#1a1a2e">⊞</div>
+          <div class="tb-btn" style="font-size:11px">⬇</div>
+        </div>
+
+        <div class="app-btmbar"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="caption">Erase the centre — leave a space for your friend's face</p>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 3  —  MEMORIES
+══════════════════════════════════════════ -->
+<div class="slide cream">
+  <span class="wm">RETAKE!</span>
+
+  <div class="hl">
+    <p class="kicker">Together</p>
+    <h1 class="title" style="font-size:52px">Make<br>memories<br><em>together.</em></h1>
+  </div>
+
+  <!-- Polaroid bleeds -->
+  <div style="position:absolute;left:-28px;top:400px;width:118px;height:140px;
+    background:#fff;border-radius:4px;transform:rotate(-9deg);
+    box-shadow:0 10px 30px rgba(0,0,0,0.22);z-index:28;overflow:hidden">
+    <div style="width:100%;height:105px;background:linear-gradient(135deg,#7bafd4 0%,#4a7fb5 100%)"></div>
+    <div style="padding:5px;text-align:center;font-size:8.5px;font-weight:800;color:#444;letter-spacing:0.05em">RETAKE ✦</div>
+  </div>
+
+  <div style="position:absolute;right:-18px;top:352px;width:108px;height:130px;
+    background:#fff;border-radius:4px;transform:rotate(7deg);
+    box-shadow:0 10px 30px rgba(0,0,0,0.22);z-index:28;overflow:hidden">
+    <div style="width:100%;height:96px;background:linear-gradient(135deg,#c87a4a 0%,#8b4a1a 100%)"></div>
+    <div style="padding:5px;text-align:center;font-size:8.5px;font-weight:800;color:#444;letter-spacing:0.05em">RETAKE ✦</div>
+  </div>
+
+  <div class="phone">
+    <div class="shell">
+      <div class="screen">
+        <div class="di"></div>
+
+        <!-- Camera feed -->
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,#b07850 0%,#7a4820 45%,#2e1408 100%);z-index:1"></div>
+
+        <!-- Teletubby frame on top of camera feed -->
+        <img src="canvas-frame-teletubby.png"
+          style="position:absolute;left:3px;top:52px;width:298px;height:532px;object-fit:cover;border-radius:22px;z-index:4;">
+
+        <!-- Face / warm glow showing through the cutout -->
+        <div style="
+          position:absolute; left:50%; top:224px;
+          transform:translateX(-50%);
+          width:110px; height:110px; border-radius:50%;
+          background:radial-gradient(circle, #d4956a 0%, #b86840 50%, #8a4020 80%, transparent 100%);
+          z-index:6;
+        "></div>
+
+        <!-- Invitee camera bar -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:110px;
+          background:rgba(0,0,0,0.72);z-index:20;
+          display:flex;align-items:center;justify-content:center">
+          <div style="width:58px;height:58px;border-radius:50%;border:3.5px solid #fff;background:rgba(255,255,255,0.08)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="caption">One frame. Two people. One photo.</p>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 4  —  PASS IT ON  (yellow)
+══════════════════════════════════════════ -->
+<div class="slide yellow">
+  <span class="wm">RETAKE!</span>
+
+  <div class="hl">
+    <p class="kicker">Step 3</p>
+    <h1 class="title">Pass<br>it <em>on.</em></h1>
+  </div>
+
+  <!-- Code badge bleeding left -->
+  <div class="code-badge" style="left:-10px; top:318px; transform:rotate(-6deg)">RTKE-4821</div>
+  <!-- Copied chip floating right -->
+  <div class="chip chip-white" style="right:8px; top:372px; transform:rotate(5deg); font-size:12px">📋 Copied!</div>
+
+  <div class="phone">
+    <div class="shell">
+      <div class="screen">
+        <div class="di"></div>
+
+        <!-- App frame image dimmed -->
+        <img src="canvas-frame-teletubby.png"
+          style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(0.45);z-index:1;">
+
+        <!-- Share bottom sheet -->
+        <div style="
+          position:absolute; bottom:0; left:0; right:0; height:310px;
+          background:#F0E84A; border-radius:28px 28px 0 0; z-index:20;
+          padding:20px 20px 0;
+        ">
+          <!-- Drag handle -->
+          <div style="width:36px;height:4px;background:rgba(0,0,0,0.18);border-radius:2px;margin:0 auto 18px"></div>
+          <!-- Title -->
+          <div style="font-weight:900;font-size:16px;color:#12121C;margin-bottom:3px">Share your frame!</div>
+          <div style="font-size:11px;color:rgba(0,0,0,0.45);margin-bottom:18px;line-height:1.4">
+            Send them this code — they'll step right into your frame
+          </div>
+          <!-- Code box -->
+          <div style="
+            background:#12121C; color:#F0E84A;
+            font-family:'Courier New',monospace; font-size:20px; font-weight:700;
+            letter-spacing:0.12em; padding:14px 18px; border-radius:12px;
+            text-align:center; margin-bottom:12px;
+          ">RTKE-4821</div>
+          <!-- Copy button -->
+          <div style="
+            background:#12121C; color:#fff;
+            font-weight:700; font-size:13px; padding:13px;
+            border-radius:12px; text-align:center;
+          ">Copy invite link</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <p class="caption">Send one code — your friend steps right in</p>
+</div>
+
+
+</body>
+</html>
