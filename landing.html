@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Retake! — Coming Soon</title>
+  <style>
+    @font-face {
+      font-family: 'Bedstead';
+      src: url('bedstead-semicondensed.otf') format('opentype');
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Lock to viewport — no scroll ever */
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: #1a1a2e;
+      /* 20px dark border on all 4 sides */
+      padding: 20px;
+      display: flex;
+      align-items: stretch;   /* card fills full height */
+      justify-content: center;
+      cursor: none;
+    }
+
+    /* ── Checkerboard canvas — lives BEHIND card content ── */
+    #trail-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* All card content must sit above the canvas */
+    .logo, .headline, .bottom {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Custom cursor — yellow hand image ── */
+    #cursor {
+      position: fixed;
+      width: 158px; /* 88px × 1.8 */
+      pointer-events: none;
+      z-index: 1000;
+      transform: translate(-50%, -9%) rotate(-15deg);
+      transform-origin: center top;
+    }
+    #cursor img {
+      width: 100%;
+      height: auto;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* ── Cream card — always exactly viewport minus 20px on all sides ── */
+    .card {
+      position: relative;
+      z-index: 1;
+      background: #fdfcea;
+      border-radius: clamp(16px, 2.5vw, 56px);
+      overflow: hidden;
+      /* fills full width between the two 20px body paddings */
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: clamp(20px, 4vh, 52px) clamp(24px, 5vw, 100px);
+    }
+
+    /* ── Logo ── */
+    .logo {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .logo img {
+      height: clamp(16px, 2.8vh, 40px);
+      width: auto;
+      display: block;
+    }
+
+    /* ── Headline image — flex:1 so it takes all leftover vertical space ── */
+    .headline {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: clamp(8px, 1.5vh, 20px) 0;
+    }
+    .headline img {
+      max-width: min(70%, 566px);
+      max-height: 295px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* ── Bottom section ── */
+    .bottom {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(8px, 1.4vh, 18px);
+      width: 100%;
+    }
+
+    .sub {
+      font-family: 'Bedstead', monospace;
+      font-size: 20px;
+      color: #1a1a2e;
+      text-align: center;
+      letter-spacing: 0.04em;
+      line-height: 1.3;
+    }
+
+    /* Pill form */
+    .form-pill {
+      background: #1a1a2e;
+      border-radius: 100px;
+      padding: 8px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+      max-width: 620px;
+    }
+    .form-pill input {
+      flex: 1;
+      background: #e4e4e4;
+      border: none;
+      outline: none;
+      border-radius: 100px;
+      padding: 20px 28px;
+      font-family: 'Bedstead', monospace;
+      font-size: 20px;
+      color: #545257;
+      min-width: 0;
+      cursor: none;
+    }
+    .form-pill input::placeholder { color: #aaa; }
+    .form-pill button {
+      flex-shrink: 0;
+      background: #f1e84a;
+      border: none;
+      border-radius: 100px;
+      padding: 20px 36px;
+      font-family: 'Bedstead', monospace;
+      font-size: 20px;
+      color: #1a1a2e;
+      cursor: none;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    .form-pill button:hover { opacity: 0.8; }
+
+    /* Success state */
+    .success-msg {
+      display: none;
+      font-family: 'Bedstead', monospace;
+      font-size: 16px;
+      color: #1a1a2e;
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+
+    /* Social links */
+    .socials {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      justify-content: center;
+    }
+    .socials a {
+      font-family: 'Bedstead', monospace;
+      font-size: 20px;
+      color: #1a1a2e;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      letter-spacing: 0.04em;
+      cursor: none;
+      transition: opacity 0.15s;
+    }
+    .socials a:hover { opacity: 0.45; }
+  </style>
+</head>
+<body>
+
+<!-- Custom cursor — yellow hand (fixed, on top of everything) -->
+<div id="cursor">
+  <img src="https://www.figma.com/api/mcp/asset/6db76b10-d740-4d1a-a35f-4f646ed363fa" alt="" draggable="false" />
+</div>
+
+<!-- Card: dark border + cream interior -->
+<div class="card">
+
+  <!-- Canvas lives BEHIND card content, paints the #FDFCEA area only -->
+  <canvas id="trail-canvas"></canvas>
+
+  <!-- Logo image from Figma -->
+  <div class="logo">
+    <img
+      src="https://www.figma.com/api/mcp/asset/b08e3d86-1247-4432-b75f-aab117a6c2d3"
+      alt="Retake!"
+    />
+  </div>
+
+  <!-- Headline image from Figma -->
+  <div class="headline">
+    <img
+      src="https://www.figma.com/api/mcp/asset/3418cf28-fae0-413e-a422-98537e8d6e37"
+      alt="Take photos inside each other's frames"
+    />
+  </div>
+
+  <!-- CTA section -->
+  <div class="bottom">
+    <p class="sub">LEAVE YOUR EMAIL — WE'LL SEND A NOTE THE MOMENT WE LAUNCH</p>
+
+    <div class="form-pill" id="form-wrap">
+      <input type="email" id="email-input" placeholder="Email" />
+      <button id="join-btn">Join</button>
+    </div>
+    <p class="success-msg" id="success-msg">you're on the list ✦</p>
+
+    <div class="socials">
+      <a href="https://tiktok.com/@retake.app" target="_blank">Tiktok</a>
+      <a href="https://instagram.com" target="_blank">Instagram</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  /* ── Custom cursor ── */
+  var cursorEl = document.getElementById('cursor');
+  var mouseX = -999, mouseY = -999;
+
+  document.addEventListener('mousemove', function (e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    cursorEl.style.left = mouseX + 'px';
+    cursorEl.style.top  = mouseY + 'px';
+  });
+
+  /* ── Checkerboard canvas (behind all card content) ── */
+  var canvas  = document.getElementById('trail-canvas');
+  var ctx     = canvas.getContext('2d');
+  var cardEl  = document.querySelector('.card');
+
+  function resize() {
+    var r = cardEl.getBoundingClientRect();
+    canvas.width  = Math.round(r.width);
+    canvas.height = Math.round(r.height);
+    pat = null;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  /* Build checkerboard tile */
+  var SQ = 18;
+  var tile = document.createElement('canvas');
+  tile.width = tile.height = SQ * 2;
+  var tc = tile.getContext('2d');
+  tc.fillStyle = '#dedede';
+  tc.fillRect(0, 0, SQ * 2, SQ * 2);
+  tc.fillStyle = '#c2c2c2';
+  tc.fillRect(0,  0,  SQ, SQ);
+  tc.fillRect(SQ, SQ, SQ, SQ);
+
+  var pat = null;
+  function getPat() {
+    if (!pat) pat = ctx.createPattern(tile, 'repeat');
+    return pat;
+  }
+
+  var RADIUS = 48;
+  var STEP   = 6; /* px between interpolated circles — keeps line solid */
+
+  /* Last position the draw loop actually painted at */
+  var lastDrawX = -9999, lastDrawY = -9999;
+
+  /* Convert page coords → card-local coords */
+  function toLocal(px, py) {
+    var r = cardEl.getBoundingClientRect();
+    return { x: px - r.left, y: py - r.top };
+  }
+
+  function inBounds(lx, ly) {
+    return lx >= 0 && lx <= canvas.width && ly >= 0 && ly <= canvas.height;
+  }
+
+  function draw() {
+    /* Fade existing paint back toward transparent */
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0,0,0,0.012)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = 'source-over';
+
+    var cur  = toLocal(mouseX, mouseY);
+    var prev = toLocal(lastDrawX, lastDrawY);
+
+    if (inBounds(cur.x, cur.y)) {
+      ctx.fillStyle = getPat();
+
+      if (inBounds(prev.x, prev.y)) {
+        /* Interpolate between last paint position and current cursor */
+        var dx   = cur.x - prev.x;
+        var dy   = cur.y - prev.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        var n    = Math.max(1, Math.ceil(dist / STEP));
+        for (var i = 1; i <= n; i++) {
+          var t = i / n;
+          ctx.globalAlpha = 0.9;
+          ctx.beginPath();
+          ctx.arc(prev.x + dx * t, prev.y + dy * t, RADIUS, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        /* First frame in card — just paint current position */
+        ctx.globalAlpha = 0.9;
+        ctx.beginPath();
+        ctx.arc(cur.x, cur.y, RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    lastDrawX = mouseX;
+    lastDrawY = mouseY;
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+
+  /* ── Form ── */
+  document.getElementById('join-btn').addEventListener('click', function () {
+    var email = document.getElementById('email-input').value.trim();
+    if (!email || email.indexOf('@') === -1) {
+      document.getElementById('email-input').focus();
+      return;
+    }
+    document.getElementById('form-wrap').style.display   = 'none';
+    document.getElementById('success-msg').style.display = 'block';
+  });
+
+  document.getElementById('email-input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.getElementById('join-btn').click();
+  });
+
+  /* ── Camera throw on click ── */
+  var CAMERA_SRC  = 'https://www.figma.com/api/mcp/asset/458f25fa-61f5-4143-a1ca-a6a7e527ec8b';
+  var CAMERA_W    = 280;  /* px — big and easy to see             */
+  var THROW_MS    = 1600; /* slow enough to read clearly          */
+  var throwCount  = 0;
+
+  /* ── Flash overlay ── */
+  var flashEl = document.createElement('div');
+  flashEl.style.cssText =
+    'position:fixed;inset:0;background:#fffef0;' +
+    'pointer-events:none;z-index:9999;opacity:0;';
+  document.body.appendChild(flashEl);
+
+  function triggerFlash() {
+    flashEl.style.transition = 'opacity 0.08s ease-in';
+    flashEl.style.opacity    = '0.45';
+    setTimeout(function () {
+      flashEl.style.transition = 'opacity 0.6s ease-out';
+      flashEl.style.opacity    = '0';
+    }, 80);
+  }
+
+  document.addEventListener('click', function (e) {
+    triggerFlash();
+    var side = (throwCount % 2 === 0) ? -1 : 1; /* -1 = left, 1 = right */
+    throwCount++;
+    throwCamera(e.clientX, e.clientY, side);
+  });
+
+  function throwCamera(cx, cy, side) {
+    var rect = cardEl.getBoundingClientRect();
+
+    /* Land close to the cursor — only drift ~200px to the side */
+    var endX = cx + side * 200;
+    var endY = rect.bottom - CAMERA_W * 0.5;
+
+    var deltaX = endX - cx;
+    var deltaY = endY - cy;
+
+    /* Narrow arc — just 80px above the straight line */
+    var arcHeight = -80;
+
+    /* Gentle tilt: 15 deg in throw direction */
+    var tilt = side * 15;
+
+    var el = document.createElement('div');
+    el.style.cssText =
+      'position:fixed;' +
+      'left:' + cx + 'px;' +
+      'top:'  + cy + 'px;' +
+      'width:' + CAMERA_W + 'px;' +
+      'transform:translate(-50%,-50%);' +
+      'pointer-events:none;' +
+      'z-index:800;';
+
+    var img = document.createElement('img');
+    img.src = CAMERA_SRC;
+    img.style.cssText = 'width:100%;height:auto;display:block;pointer-events:none;';
+    el.appendChild(img);
+    document.body.appendChild(el);
+
+    var t0 = null;
+
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var t = Math.min((ts - t0) / THROW_MS, 1);
+
+      /* X — linear */
+      var x = cx + deltaX * t;
+
+      /* Y — clean parabola: arc up then gravity down */
+      var y = cy + deltaY * t + arcHeight * 4 * t * (1 - t);
+
+      /* Tilt stays fixed — icon reads clearly the whole flight */
+      img.style.transform = 'rotate(' + tilt + 'deg)';
+
+      el.style.left = x + 'px';
+      el.style.top  = y + 'px';
+
+      if (t < 1) {
+        requestAnimationFrame(step);
+      }
+      /* stays on the ground — never removed */
+    }
+
+    requestAnimationFrame(step);
+  }
+})();
+</script>
+</body>
+</html>
