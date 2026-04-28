@@ -2000,6 +2000,39 @@
     const btnAllow    = $('btnAllowCamera');
     const btnNotNow   = $('btnNotNow');
 
+    /* ─────────────────────────────────────────────────────
+       READ URL PARAMS — load custom frame from inviter link
+       ?frame=<encoded-blob-url>  &n=<encoded-inviter-name>
+    ───────────────────────────────────────────────────── */
+    const _params      = new URLSearchParams(location.search);
+    const _frameUrl    = _params.get('frame');
+    const _inviterName = _params.get('n') || 'someone';
+    let   _isCustomFrame = false;
+
+    if (_frameUrl) {
+      _isCustomFrame = true;
+      const frameEl = $('yunchaiPhoto');
+
+      // Update invite card text with inviter's name
+      const nameEl = inviteCard.querySelector('.card-username');
+      if (nameEl) nameEl.textContent = decodeURIComponent(_inviterName);
+
+      // Custom frames have real PNG transparency — remove the Teletubby CSS mask
+      frameEl.style.webkitMaskImage = 'none';
+      frameEl.style.maskImage = 'none';
+
+      // Load the custom frame — need crossOrigin for canvas use later
+      frameEl.crossOrigin = 'anonymous';
+      frameEl.src = decodeURIComponent(_frameUrl);
+      frameEl.onerror = () => {
+        // Frame failed to load — show fallback message over the frame area
+        frameEl.style.display = 'none';
+        const msg = document.createElement('div');
+        msg.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:4;background:rgba(0,0,0,0.5)';
+        msg.innerHTML = '<p style="color:white;font-family:Bedstead,monospace;font-size:22px;text-align:center;padding:24px">This frame is no longer available</p>';
+        $('frameContainer').appendChild(msg);
+      };
+    }
 
     /* ─────────────────────────────────────────────────────
        STEP 1: camera permission sheet on load
@@ -3175,40 +3208,39 @@
         });
       }
 
-      /* 4. Draw frame overlay — replicate the CSS mask-image radial gradient in canvas.
-            The live UI uses:
-              mask-image: radial-gradient(105px 105px at 50% 23%,
-                rgba(0,0,0,0) 55%, rgba(0,0,0,0.5) 78%, rgb(0,0,0) 100%)
-            which punches a circular hole for the user's photo. Canvas ignores CSS,
-            so we reproduce it manually with destination-out on a temp canvas. */
-      const frameSrc = document.getElementById('yunchaiPhoto').src;
+      /* 4. Draw frame overlay.
+            For the built-in Teletubby frame: the CSS mask-image punches the cutout —
+            canvas ignores CSS, so we reproduce it with destination-out on a temp canvas.
+            For custom frames uploaded by the inviter: the PNG already has real
+            transparency, so we draw it directly without punching anything. */
+      const frameEl = document.getElementById('yunchaiPhoto');
+      const frameSrc = frameEl.src;
       const frame = new Image();
+      frame.crossOrigin = 'anonymous';
       await new Promise((res) => { frame.onload = res; frame.onerror = res; frame.src = frameSrc; });
       if (frame.naturalWidth > 0) {
         try {
-          /* 4a. Draw raw frame onto a temp canvas */
           const fCanvas = document.createElement('canvas');
           fCanvas.width = W; fCanvas.height = H;
           const fCtx = fCanvas.getContext('2d');
           fCtx.drawImage(frame, -8, 0, 430, H);
 
-          /* 4b. Punch the cutout hole using destination-out + radial gradient.
-                 Frame element is 430px wide, offset -8px → mask centre on canvas:
-                   cx = (50% of 430) - 8 = 207px
-                   cy = 23% of 750     = 172.5px
-                 Gradient stops are the INVERSE of the CSS mask alpha
-                 (CSS alpha=0 → we fully remove; CSS alpha=1 → we don't remove). */
-          const cx = 207, cy = 172.5, r = 105;
-          const grad = fCtx.createRadialGradient(cx, cy, 0, cx, cy, r);
-          grad.addColorStop(0,    'rgba(0,0,0,1)');    // fully remove (CSS alpha=0)
-          grad.addColorStop(0.55, 'rgba(0,0,0,1)');    // fully remove
-          grad.addColorStop(0.78, 'rgba(0,0,0,0.5)');  // half remove  (CSS alpha=0.5)
-          grad.addColorStop(1.0,  'rgba(0,0,0,0)');    // keep intact   (CSS alpha=1)
-          fCtx.globalCompositeOperation = 'destination-out';
-          fCtx.fillStyle = grad;
-          fCtx.fillRect(0, 0, W, H);
-
-          /* 4c. Composite the masked frame onto the main offscreen canvas */
+          if (!_isCustomFrame) {
+            /* Built-in frame: punch the oval cutout with destination-out.
+               Frame element is 430px wide, offset -8px → mask centre on canvas:
+                 cx = (50% of 430) - 8 = 207px
+                 cy = 23% of 750     = 172.5px */
+            const cx = 207, cy = 172.5, r = 105;
+            const grad = fCtx.createRadialGradient(cx, cy, 0, cx, cy, r);
+            grad.addColorStop(0,    'rgba(0,0,0,1)');
+            grad.addColorStop(0.55, 'rgba(0,0,0,1)');
+            grad.addColorStop(0.78, 'rgba(0,0,0,0.5)');
+            grad.addColorStop(1.0,  'rgba(0,0,0,0)');
+            fCtx.globalCompositeOperation = 'destination-out';
+            fCtx.fillStyle = grad;
+            fCtx.fillRect(0, 0, W, H);
+          }
+          /* Composite the frame onto the main offscreen canvas */
           cctx.drawImage(fCanvas, 0, 0);
         } catch (_) { /* skip on security error */ }
       }
@@ -3262,9 +3294,7 @@
       /* Use the pre-built composite synchronously — window.open/_blank must be called
          in a user-gesture context (no await before it) or iOS blocks it as a popup.
          scheduleCompositeRebuild() keeps compositeBlob current after every edit. */
-      console.log('[download] compositeBlob:', compositeBlob ? 'ready size='+compositeBlob.size : 'null', 'buildGen:', _buildGen);
       const blob = compositeBlob || await buildCompositeBlob();
-      console.log('[download] using blob size:', blob.size);
       if (!compositeBlob) compositeBlob = blob;
       const url  = URL.createObjectURL(blob);
       const win  = window.open(url, '_blank');

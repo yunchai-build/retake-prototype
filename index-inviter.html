@@ -501,6 +501,20 @@
     }
     .pen-type-btn.active { background: rgba(255,255,255,0.78); }
 
+    /* Eraser shape selector */
+    .eraser-shapes { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+    .eraser-shape-btn {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.12); border: none; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .eraser-shape-btn:active { transform: scale(0.88); }
+    .eraser-shape-btn.active { background: rgba(255,255,255,0.82); }
+    .eraser-shape-btn svg { stroke: white; }
+    .eraser-shape-btn.active svg { stroke: #1A1A2E; }
+
     /* Eraser opacity in bar */
     .tm-icon {
       width: 22px; height: 22px; flex-shrink: 0;
@@ -654,6 +668,222 @@
     .confirm-btn-cancel { background: rgba(26,26,46,0.08); color: #1A1A2E; }
     .confirm-btn-ok     { background: #1A1A2E; color: white; }
     .confirm-btn-ok.danger { background: #FF3B30; }
+
+    /* ── Intro card body text ── */
+    .card-body {
+      font-family: 'Bedstead', monospace;
+      font-size: 14px;
+      color: rgba(26,26,46,0.52);
+      line-height: 1.6;
+      margin-top: -8px;
+    }
+    /* ── Intro card: photo pick CTA fills full width ── */
+    .btn-photo {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-blank {
+      font-size: 15px;
+      padding: 12px 0;
+      opacity: 0.7;
+    }
+
+/* ════════════════════════════════════════════
+   STICKER SYSTEM
+════════════════════════════════════════════ */
+
+/* Sticker Panel (slide-up overlay) */
+.sticker-panel {
+  position: absolute;
+  left: 0; top: 59px;
+  width: 430px; height: 873px;
+  background: rgba(18,18,40,0.88);
+  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border: 1.5px solid rgba(45,42,255,0.2);
+  border-radius: 20px 20px 0 0;
+  z-index: 11;
+  display: flex; flex-direction: column;
+  transform: translateY(100%); opacity: 0;
+  transition: transform 0.44s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
+  pointer-events: none;
+}
+.sticker-panel.sp-visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+.sp-header {
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px 16px 0; position: relative; flex-shrink: 0;
+}
+.sp-title {
+  font-family: 'Bedstead', monospace; font-size: 18px;
+  color: white; letter-spacing: 0.02em;
+}
+.sp-close {
+  position: absolute; right: 14px;
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,0.1); border: none; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: opacity 0.1s, transform 0.1s;
+}
+.sp-close:active { opacity: 0.6; transform: scale(0.88); }
+
+/* Tab bar */
+.sp-tabs {
+  display: flex; gap: 6px; justify-content: center;
+  padding: 14px 0 10px; flex-shrink: 0;
+}
+.sp-tab {
+  width: 40px; height: 40px;
+  background: transparent; border: none; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s;
+}
+.sp-tab.active { background: rgba(255,255,255,0.15); }
+.sp-tab svg { stroke: rgba(255,255,255,0.5); }
+.sp-tab.active svg { stroke: white; }
+
+/* Content area */
+.sp-content { flex: 1; position: relative; overflow: hidden; }
+
+/* Empty state */
+.sp-empty {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; padding: 24px 36px;
+}
+.sp-empty-blob {
+  width: 148px; height: 148px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 72px; margin-bottom: 6px;
+}
+.sp-empty-title {
+  font-family: 'Bedstead', monospace; font-size: 20px;
+  color: white; text-align: center; line-height: 1.25;
+}
+.sp-empty-sub {
+  font-family: 'Bedstead', monospace; font-size: 13px;
+  color: rgba(255,255,255,0.5); text-align: center; line-height: 1.55;
+}
+.sp-get-started {
+  width: 100%; padding: 17px;
+  background: #6A00FF; color: white;
+  font-family: 'Bedstead', monospace; font-size: 16px; letter-spacing: 0.04em;
+  border: none; border-radius: 18px; cursor: pointer; margin-top: 6px;
+  transition: opacity 0.1s, transform 0.1s;
+}
+.sp-get-started:active { opacity: 0.8; transform: scale(0.98); }
+
+/* Sticker grid (3-col) */
+.sp-grid {
+  position: absolute; inset: 0;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 3px; overflow-y: auto; padding: 4px 0; align-content: start;
+}
+.sp-add-cell {
+  aspect-ratio: 1;
+  background: rgba(255,255,255,0.08);
+  border: none; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: opacity 0.1s;
+}
+.sp-add-cell:active { opacity: 0.6; }
+.sp-sticker-cell {
+  aspect-ratio: 1;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px; overflow: hidden;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px; border: none;
+  transition: opacity 0.1s, transform 0.1s;
+}
+.sp-sticker-cell:active { opacity: 0.7; transform: scale(0.93); }
+.sp-sticker-cell img { width: 100%; height: 100%; object-fit: contain; }
+
+/* Emoji grid (5-col) */
+.sp-emoji-grid {
+  position: absolute; inset: 0;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  overflow-y: auto; padding: 4px 0; align-content: start;
+}
+.sp-emoji-btn {
+  aspect-ratio: 1; background: none; border: none;
+  font-size: 34px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px; transition: background 0.1s, transform 0.1s;
+}
+.sp-emoji-btn:active { background: rgba(255,255,255,0.1); transform: scale(0.85); }
+
+/* ── New Sticker Screen ── */
+.new-sticker-screen {
+  position: absolute;
+  left: 0; top: 59px;
+  width: 430px; height: 873px;
+  background: rgba(14,14,32,0.94);
+  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border: 1.5px solid rgba(45,42,255,0.2);
+  border-radius: 20px 20px 0 0;
+  z-index: 12;
+  display: flex; flex-direction: column;
+  transform: translateY(100%); opacity: 0;
+  transition: transform 0.44s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
+  pointer-events: none;
+}
+.new-sticker-screen.ns-visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+.ns-header {
+  display: flex; align-items: center; padding: 20px 16px 0;
+}
+.ns-title {
+  flex: 1; text-align: center;
+  font-family: 'Bedstead', monospace; font-size: 18px; color: white;
+}
+.ns-preview {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 28px; overflow: hidden;
+}
+.ns-preview img {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; border-radius: 14px;
+}
+.ns-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 48px 52px;
+}
+.ns-btn {
+  width: 48px; height: 48px;
+  background: white; border: 3.5px solid #1A1A2E;
+  border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 5px 0 #1A1A2E;
+  transition: opacity 0.1s, transform 0.1s;
+}
+.ns-btn:active { opacity: 0.7; transform: scale(0.91) translateY(3px); box-shadow: 0 2px 0 #1A1A2E; }
+
+/* ── Sticker overlay (placed stickers above canvas) ── */
+#stickerOverlay {
+  position: absolute; left: 8px; top: 77px;
+  width: 414px; height: 750px;
+  pointer-events: none; z-index: 4;
+}
+#stickerOverlay.stk-active { pointer-events: auto; }
+
+/* Placed sticker */
+.placed-sticker {
+  position: absolute; cursor: grab; touch-action: none; user-select: none;
+  transform-origin: center center;
+}
+.placed-sticker img { width: 100%; display: block; pointer-events: none; }
+.stk-del {
+  position: absolute; top: -13px; right: -13px;
+  width: 26px; height: 26px;
+  background: white; border: none; border-radius: 50%;
+  font-size: 15px; line-height: 1; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35); z-index: 2; color: #1A1A2E;
+}
+.placed-sticker.stk-selected .stk-del { display: flex; }
+.placed-sticker.stk-selected { outline: 2px dashed rgba(255,255,255,0.55); border-radius: 6px; outline-offset: 4px; }
 
     /* ── Responsive: fill any iPhone screen ── */
     @media (max-width: 500px) {
@@ -819,7 +1049,7 @@
     <button class="s6-circle-btn" id="btnGallery" aria-label="Change photo"></button>
     <!-- Frame title — tap to open edit sheet -->
     <button class="s6-frame-title-btn" id="btnFrameName" aria-label="Edit frame name">
-      <span id="frameNameDisplay">babe, wake up</span>
+      <span id="frameNameDisplay">my frame</span>
     </button>
     <!-- Share — white circle, paper plane -->
     <button class="s6-send-btn" id="btnShare" aria-label="Share">
@@ -888,6 +1118,29 @@
 
   <!-- Tool-mode bottom bar (eraser mode) -->
   <div id="tmEraserBar">
+    <!-- Shape selector -->
+    <div class="eraser-shapes">
+      <!-- Freehand -->
+      <button class="eraser-shape-btn active" data-shape="freehand" title="Freehand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 20 Q8 8 12 14 Q16 20 20 6"/>
+        </svg>
+      </button>
+      <!-- Circle -->
+      <button class="eraser-shape-btn" data-shape="circle" title="Circle">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+          <circle cx="12" cy="12" r="8"/>
+        </svg>
+      </button>
+      <!-- Rectangle -->
+      <button class="eraser-shape-btn" data-shape="rect" title="Rectangle">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round">
+          <rect x="4" y="5" width="16" height="14" rx="2"/>
+        </svg>
+      </button>
+    </div>
+    <div class="tm-divider"></div>
+    <!-- Opacity -->
     <div class="tm-icon">
       <svg width="20" height="20" viewBox="0 0 24 24">
         <path d="M12 2a10 10 0 1 0 0 20V2z" fill="rgba(255,255,255,0.65)"/>
@@ -922,9 +1175,13 @@
       <p class="s7-pop-title">Share your frame!</p>
       <p class="s7-pop-dim">Invite a friend</p>
     </div>
-    <p class="s7-pop-subtitle">Send them this code — they'll step right into your frame and take a photo</p>
-    <div class="s7-pop-code-row">
-      <span class="s7-pop-code" id="shareCode"></span>
+    <p class="s7-pop-subtitle" id="sharePopSubtitle">Send them this link — they'll step right into your frame and take a photo</p>
+    <!-- uploading state -->
+    <p class="s7-pop-subtitle" id="sharePopUploading" style="display:none;opacity:0.6">Uploading your frame…</p>
+    <!-- error state -->
+    <p class="s7-pop-subtitle" id="sharePopError" style="display:none;color:#FF3B30">Upload failed — <button id="btnShareRetry" style="background:none;border:none;color:#FF3B30;font-family:inherit;font-size:inherit;text-decoration:underline;cursor:pointer;padding:0">tap to retry</button></p>
+    <div class="s7-pop-code-row" id="shareCodeRow">
+      <span class="s7-pop-code" id="shareCode" style="font-size:13px;letter-spacing:0;word-break:break-all"></span>
       <button class="s7-pop-copy-btn" id="btnCopyCode" aria-label="Copy link">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="9" y="9" width="13" height="13" rx="2"/>
@@ -939,14 +1196,23 @@
 
   <!-- Intro card -->
   <div class="invite-card" id="introCard">
-    <div class="app-icon">YS</div>
+    <div class="app-icon">R!</div>
     <div class="card-content">
       <div class="card-text">
-        <span class="card-username">Create a</span>
-        <span class="card-subtitle">frame template</span>
+        <span class="card-username">Make a frame,</span>
+        <span class="card-subtitle">share it.</span>
       </div>
-      <div class="card-buttons">
-        <button class="btn btn-primary" id="btnStartDrawing">Start Drawing</button>
+      <p class="card-body">Leave spaces — your friend fills them with their camera.</p>
+      <div class="card-buttons" style="flex-direction: column; gap: 8px;">
+        <button class="btn btn-primary btn-photo" id="btnChoosePhoto">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:#F0E84A">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          Pick a photo
+        </button>
+        <button class="btn btn-secondary btn-blank" id="btnStartBlank">Start with blank canvas</button>
       </div>
     </div>
   </div>
@@ -961,27 +1227,128 @@
     </div>
   </div>
 
+  <!-- ════ STICKER PANEL ════ -->
+  <div class="sticker-panel" id="stickerPanel">
+    <div class="sp-header">
+      <p class="sp-title" id="spTitle">Stickers</p>
+      <button class="sp-close" id="btnStickerPanelClose" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 22 22" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <line x1="4" y1="4" x2="18" y2="18"/><line x1="18" y1="4" x2="4" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="sp-tabs">
+      <button class="sp-tab active" data-sptab="recents" aria-label="Recents">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/>
+        </svg>
+      </button>
+      <button class="sp-tab" data-sptab="mystickers" aria-label="My Stickers">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.85 0 3-.5 3-.5v-3.5s-1 .5-3 .5c-3.58 0-6.5-2.92-6.5-6.5S8.42 5.5 12 5.5c2.38 0 4.47 1.28 5.62 3.19"/>
+          <path d="M19 3v6h-6"/>
+        </svg>
+      </button>
+      <button class="sp-tab" data-sptab="emoji" aria-label="Emoji">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+          <line x1="9" y1="9" x2="9.01" y2="9"/>
+          <line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="sp-content">
+
+      <!-- Empty state -->
+      <div class="sp-empty" id="spEmpty">
+        <div class="sp-empty-blob">✦</div>
+        <p class="sp-empty-title">Turn any photo into a sticker.</p>
+        <p class="sp-empty-sub">Or paste one you copied — here, or right on the canvas.</p>
+        <button class="sp-get-started" id="btnStickerGetStarted">Get Started</button>
+      </div>
+
+      <!-- Sticker grid -->
+      <div class="sp-grid" id="spGrid" style="display:none"></div>
+
+      <!-- Emoji grid -->
+      <div class="sp-emoji-grid" id="spEmojiGrid" style="display:none"></div>
+
+    </div>
+  </div>
+
+  <!-- ════ NEW STICKER SCREEN ════ -->
+  <div class="new-sticker-screen" id="newStickerScreen">
+    <div class="ns-header">
+      <button class="sp-close" id="btnNewStickerBack" aria-label="Back">
+        <svg width="16" height="16" viewBox="0 0 22 22" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <line x1="4" y1="4" x2="18" y2="18"/><line x1="18" y1="4" x2="4" y2="18"/>
+        </svg>
+      </button>
+      <p class="ns-title">New Sticker</p>
+      <div style="width:34px"></div>
+    </div>
+    <div class="ns-preview" id="nsPreview"></div>
+    <div class="ns-actions">
+      <button class="ns-btn" id="btnNewStickerCancel" aria-label="Cancel">
+        <svg width="18" height="18" viewBox="0 0 22 22" fill="none" stroke="#1A1A2E" stroke-width="2.5" stroke-linecap="round">
+          <line x1="4" y1="4" x2="18" y2="18"/><line x1="18" y1="4" x2="4" y2="18"/>
+        </svg>
+      </button>
+      <button class="ns-btn" id="btnNewStickerAdd" aria-label="Add sticker">
+        <svg width="18" height="18" viewBox="0 0 22 22" fill="none" stroke="#1A1A2E" stroke-width="2.5" stroke-linecap="round">
+          <line x1="11" y1="3" x2="11" y2="19"/><line x1="3" y1="11" x2="19" y2="11"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Sticker overlay (placed stickers above canvas) -->
+  <div id="stickerOverlay"></div>
+
+  <!-- Hidden file input for sticker photos -->
+  <input type="file" id="stickerPhotoInput" accept="image/*" style="display:none">
+
 </div><!-- /.screen -->
 
 <script>
   const $ = id => document.getElementById(id);
   const delay = ms => new Promise(r => setTimeout(r, ms));
   /* snapshot() throws SecurityError on file:// if canvas is tainted */
-  const snapshot = () => { try { return snapshot(); } catch(e) { return null; } };
+  const snapshot = () => { try { return canvas.toDataURL(); } catch(e) { return null; } };
 
   /* ── Canvas ── */
   const canvas  = $('editCanvas');
   const ctx     = canvas.getContext('2d');
   const frameEl = $('frameContainer');
 
+  /* ── Scratch canvas for non-accumulating freehand eraser ── */
+  const scratchCanvas = document.createElement('canvas');
+  scratchCanvas.width  = canvas.width;
+  scratchCanvas.height = canvas.height;
+  const scratchCtx = scratchCanvas.getContext('2d');
+
   /* Tool state */
   let activeTool    = null;  /* 'eraser' | 'doodle' | null */
   let toolRadius    = 32;   /* shared: 4–60px, default 50% */
   let eraserOpacity = 1.0;
+  let eraserMode    = 'freehand'; /* 'freehand' | 'circle' | 'rect' */
   let doodleColor   = '#FFFFFF';
   let penType       = 'pen'; /* 'pen' | 'pencil' | 'marker' */
   let isDrawing     = false;
   let lastX = 0, lastY = 0;
+
+  /* Shape eraser state */
+  let shapeDragging   = false;
+  let shapeStartX     = 0, shapeStartY = 0;
+  let shapePreviewData = null; /* ImageData saved before drag begins */
+
+  /* Freehand eraser stroke state — for non-accumulating opacity */
+  let strokeBaseData = null; /* ImageData snapshot taken at stroke start */
 
   /* History — two-level stacks (declared here for early access in img.onload) */
   const MAX_HISTORY = 30;
@@ -992,25 +1359,11 @@
   let sessionEntrySnap = null;
   const MAX_HIST = 30;
 
-  /* Load image */
-  const img = new Image();
-  img.src = 'canvas-frame-teletubby.png';
-  img.onload = () => {
-    const W = canvas.width, H = canvas.height;
-    const scale = Math.max(W / img.width, H / img.height);
-    const sw = W / scale, sh = H / scale;
-    const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
-    mainUndoStack.push(snapshot());
-    syncHistoryBtns();
-  };
-  img.onerror = () => {
-    const g = ctx.createLinearGradient(0,0,0,750);
-    g.addColorStop(0,'#8ecae6'); g.addColorStop(1,'#219ebc');
-    ctx.fillStyle = g; ctx.fillRect(0,0,414,750);
-    mainUndoStack.push(snapshot());
-    syncHistoryBtns();
-  };
+  /* Start with solid canvas so no checker shows before editing begins */
+  ctx.fillStyle = '#F7F5F2';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  mainUndoStack.push(snapshot());
+  syncHistoryBtns();
 
 
   /* ── pushHistory: called after each stroke (within a tool session → tool stack) ── */
@@ -1042,11 +1395,21 @@
     ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(x, y);
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     if (activeTool === 'eraser') {
+      /* Draw stroke onto scratch canvas at full opacity (no accumulation) */
+      scratchCtx.save();
+      scratchCtx.beginPath(); scratchCtx.moveTo(fx, fy); scratchCtx.lineTo(x, y);
+      scratchCtx.lineCap = 'round'; scratchCtx.lineJoin = 'round';
+      scratchCtx.globalCompositeOperation = 'source-over';
+      scratchCtx.globalAlpha = 1;
+      scratchCtx.strokeStyle = 'rgba(0,0,0,1)';
+      scratchCtx.lineWidth = toolRadius * 2;
+      scratchCtx.stroke();
+      scratchCtx.restore();
+      /* Restore base, then composite the accumulated stroke shape at desired opacity */
+      if (strokeBaseData) ctx.putImageData(strokeBaseData, 0, 0);
       ctx.globalCompositeOperation = 'destination-out';
       ctx.globalAlpha = eraserOpacity;
-      ctx.strokeStyle = 'rgba(0,0,0,1)';
-      ctx.lineWidth = toolRadius * 2;
-      ctx.stroke();
+      ctx.drawImage(scratchCanvas, 0, 0);
     } else if (penType === 'pencil') {
       ctx.globalCompositeOperation = 'source-over';
       ctx.strokeStyle = doodleColor;
@@ -1063,47 +1426,159 @@
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
       ctx.strokeStyle = doodleColor;
-      ctx.lineWidth = toolRadius * 2;
+      /* Quadratic curve hitting exactly: min→1px, 50%→10px, max→48px */
+      const _n = (toolRadius - 4) / 56;
+      ctx.lineWidth = Math.max(1, 1 - 11 * _n + 58 * _n * _n);
       ctx.stroke();
     }
     ctx.restore();
   }
 
+  /* ── Shape eraser helpers ── */
+  function getXYFromClient(cx, cy) {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: Math.max(0, Math.min(canvas.width,  (cx - r.left) * (canvas.width  / r.width))),
+      y: Math.max(0, Math.min(canvas.height, (cy - r.top)  * (canvas.height / r.height))),
+    };
+  }
+
+  function drawShapePreview(x1, y1, x2, y2) {
+    if (!shapePreviewData) return;
+    ctx.putImageData(shapePreviewData, 0, 0);
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.38;
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    if (eraserMode === 'circle') {
+      const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+      const rx = Math.max(1, Math.abs(x2 - x1) / 2), ry = Math.max(1, Math.abs(y2 - y1) / 2);
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill(); ctx.globalAlpha = 1; ctx.stroke();
+    } else {
+      const x = Math.min(x1, x2), y = Math.min(y1, y2);
+      const w = Math.abs(x2 - x1), h = Math.abs(y2 - y1);
+      ctx.fillRect(x, y, w, h); ctx.globalAlpha = 1; ctx.strokeRect(x, y, w, h);
+    }
+    ctx.restore();
+  }
+
+  function commitShape(x1, y1, x2, y2) {
+    if (shapePreviewData) ctx.putImageData(shapePreviewData, 0, 0);
+    shapePreviewData = null;
+    const minSize = 4;
+    if (Math.abs(x2 - x1) < minSize && Math.abs(y2 - y1) < minSize) return; /* too small, ignore */
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.globalAlpha = eraserOpacity;
+    if (eraserMode === 'circle') {
+      const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+      const rx = Math.max(1, Math.abs(x2 - x1) / 2), ry = Math.max(1, Math.abs(y2 - y1) / 2);
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+    } else {
+      const x = Math.min(x1, x2), y = Math.min(y1, y2);
+      ctx.fillRect(x, y, Math.abs(x2 - x1), Math.abs(y2 - y1));
+    }
+    ctx.restore();
+  }
+
+  /* ── Canvas events ── */
   canvas.addEventListener('mousedown', e => {
     if (!activeTool) return;
-    isDrawing = true;
-    const p = getXY(e); lastX = p.x; lastY = p.y;
-    paintAt(p.x, p.y, p.x, p.y);
+    const p = getXY(e);
+    if (activeTool === 'eraser' && eraserMode !== 'freehand') {
+      shapeDragging = true;
+      shapeStartX = p.x; shapeStartY = p.y;
+      shapePreviewData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    } else {
+      isDrawing = true; lastX = p.x; lastY = p.y;
+      /* Freehand eraser: snapshot base + clear scratch for this stroke */
+      if (activeTool === 'eraser') {
+        strokeBaseData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        scratchCtx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+      }
+      paintAt(p.x, p.y, p.x, p.y);
+    }
   });
   canvas.addEventListener('mousemove', e => {
     if (!activeTool) return;
     moveCursor(e.clientX, e.clientY);
-    if (!isDrawing) return;
-    const p = getXY(e);
-    paintAt(p.x, p.y, lastX, lastY);
-    lastX = p.x; lastY = p.y;
+    if (shapeDragging) {
+      const p = getXYFromClient(e.clientX, e.clientY);
+      drawShapePreview(shapeStartX, shapeStartY, p.x, p.y);
+    } else if (isDrawing) {
+      const p = getXY(e);
+      paintAt(p.x, p.y, lastX, lastY); lastX = p.x; lastY = p.y;
+    }
   });
-  canvas.addEventListener('mouseup',    () => { if (isDrawing) { pushHistory(); isDrawing = false; } });
+  canvas.addEventListener('mouseup', e => {
+    if (shapeDragging) {
+      const p = getXYFromClient(e.clientX, e.clientY);
+      commitShape(shapeStartX, shapeStartY, p.x, p.y);
+      shapeDragging = false; pushHistory();
+    } else if (isDrawing) { strokeBaseData = null; pushHistory(); isDrawing = false; }
+  });
   canvas.addEventListener('mouseleave', () => {
-    if (isDrawing) { pushHistory(); isDrawing = false; }
+    if (isDrawing) { strokeBaseData = null; pushHistory(); isDrawing = false; }
     $('brushCursor').style.display = 'none';
   });
   canvas.addEventListener('mouseenter', () => {
-    if (activeTool) $('brushCursor').style.display = 'block';
+    if (activeTool && eraserMode === 'freehand') $('brushCursor').style.display = 'block';
+  });
+
+  /* Global mouseup catches drags that end outside the canvas */
+  document.addEventListener('mouseup', e => {
+    if (!shapeDragging) return;
+    const p = getXYFromClient(e.clientX, e.clientY);
+    commitShape(shapeStartX, shapeStartY, p.x, p.y);
+    shapeDragging = false; pushHistory();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!shapeDragging) return;
+    const p = getXYFromClient(e.clientX, e.clientY);
+    drawShapePreview(shapeStartX, shapeStartY, p.x, p.y);
   });
 
   canvas.addEventListener('touchstart', e => {
     if (!activeTool) return; e.preventDefault();
-    isDrawing = true; const p = getXY(e); lastX = p.x; lastY = p.y;
-    paintAt(p.x, p.y, p.x, p.y);
+    const p = getXY(e);
+    if (activeTool === 'eraser' && eraserMode !== 'freehand') {
+      shapeDragging = true;
+      shapeStartX = p.x; shapeStartY = p.y;
+      shapePreviewData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    } else {
+      isDrawing = true; lastX = p.x; lastY = p.y;
+      /* Freehand eraser: snapshot base + clear scratch for this stroke */
+      if (activeTool === 'eraser') {
+        strokeBaseData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        scratchCtx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+      }
+      paintAt(p.x, p.y, p.x, p.y);
+    }
   }, { passive: false });
   canvas.addEventListener('touchmove', e => {
     if (!activeTool) return; e.preventDefault();
-    if (!isDrawing) return; const p = getXY(e);
-    paintAt(p.x, p.y, lastX, lastY); lastX = p.x; lastY = p.y;
+    if (shapeDragging) {
+      const t = e.touches[0], r = canvas.getBoundingClientRect();
+      drawShapePreview(shapeStartX, shapeStartY,
+        Math.max(0, Math.min(canvas.width,  (t.clientX - r.left) * (canvas.width  / r.width))),
+        Math.max(0, Math.min(canvas.height, (t.clientY - r.top)  * (canvas.height / r.height))));
+    } else if (isDrawing) {
+      const p = getXY(e);
+      paintAt(p.x, p.y, lastX, lastY); lastX = p.x; lastY = p.y;
+    }
   }, { passive: false });
-  canvas.addEventListener('touchend', () => {
-    if (isDrawing) { pushHistory(); isDrawing = false; }
+  canvas.addEventListener('touchend', e => {
+    if (shapeDragging) {
+      const t = e.changedTouches[0], r = canvas.getBoundingClientRect();
+      commitShape(shapeStartX, shapeStartY,
+        Math.max(0, Math.min(canvas.width,  (t.clientX - r.left) * (canvas.width  / r.width))),
+        Math.max(0, Math.min(canvas.height, (t.clientY - r.top)  * (canvas.height / r.height))));
+      shapeDragging = false; pushHistory();
+    } else if (isDrawing) { strokeBaseData = null; pushHistory(); isDrawing = false; }
   });
 
 
@@ -1345,6 +1820,22 @@
     }, { passive: true });
   });
 
+  /* ── Eraser shape buttons ── */
+  document.querySelectorAll('.eraser-shape-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.eraser-shape-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      eraserMode = b.dataset.shape;
+      /* Freehand shows brush cursor; shapes use default crosshair */
+      if (eraserMode === 'freehand') {
+        canvas.style.cursor = 'none';
+      } else {
+        canvas.style.cursor = 'crosshair';
+        $('brushCursor').style.display = 'none';
+      }
+    });
+  });
+
   /* ── Configure left panel per tool — always start at 50% ── */
   function configureLeftPanel(tool) {
     if (tool === 'eraser') {
@@ -1354,9 +1845,14 @@
       setFill($('eraserOpacitySlider'), 50);
       toolRadius = Math.round(4 + 0.5 * (60 - 4)); /* eraser: 50% = 32px */
       setHandlePos(0.5);
+      /* Reset to freehand on each eraser enter */
+      eraserMode = 'freehand';
+      canvas.style.cursor = 'none';
+      document.querySelectorAll('.eraser-shape-btn').forEach(x => x.classList.remove('active'));
+      document.querySelector('.eraser-shape-btn[data-shape="freehand"]').classList.add('active');
     } else {
-      toolRadius = Math.round(4 + 0.1 * (60 - 4)); /* pen: 10% = ~10px */
-      setHandlePos(0.1);
+      toolRadius = Math.round(4 + 0.5 * (60 - 4)); /* pen: 50% slider, but lineWidth is scaled small */
+      setHandlePos(0.5);
     }
     syncCursor();
   }
@@ -1419,6 +1915,13 @@
     toolRedoStack = [];
     sessionEntrySnap = null;
 
+    /* Cancel any in-progress shape drag or freehand stroke */
+    if (shapeDragging && shapePreviewData) { ctx.putImageData(shapePreviewData, 0, 0); }
+    shapeDragging = false; shapePreviewData = null;
+    if (strokeBaseData) strokeBaseData = null;
+    scratchCtx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+    canvas.style.cursor = '';
+
     activeTool = null;
     clearTimeout(lpCollapseTimer);
     clearTimeout(toolsHideTimer);
@@ -1465,8 +1968,13 @@
     }, activeTool ? 120 : 0);
   });
 
-  ['btnToolText','btnToolStickers','btnToolGallery','btnToolDownload'].forEach(id => {
+  ['btnToolText','btnToolGallery','btnToolDownload'].forEach(id => {
     $(id).addEventListener('click', () => { if (activeTool) exitToolMode(); });
+  });
+
+  $('btnToolStickers').addEventListener('click', () => {
+    if (activeTool) exitToolMode();
+    setTimeout(openStickerPanel, activeTool ? 120 : 0);
   });
 
   $('tmDoneBtn').addEventListener('click', exitToolMode);
@@ -1487,13 +1995,9 @@
     $('s6BottomBar').classList.remove('visible');
     $('frameScrim').classList.remove('visible');
     await delay(280);
-    if (img.complete && img.naturalWidth) {
-      const W = canvas.width, H = canvas.height;
-      const sc = Math.max(W / img.width, H / img.height);
-      const sw2 = W / sc, sh2 = H / sc;
-      ctx.clearRect(0,0,W,H);
-      ctx.drawImage(img, (img.width-sw2)/2, (img.height-sh2)/2, sw2, sh2, 0, 0, W, H);
-    }
+    /* Reset canvas — user will pick a new photo from the intro card */
+    ctx.fillStyle = '#F7F5F2';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     mainUndoStack = []; mainRedoStack = [];
     toolUndoStack = []; toolRedoStack = [];
     mainUndoStack.push(snapshot());
@@ -1511,13 +2015,16 @@
     await exitToIntro();
   });
   /* ── Gallery: swap canvas background image ── */
+  let introPhotoFlow = false;
+
   $('btnGallery').addEventListener('click', () => $('galleryInput').click());
-  $('galleryInput').addEventListener('change', (e) => {
+
+  $('galleryInput').addEventListener('change', async (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) { introPhotoFlow = false; return; }
     const url = URL.createObjectURL(file);
     const newImg = new Image();
-    newImg.onload = () => {
+    newImg.onload = async () => {
       const W = canvas.width, H = canvas.height;
       const scale = Math.max(W / newImg.width, H / newImg.height);
       const sw = W / scale, sh = H / scale;
@@ -1526,14 +2033,38 @@
       mainUndoStack = [snapshot()]; mainRedoStack = [];
       syncHistoryBtns();
       URL.revokeObjectURL(url);
+      if (introPhotoFlow) {
+        introPhotoFlow = false;
+        await enterEditor();
+      }
     };
     newImg.src = url;
     e.target.value = '';
   });
 
+  /* ── Download/Save: commit stickers → export canvas as PNG ── */
+  $('btnToolDownload').addEventListener('click', () => {
+    if (placedStickers.length > 0) {
+      commitStickersToCanvas();
+      pushHistory();
+    }
+    try {
+      const dataURL = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      const name = ($('frameNameDisplay').textContent.trim() || 'retake-frame')
+        .replace(/[^a-z0-9\-_]/gi, '-').toLowerCase();
+      a.download = name + '.png';
+      a.href = dataURL;
+      a.click();
+      showToast('Saved!');
+    } catch(e) {
+      showToast('Unable to save — try from a server');
+    }
+  });
+
   /* ── Share (system share sheet) ── */
   $('btnShare').addEventListener('click', async () => {
-    const frameName = $('frameNameInput').value.trim() || 'My frame';
+    const frameName = $('frameNameDisplay').textContent.trim() || 'My frame';
     if (navigator.share) {
       try {
         await navigator.share({ title: frameName, text: `Join my Retake frame: ${frameName}`, url: location.href });
@@ -1571,18 +2102,64 @@
   $('btnEditNameDone').addEventListener('click', saveEditName);
   $('editNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveEditName(); });
 
+  /* ── Upload frame to Vercel Blob, return invite URL ── */
+  let _currentInviteUrl = '';
+
+  function sharePopState(state) {
+    $('sharePopSubtitle').style.display  = state === 'ready'     ? '' : 'none';
+    $('sharePopUploading').style.display = state === 'uploading' ? '' : 'none';
+    $('sharePopError').style.display     = state === 'error'     ? '' : 'none';
+    $('shareCodeRow').style.display      = state === 'ready'     ? '' : 'none';
+  }
+
+  async function uploadFrameAndShowLink() {
+    const frameName = $('frameNameDisplay').textContent.trim() || 'my-frame';
+
+    // Export canvas as PNG data URL
+    let frameDataUrl;
+    try { frameDataUrl = canvas.toDataURL('image/png'); }
+    catch (e) { sharePopState('error'); return; }
+
+    sharePopState('uploading');
+
+    try {
+      const resp = await fetch('/api/upload-frame', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ frameDataUrl, frameName }),
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      const { url } = await resp.json();
+
+      const encodedFrame = encodeURIComponent(url);
+      const encodedName  = encodeURIComponent(frameName);
+      const base = location.origin.includes('localhost') || location.origin.includes('127.0.0.1')
+        ? location.origin
+        : 'https://retake.it.com';
+      _currentInviteUrl = `${base}/index-invitee.html?frame=${encodedFrame}&n=${encodedName}`;
+
+      $('shareCode').textContent = _currentInviteUrl;
+      sharePopState('ready');
+    } catch (err) {
+      console.error('[share] upload error:', err);
+      sharePopState('error');
+    }
+  }
+
   /* ── Copy link → open share panel ── */
   $('btnCopyLink').addEventListener('click', () => {
-    const code = 'RTKE-' + Math.floor(1000 + Math.random()*9000);
-    $('shareCode').textContent = code;
+    _currentInviteUrl = '';
+    $('shareCode').textContent = '';
     $('sharePop').classList.add('visible');
     $('scrim').classList.add('visible');
+    uploadFrameAndShowLink();
   });
 
+  $('btnShareRetry').addEventListener('click', uploadFrameAndShowLink);
+
   $('btnCopyCode').addEventListener('click', () => {
-    const code = $('shareCode').textContent;
-    const link = `https://retake.app/join/${code}`;
-    navigator.clipboard?.writeText(link).catch(()=>{});
+    if (!_currentInviteUrl) return;
+    navigator.clipboard?.writeText(_currentInviteUrl).catch(() => {});
     showToast('Invite link copied!');
   });
   $('scrim').addEventListener('click', () => {
@@ -1595,9 +2172,10 @@
   });
 
 
-  /* ── Start drawing ── */
-  $('btnStartDrawing').addEventListener('click', async () => {
-    $('introCard').classList.remove('visible'); $('scrim').classList.remove('visible');
+  /* ── Enter editor (shared by intro paths) ── */
+  async function enterEditor() {
+    $('introCard').classList.remove('visible');
+    $('scrim').classList.remove('visible');
     await delay(260);
     $('frameScrim').classList.add('visible');
     $('btnExit').classList.add('visible');
@@ -1605,6 +2183,23 @@
     await delay(40); $('s6Tools').classList.add('visible');
     await delay(60); $('s6BottomBar').classList.add('visible');
     canvas.classList.add('no-tool');
+  }
+
+  /* ── Intro: Choose Photo ── */
+  $('btnChoosePhoto').addEventListener('click', () => {
+    introPhotoFlow = true;
+    $('galleryInput').click();
+  });
+
+  /* ── Intro: Start blank ── */
+  $('btnStartBlank').addEventListener('click', async () => {
+    introPhotoFlow = false;
+    /* Fill with a warm neutral so it doesn't look like pure void */
+    ctx.fillStyle = '#F0EDE8';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    mainUndoStack = [snapshot()]; mainRedoStack = [];
+    syncHistoryBtns();
+    await enterEditor();
   });
 
 
@@ -1636,12 +2231,318 @@
   }
 
 
+  /* ════════════════════════════════════════════
+     STICKER SYSTEM
+  ════════════════════════════════════════════ */
+
+  let stickerLibrary = [];   /* [{id, src}] stored in-memory */
+  let placedStickers = [];   /* [{id, el, src, x, y, scale, rotation}] */
+  let selectedSticker = null;
+  let stickerTab = 'recents';
+
+  const EMOJIS = [
+    '😊','😍','🥳','🤩','😎','😘','😜','🤪','😏','🥺',
+    '❤️','🧡','💛','💚','💙','💜','🖤','🤍','💕','💫',
+    '🌟','✨','⚡','🔥','🌈','🌙','☀️','⭐','🌸','🍀',
+    '🎉','🎊','🎈','🎁','🏆','👑','💎','🦋','🌺','🌻',
+    '🦄','🐣','🐶','🐱','🐰','🦊','🐻','🐼','🐨','🐯',
+    '🍓','🍒','🍑','🥭','🍋','🍊','🍇','🫐','🍭','🧁',
+    '✌️','👏','🙌','👋','🫶','💯','🔑','🪄','✦','🫧',
+  ];
+
+  /* ── Render emoji grid (once) ── */
+  (function buildEmojiGrid() {
+    const g = $('spEmojiGrid');
+    EMOJIS.forEach(em => {
+      const btn = document.createElement('button');
+      btn.className = 'sp-emoji-btn';
+      btn.textContent = em;
+      btn.addEventListener('click', () => {
+        const src = emojiToDataURL(em);
+        placeSticker(src);
+        closeStickerPanel();
+      });
+      g.appendChild(btn);
+    });
+  })();
+
+  function emojiToDataURL(emoji) {
+    const c = document.createElement('canvas');
+    c.width = 120; c.height = 120;
+    const x = c.getContext('2d');
+    x.font = '90px serif';
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(emoji, 60, 66);
+    return c.toDataURL();
+  }
+
+  /* ── Tab switching ── */
+  document.querySelectorAll('.sp-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sp-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      stickerTab = btn.dataset.sptab;
+      renderStickerContent();
+    });
+  });
+
+  function renderStickerContent() {
+    const empty = $('spEmpty');
+    const grid  = $('spGrid');
+    const emoji = $('spEmojiGrid');
+
+    empty.style.display = 'none';
+    grid.style.display  = 'none';
+    emoji.style.display = 'none';
+
+    if (stickerTab === 'emoji') {
+      emoji.style.display = 'grid'; return;
+    }
+
+    if (stickerLibrary.length === 0) {
+      empty.style.display = 'flex'; return;
+    }
+
+    /* Build grid */
+    grid.style.display = 'grid';
+    grid.innerHTML = '';
+
+    /* + add cell */
+    const addCell = document.createElement('button');
+    addCell.className = 'sp-add-cell';
+    addCell.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+    addCell.addEventListener('click', () => $('stickerPhotoInput').click());
+    grid.appendChild(addCell);
+
+    /* Sticker cells (recents = reverse order, mystickers = normal) */
+    const list = stickerTab === 'recents'
+      ? [...stickerLibrary].reverse().slice(0, 12)
+      : stickerLibrary;
+
+    list.forEach(stk => {
+      const cell = document.createElement('button');
+      cell.className = 'sp-sticker-cell';
+      const img = document.createElement('img');
+      img.src = stk.src;
+      cell.appendChild(img);
+      cell.addEventListener('click', () => { placeSticker(stk.src); closeStickerPanel(); });
+      grid.appendChild(cell);
+    });
+  }
+
+  /* ── Open / Close panel ── */
+  function openStickerPanel() {
+    if (activeTool) exitToolMode();
+    renderStickerContent();
+    $('stickerPanel').classList.add('sp-visible');
+    $('scrim').classList.add('visible');
+  }
+
+  function closeStickerPanel() {
+    $('stickerPanel').classList.remove('sp-visible');
+    $('scrim').classList.remove('visible');
+  }
+
+  $('btnStickerPanelClose').addEventListener('click', closeStickerPanel);
+  $('btnStickerGetStarted').addEventListener('click', () => $('stickerPhotoInput').click());
+
+  /* ── New sticker file flow ── */
+  let pendingStickerSrc = null;
+
+  $('stickerPhotoInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    pendingStickerSrc = url;
+    /* Show preview */
+    const preview = $('nsPreview');
+    preview.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = url;
+    preview.appendChild(img);
+    closeStickerPanel();
+    $('newStickerScreen').classList.add('ns-visible');
+    e.target.value = '';
+  });
+
+  function closeNewStickerScreen() {
+    $('newStickerScreen').classList.remove('ns-visible');
+    pendingStickerSrc = null;
+    setTimeout(() => $('stickerPanel').classList.add('sp-visible'), 200);
+  }
+
+  $('btnNewStickerBack').addEventListener('click', closeNewStickerScreen);
+  $('btnNewStickerCancel').addEventListener('click', closeNewStickerScreen);
+
+  $('btnNewStickerAdd').addEventListener('click', () => {
+    if (!pendingStickerSrc) return;
+    const src = pendingStickerSrc;
+    stickerLibrary.push({ id: Date.now(), src });
+    pendingStickerSrc = null;
+    $('newStickerScreen').classList.remove('ns-visible');
+    /* Place immediately on canvas, panel stays closed */
+    placeSticker(src);
+  });
+
+  /* ── Place sticker on canvas overlay ── */
+  function placeSticker(src) {
+    const el = document.createElement('div');
+    el.className = 'placed-sticker';
+
+    const img = document.createElement('img');
+    img.src = src;
+    el.appendChild(img);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'stk-del';
+    delBtn.innerHTML = '×';
+    el.appendChild(delBtn);
+
+    const size = 120;
+    const x = (414 - size) / 2;
+    const y = (750 - size) / 2;
+
+    const stk = { id: Date.now(), el, src, x, y, scale: 1, rotation: 0, baseW: size };
+    placedStickers.push(stk);
+
+    el.style.left     = x + 'px';
+    el.style.top      = y + 'px';
+    el.style.width    = size + 'px';
+    el.style.transform = `scale(1) rotate(0deg)`;
+
+    $('stickerOverlay').appendChild(el);
+    $('stickerOverlay').classList.add('stk-active');
+
+    selectSticker(stk);
+
+    delBtn.addEventListener('click', ev => { ev.stopPropagation(); removeSticker(stk); });
+    el.addEventListener('click', ev => { ev.stopPropagation(); selectSticker(stk); });
+
+    setupStickerDrag(stk);
+  }
+
+  function selectSticker(stk) {
+    deselectAllStickers();
+    selectedSticker = stk;
+    stk.el.classList.add('stk-selected');
+  }
+
+  function deselectAllStickers() {
+    if (selectedSticker) { selectedSticker.el.classList.remove('stk-selected'); }
+    selectedSticker = null;
+  }
+
+  function removeSticker(stk) {
+    stk.el.remove();
+    placedStickers = placedStickers.filter(s => s !== stk);
+    if (selectedSticker === stk) selectedSticker = null;
+    if (placedStickers.length === 0) $('stickerOverlay').classList.remove('stk-active');
+  }
+
+  /* Click on overlay background → deselect */
+  $('stickerOverlay').addEventListener('click', () => deselectAllStickers());
+
+  /* ── Drag + Pinch-to-resize+rotate ── */
+  function setupStickerDrag(stk) {
+    const el = stk.el;
+    let t1x=0,t1y=0,t2x=0,t2y=0;
+    let startX=0,startY=0,startSX=0,startSY=0;
+    let startDist=0,startScale=1,startAngle=0,startRot=0;
+    let dragging = false, pinching = false;
+
+    function dist(ax,ay,bx,by){ return Math.sqrt((bx-ax)**2+(by-ay)**2); }
+    function angle(ax,ay,bx,by){ return Math.atan2(by-ay,bx-ax); }
+
+    /* Mouse */
+    el.addEventListener('mousedown', e => {
+      e.stopPropagation(); e.preventDefault();
+      selectSticker(stk);
+      dragging = true;
+      startX=e.clientX; startY=e.clientY;
+      startSX=stk.x; startSY=stk.y;
+      const onMove = e => {
+        if (!dragging) return;
+        stk.x = startSX + (e.clientX - startX);
+        stk.y = startSY + (e.clientY - startY);
+        applyStickerTransform(stk);
+      };
+      const onUp = () => { dragging=false; document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); };
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+    });
+
+    /* Touch */
+    el.addEventListener('touchstart', e => {
+      e.stopPropagation(); e.preventDefault();
+      selectSticker(stk);
+      if (e.touches.length === 1) {
+        dragging=true; pinching=false;
+        t1x=e.touches[0].clientX; t1y=e.touches[0].clientY;
+        startSX=stk.x; startSY=stk.y;
+      } else if (e.touches.length === 2) {
+        dragging=false; pinching=true;
+        const a=e.touches[0], b=e.touches[1];
+        t1x=a.clientX;t1y=a.clientY;t2x=b.clientX;t2y=b.clientY;
+        startDist=dist(t1x,t1y,t2x,t2y);
+        startScale=stk.scale;
+        startAngle=angle(t1x,t1y,t2x,t2y);
+        startRot=stk.rotation;
+      }
+    }, { passive:false });
+
+    el.addEventListener('touchmove', e => {
+      e.stopPropagation(); e.preventDefault();
+      if (dragging && e.touches.length===1) {
+        stk.x = startSX + (e.touches[0].clientX - t1x);
+        stk.y = startSY + (e.touches[0].clientY - t1y);
+      } else if (pinching && e.touches.length===2) {
+        const a=e.touches[0], b=e.touches[1];
+        const d=dist(a.clientX,a.clientY,b.clientX,b.clientY);
+        stk.scale=Math.max(0.2, startScale*(d/startDist));
+        stk.rotation=startRot+(angle(a.clientX,a.clientY,b.clientX,b.clientY)-startAngle)*(180/Math.PI);
+      }
+      applyStickerTransform(stk);
+    }, { passive:false });
+
+    el.addEventListener('touchend', e => {
+      if (e.touches.length < 2) pinching=false;
+      if (e.touches.length === 0) dragging=false;
+    }, { passive:true });
+  }
+
+  function applyStickerTransform(stk) {
+    stk.el.style.left=stk.x+'px';
+    stk.el.style.top=stk.y+'px';
+    stk.el.style.transform=`scale(${stk.scale}) rotate(${stk.rotation}deg)`;
+  }
+
+  /* ── Commit stickers to canvas (called before snapshot/save) ── */
+  function commitStickersToCanvas() {
+    if (placedStickers.length === 0) return;
+    placedStickers.forEach(stk => {
+      const img = new Image();
+      img.src = stk.src;
+      /* drawImage respects scale: effective size = baseW * scale */
+      const eff = stk.baseW * stk.scale;
+      const cx = stk.x + (stk.baseW / 2);
+      const cy = stk.y + (stk.baseW / 2);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(stk.rotation * Math.PI / 180);
+      ctx.drawImage(img, -eff/2, -eff/2, eff, eff);
+      ctx.restore();
+    });
+    /* Clear DOM stickers after commit */
+    placedStickers.forEach(s => s.el.remove());
+    placedStickers = []; selectedSticker = null;
+    $('stickerOverlay').classList.remove('stk-active');
+  }
+
   /* ── Init ── */
-  const showIntro = () => setTimeout(() => {
-    $('scrim').classList.add('visible'); $('introCard').classList.add('visible');
-  }, 900);
-  if (img.complete && img.naturalWidth) showIntro();
-  else { img.addEventListener('load', showIntro); img.addEventListener('error', showIntro); }
+  setTimeout(() => {
+    $('scrim').classList.add('visible');
+    $('introCard').classList.add('visible');
+  }, 400);
 
   /* ── Fit to any iPhone viewport ── */
   function fitToViewport() {
