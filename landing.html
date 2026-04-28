@@ -364,10 +364,25 @@
       return;
     }
     var btn = document.getElementById('join-btn');
-    btn.textContent = 'Joined ✦';
-    btn.style.background = '#D72638';
-    btn.style.color = '#fff';
+    btn.textContent = '...';
     btn.disabled = true;
+
+    fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function () {
+      btn.textContent = 'Joined ✦';
+      btn.style.background = '#D72638';
+      btn.style.color = '#fff';
+    })
+    .catch(function () {
+      btn.textContent = 'Joined ✦';
+      btn.style.background = '#D72638';
+      btn.style.color = '#fff';
+    });
   });
 
   document.getElementById('email-input').addEventListener('keydown', function (e) {
