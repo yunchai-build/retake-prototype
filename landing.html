@@ -165,9 +165,15 @@
       color: #1a1a2e;
       cursor: none;
       white-space: nowrap;
-      transition: opacity 0.15s;
+      transition: background 0.25s ease, color 0.25s ease, opacity 0.15s;
     }
     .form-pill button:hover { opacity: 0.8; }
+    .form-pill button.joined {
+      background: #D72638;
+      color: #fff;
+      opacity: 1;
+    }
+    .form-pill button.joined:hover { opacity: 0.85; }
 
     /* Success state */
     .success-msg {
@@ -356,8 +362,10 @@
       document.getElementById('email-input').focus();
       return;
     }
-    document.getElementById('form-wrap').style.display   = 'none';
-    document.getElementById('success-msg').style.display = 'block';
+    var btn = document.getElementById('join-btn');
+    btn.textContent = 'Joined';
+    btn.classList.add('joined');
+    btn.disabled = true;
   });
 
   document.getElementById('email-input').addEventListener('keydown', function (e) {
