@@ -39,10 +39,21 @@
       z-index: 0;
     }
 
-    /* All card content must sit above the canvas */
+    /* ── Grain canvas — above checkerboard, below content ── */
+    #grain-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      mix-blend-mode: overlay;
+    }
+
+    /* All card content must sit above the canvases */
     .logo, .headline, .bottom {
       position: relative;
-      z-index: 1;
+      z-index: 2;
     }
 
     /* ── Custom cursor — yellow hand image ── */
@@ -218,6 +229,8 @@
 
   <!-- Canvas lives BEHIND card content, paints the #FDFCEA area only -->
   <canvas id="trail-canvas"></canvas>
+  <!-- Film grain overlay -->
+  <canvas id="grain-canvas"></canvas>
 
   <!-- Logo image from Figma -->
   <div class="logo">
@@ -355,6 +368,49 @@
   }
 
   draw();
+
+  /* ── Film grain pulse ── */
+  var grainCanvas = document.getElementById('grain-canvas');
+  var grainCtx    = grainCanvas.getContext('2d');
+  var GRAIN_SCALE = 2; /* generate at half-res → coarser, cheaper */
+
+  function resizeGrain() {
+    var r = cardEl.getBoundingClientRect();
+    grainCanvas.width  = Math.round(r.width  / GRAIN_SCALE);
+    grainCanvas.height = Math.round(r.height / GRAIN_SCALE);
+  }
+  window.addEventListener('resize', resizeGrain);
+  resizeGrain();
+
+  var grainTick  = 0;
+  var breathTime = 0;
+
+  function drawGrain() {
+    grainTick++;
+
+    /* Regenerate noise every 3 frames → ~20 fps flicker, film-like */
+    if (grainTick % 3 === 0) {
+      var w  = grainCanvas.width;
+      var h  = grainCanvas.height;
+      var id = grainCtx.createImageData(w, h);
+      var d  = id.data;
+      for (var i = 0; i < d.length; i += 4) {
+        var v  = (Math.random() * 255) | 0;
+        d[i]   = v;
+        d[i+1] = v;
+        d[i+2] = v;
+        d[i+3] = (Math.random() * 60) | 0; /* sparse alpha */
+      }
+      grainCtx.putImageData(id, 0, 0);
+    }
+
+    /* Breathe: opacity gently oscillates between 0.04 and 0.10 */
+    breathTime += 0.012;
+    grainCanvas.style.opacity = (0.07 + Math.sin(breathTime) * 0.03).toFixed(3);
+
+    requestAnimationFrame(drawGrain);
+  }
+  drawGrain();
 
   /* ── Form ── */
   document.getElementById('join-btn').addEventListener('click', function () {
