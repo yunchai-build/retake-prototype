@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build && cp index-invitee.html index-inviter.html landing.html dist/ && cp canvas-frame-teletubby.png sticker-yunchai.png logo.png dist/ && cp bedstead-extracondensed.otf bedstead-semicondensed.otf dist/",
+  "buildCommand": "npm run build && cp landing.html dist/index.html && cp index-invitee.html index-inviter.html dist/ && cp canvas-frame-teletubby.png sticker-yunchai.png logo.png dist/ && cp bedstead-extracondensed.otf bedstead-semicondensed.otf dist/",
   "outputDirectory": "dist",
   "framework": "vite"
 }
