@@ -21,10 +21,9 @@
 
     body {
       background: #1a1a2e;
-      /* 20px dark border on all 4 sides */
-      padding: 20px;
+      padding: clamp(10px, 1.8vw, 20px);
       display: flex;
-      align-items: stretch;   /* card fills full height */
+      align-items: stretch;
       justify-content: center;
       cursor: none;
     }
@@ -45,10 +44,10 @@
       z-index: 1;
     }
 
-    /* ── Custom cursor — yellow hand image ── */
+    /* ── Custom cursor — yellow hand image (pointer devices only) ── */
     #cursor {
       position: fixed;
-      width: 158px; /* 88px × 1.8 */
+      width: clamp(100px, 11vw, 158px);
       pointer-events: none;
       z-index: 1000;
       transform: translate(-50%, -9%) rotate(-15deg);
@@ -61,20 +60,19 @@
       pointer-events: none;
     }
 
-    /* ── Cream card — always exactly viewport minus 20px on all sides ── */
+    /* ── Cream card — always exactly viewport minus border on all sides ── */
     .card {
       position: relative;
       z-index: 1;
       background: #fdfcea;
-      border-radius: clamp(16px, 2.5vw, 56px);
+      border-radius: clamp(14px, 2.5vw, 56px);
       overflow: hidden;
-      /* fills full width between the two 20px body paddings */
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: clamp(20px, 4vh, 52px) clamp(24px, 5vw, 100px);
+      padding: clamp(16px, 4vh, 52px) clamp(20px, 5vw, 100px);
     }
 
     /* ── Logo ── */
@@ -86,9 +84,10 @@
       width: 100%;
     }
     .logo img {
-      height: clamp(20px, 3.8vh, 54px);
+      height: clamp(18px, 3.8vh, 54px);
       width: auto;
       display: block;
+      filter: drop-shadow(4px 4px 0px rgba(0,0,0,0.55));
     }
 
     /* ── Headline image — flex:1 so it takes all leftover vertical space ── */
@@ -99,16 +98,17 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding: clamp(8px, 1.5vh, 20px) 0;
+      padding: clamp(6px, 1.5vh, 20px) 0;
     }
     .headline img {
-      max-width: min(70%, 566px);
-      max-height: 295px;
+      max-width: min(88%, 566px);
+      max-height: min(295px, 40vh);
       width: auto;
       height: auto;
       object-fit: contain;
       display: block;
       transform: translateX(5%);
+      filter: drop-shadow(6px 6px 0px rgba(0,0,0,0.55));
     }
 
     /* ── Bottom section ── */
@@ -117,13 +117,13 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(8px, 1.4vh, 18px);
+      gap: clamp(6px, 1.4vh, 18px);
       width: 100%;
     }
 
     .sub {
       font-family: 'Bedstead', monospace;
-      font-size: 20px;
+      font-size: clamp(11px, 1.4vw + 4px, 20px);
       color: #1a1a2e;
       text-align: center;
       letter-spacing: 0.04em;
@@ -134,9 +134,9 @@
     .form-pill {
       background: #1a1a2e;
       border-radius: 100px;
-      padding: 8px;
+      padding: clamp(5px, 0.6vw, 8px);
       display: flex;
-      gap: 8px;
+      gap: clamp(5px, 0.6vw, 8px);
       align-items: center;
       width: 100%;
       max-width: 620px;
@@ -147,9 +147,9 @@
       border: none;
       outline: none;
       border-radius: 100px;
-      padding: 26px 28px;
+      padding: clamp(14px, 2.2vh, 26px) clamp(16px, 2vw, 28px);
       font-family: 'Bedstead', monospace;
-      font-size: 20px;
+      font-size: clamp(13px, 1.4vw + 4px, 20px);
       color: #545257;
       min-width: 0;
       cursor: none;
@@ -160,9 +160,9 @@
       background: #f1e84a;
       border: none;
       border-radius: 100px;
-      padding: 26px 36px;
+      padding: clamp(14px, 2.2vh, 26px) clamp(18px, 2.5vw, 36px);
       font-family: 'Bedstead', monospace;
-      font-size: 20px;
+      font-size: clamp(13px, 1.4vw + 4px, 20px);
       color: #1a1a2e;
       cursor: none;
       white-space: nowrap;
@@ -196,19 +196,19 @@
     .success-pill {
       background: #1a1a2e;
       border-radius: 100px;
-      padding: 26px 48px;
+      padding: clamp(16px, 2.5vh, 26px) clamp(20px, 4vw, 48px);
       width: 100%;
       text-align: center;
     }
     .success-pill-title {
       font-family: 'Bedstead', monospace;
-      font-size: clamp(18px, 2.4vh, 28px);
+      font-size: clamp(15px, 2.2vh, 28px);
       color: #f1e84a;
       letter-spacing: 0.06em;
     }
     .success-pill-sub {
       font-family: 'Bedstead', monospace;
-      font-size: clamp(13px, 1.6vh, 17px);
+      font-size: clamp(11px, 1.5vh, 17px);
       color: rgba(253, 252, 234, 0.6);
       letter-spacing: 0.04em;
       margin-top: 6px;
@@ -224,13 +224,13 @@
     /* Social links */
     .socials {
       display: flex;
-      gap: 24px;
+      gap: clamp(16px, 3vw, 24px);
       align-items: center;
       justify-content: center;
     }
     .socials a {
       font-family: 'Bedstead', monospace;
-      font-size: 20px;
+      font-size: clamp(13px, 1.4vw + 4px, 20px);
       color: #1a1a2e;
       text-decoration: underline;
       text-underline-offset: 3px;
@@ -239,6 +239,32 @@
       transition: opacity 0.15s;
     }
     .socials a:hover { opacity: 0.45; }
+
+    /* ── Touch / no-pointer devices: restore native cursor ── */
+    @media (hover: none) {
+      body { cursor: auto; }
+      #cursor { display: none; }
+      .form-pill input,
+      .form-pill button,
+      .socials a { cursor: auto; }
+    }
+
+    /* ── Very small screens (< 400px width) ── */
+    @media (max-width: 400px) {
+      .headline img {
+        max-width: 95%;
+        transform: none; /* remove the 5% lateral shift */
+      }
+      .sub { font-size: 11px; }
+    }
+
+    /* ── Short landscape screens (phones rotated) ── */
+    @media (max-height: 480px) {
+      html, body { overflow: auto; }
+      .card { height: auto; min-height: calc(100vh - clamp(10px, 1.8vw, 20px) * 2); }
+      .headline img { max-height: 28vh; }
+    }
+
   </style>
 </head>
 <body>
@@ -253,6 +279,7 @@
 
   <!-- Canvas lives BEHIND card content, paints the #FDFCEA area only -->
   <canvas id="trail-canvas"></canvas>
+
 
   <!-- Logo image from Figma -->
   <div class="logo">
@@ -466,6 +493,7 @@
 
   document.addEventListener('click', function (e) {
     triggerFlash();
+
     var side = (throwCount % 2 === 0) ? -1 : 1; /* -1 = left, 1 = right */
     throwCount++;
     throwCamera(e.clientX, e.clientY, side);
@@ -531,5 +559,6 @@
   }
 })();
 </script>
+
 </body>
 </html>
