@@ -2115,6 +2115,14 @@
   async function uploadFrameAndShowLink() {
     const frameName = $('frameNameDisplay').textContent.trim() || 'my-frame';
 
+    // Upload only works on the deployed Vercel site — not on local Python server
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (isLocal) {
+      sharePopState('error');
+      $('sharePopError').innerHTML = 'Upload only works on <a href="https://retake.it.com/index-inviter.html" style="color:#FF3B30">retake.it.com</a> — open that to test the share flow.';
+      return;
+    }
+
     // Export canvas as PNG data URL
     let frameDataUrl;
     try { frameDataUrl = canvas.toDataURL('image/png'); }
