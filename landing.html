@@ -74,6 +74,7 @@
       height: 100%;
       pointer-events: none;
       z-index: 1;
+      mix-blend-mode: screen; /* brightens bg only; white text above is unaffected */
     }
 
     /* ── Layer 2 — hand holding phone ── */
@@ -352,7 +353,7 @@
   tile.width = tile.height = SQ * 2;
   var tc = tile.getContext('2d');
   tc.clearRect(0, 0, SQ * 2, SQ * 2);
-  tc.fillStyle = 'rgba(255,255,255,0.82)';
+  tc.fillStyle = 'rgba(160,160,160,0.55)';
   tc.fillRect(0,  0,  SQ, SQ);
   tc.fillRect(SQ, SQ, SQ, SQ);
   var pat = null;
@@ -390,7 +391,7 @@
       var p0    = trail[i - 1];
       var p1    = trail[i];
       var age   = (now - p0.t) / TRAIL_MS;
-      var alpha = (1 - age) * 0.88;
+      var alpha = (1 - age) * 0.45;
       if (alpha <= 0) continue;
       ctx.globalAlpha = alpha;
 
