@@ -7,8 +7,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<InviterPage />} />
+        {/* /inviter — frame creator (beta prototype entry point) */}
+        <Route path="/inviter" element={<InviterPage />} />
+        {/* /invitee — invitee camera view */}
         <Route path="/invitee" element={<InviteePage />} />
+        {/* Legacy root → redirect to /inviter for local dev convenience */}
+        <Route path="/" element={<InviterPage />} />
       </Routes>
     </BrowserRouter>
   );
