@@ -1086,11 +1086,13 @@ export default function InviterPage() {
               <button key="stickers" className={cls} id="btnToolStickers" aria-label="Stickers"
                 onClick={handleToolStickers}
                 onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ overflow: 'visible' }}>
-                  <defs><mask id="smileyMask"><rect width="24" height="24" fill="white" /><circle cx="9" cy="10" r="1.5" fill="black" /><circle cx="15" cy="10" r="1.5" fill="black" /><path d="M8 14.5 Q12 18 16 14.5" stroke="black" strokeWidth="2" strokeLinecap="round" fill="none" /></mask></defs>
-                  <circle cx="11" cy="13" r="9.5" fill="white" mask="url(#smileyMask)" />
-                  <line x1="18" y1="4" x2="23" y2="4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                  <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                  <circle cx="9" cy="10" r="1" fill="white" stroke="none" />
+                  <circle cx="15" cy="10" r="1" fill="white" stroke="none" />
+                  <line x1="17" y1="4" x2="21" y2="4" />
+                  <line x1="19" y1="2" x2="19" y2="6" />
                 </svg>
                 <span className="tool-label">Stickers</span>
               </button>
@@ -1099,12 +1101,12 @@ export default function InviterPage() {
               <button key="gallery" className={cls} id="btnToolGallery" aria-label="Photo"
                 onClick={handleToolGallery}
                 onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ overflow: 'visible' }}>
-                  <defs><clipPath id="photoClip"><rect x="3" y="4" width="15" height="15" rx="2" /></clipPath></defs>
-                  <g clipPath="url(#photoClip)" fill="white"><circle cx="7.5" cy="9" r="1.8" /><path d="M3 19 L8 12.5 L10.5 15.5 L13.5 11.5 L18 19 Z" /></g>
-                  <rect x="3" y="4" width="15" height="15" rx="2" stroke="white" strokeWidth="1.5" fill="none" />
-                  <line x1="18" y1="4" x2="23" y2="4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                  <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="5" width="16" height="14" rx="2" />
+                  <circle cx="8.5" cy="10" r="1.5" fill="white" stroke="none" />
+                  <path d="M3 17l4-4 3 3 3-3.5 5 5.5" />
+                  <line x1="18" y1="5" x2="22" y2="5" />
+                  <line x1="20" y1="3" x2="20" y2="7" />
                 </svg>
                 <span className="tool-label">Photo</span>
               </button>
@@ -1125,13 +1127,9 @@ export default function InviterPage() {
                 id="btnToolEraser" aria-label="Eraser"
                 onClick={handleToolEraser}
                 onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <defs><clipPath id="circleClip"><circle cx="12" cy="12" r="10" /></clipPath></defs>
-                  <rect x="2" y="2" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="7" y="2" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="12" y="2" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="17" y="2" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
-                  <rect x="2" y="7" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="7" y="7" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="12" y="7" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="17" y="7" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
-                  <rect x="2" y="12" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="7" y="12" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="12" y="12" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="17" y="12" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
-                  <rect x="2" y="17" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="7" y="17" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="12" y="17" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="17" y="17" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
-                  <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 20H7L3 16l10-10 7 7-4.5 4.5" />
+                  <line x1="6" y1="17" x2="9" y2="20" />
                 </svg>
                 <span className="tool-label">Eraser</span>
               </button>
