@@ -519,8 +519,7 @@ export default function InviterPage() {
     await delay(280);
     const canvas = canvasRef.current;
     const ctx = ctxRef.current;
-    ctx.fillStyle = '#F7F5F2';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); /* transparent — checkerboard shows */
     mainUndoStackRef.current = [];
     mainRedoStackRef.current = [];
     toolUndoStackRef.current = [];
@@ -563,8 +562,7 @@ export default function InviterPage() {
     scratchCanvasRef.current = sc;
     scratchCtxRef.current = sc.getContext('2d');
 
-    ctx.fillStyle = '#F7F5F2';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); /* transparent — checkerboard shows through */
     mainUndoStackRef.current = [canvas.toDataURL()];
     syncHistoryBtns();
 
@@ -846,8 +844,7 @@ export default function InviterPage() {
     introPhotoFlowRef.current = false;
     const ctx = ctxRef.current;
     const canvas = canvasRef.current;
-    ctx.fillStyle = '#F0EDE8';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); /* transparent — checkerboard shows */
     mainUndoStackRef.current = [canvas.toDataURL()];
     mainRedoStackRef.current = [];
     syncHistoryBtns();
@@ -1187,7 +1184,7 @@ export default function InviterPage() {
       </div>
 
       {/* Watermark */}
-      <p className="watermark">Made with Retake! ✦</p>
+      <p className="watermark">Made with Retake!</p>
 
       {/* Toast */}
       <div className={`s6-toast${toastVisible ? ' visible' : ''}`} id="toast">{toastMsg}</div>
