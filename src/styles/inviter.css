@@ -37,9 +37,9 @@ body.inviter-mode .screen {
 
   background: transparent; /* checkerboard behind shows through */
 
-  /* overflow: clip — does NOT create a scroll container (unlike
-     overflow: hidden), so Blink cannot programmatically set scrollTop */
-  overflow: clip;
+  /* overflow: hidden — keeps children clipped to the rounded rect.
+     (overflow: clip breaks backdrop-filter on iOS Safari / WebKit) */
+  overflow: hidden;
 
   border-radius: 20px;
   z-index: 1;
