@@ -18,37 +18,29 @@ body.inviter-mode {
 button { -webkit-tap-highlight-color: transparent; }
 
 
-/* ── Phone frame — centred in black body, 9∶16 responsive ── *
- *                                                              *
- *  Figma ref: node 878:3509 (iPhone 16 Plus – 2)              *
- *  Total frame = 430 × 824 px                                 *
- *  Top status-bar zone = 60 px  →  60/824 = 7.28 %           *
- *  Canvas = 430 × 764 px = exactly 9:16 ratio                 *
- *  Border-radius = 20 px at 430 px width ≈ 4.5 vw            *
- *                                                              *
- *  Responsive strategy:                                        *
- *    • Mobile portrait (most beta users):                      *
- *      canvas fills 100 vw × 92.7 dvh (below the top bar)    *
- *    • Desktop / tablet:                                       *
- *      canvas is 9:16, centred on the black body              *
- * ─────────────────────────────────────────────────────────── */
+/* ── White canvas — fills 100 vw, strict 9:16 ratio, on black body ── *
+ *                                                                      *
+ *  Z-index stack (page level):                                         *
+ *    0 (body)    = black background                                    *
+ *    1 (.screen) = white canvas, 9:16, 20 px radius                   *
+ *    2 (toolbar + bottom nav) = controls; hide while drawing           *
+ *                                                                      *
+ *  Width: 100 vw on portrait phones.                                   *
+ *         Capped to 100dvh × 9/16 on wide screens so canvas           *
+ *         never taller than the viewport.                              *
+ *  Height: derived from width via aspect-ratio (9:16).                 *
+ *  Anchored to top of viewport; black body shows below on             *
+ *  devices taller than 9:16 (e.g. iPhone 14 and up).                  *
+ * ─────────────────────────────────────────────────────────────────── */
 body.inviter-mode .screen {
   position: absolute;
-
-  /* ── Top status-bar zone (matches Figma 60/824 = 7.28 %) ── */
-  top: 7.3dvh;
-
-  /* ── Canvas fills the rest of the viewport height ── */
-  height: 92.7dvh;
-
-  /* ── Width: 9/16 of canvas height, capped at viewport width.
-         On most phones (portrait) this equals 100 vw.
-         On wide viewports the canvas stays 9:16-proportioned. ── */
-  width: min(100vw, calc(92.7dvh * 9 / 16));
-
-  /* ── Centre horizontally in the black body ── */
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
+
+  /* 100 vw on portrait phones; capped so it never overflows viewport height */
+  width: min(100vw, calc(100dvh * 9 / 16));
+  aspect-ratio: 9 / 16;
 
   background: #F7F5F2;
 
@@ -56,10 +48,9 @@ body.inviter-mode .screen {
      overflow: hidden), so Blink cannot programmatically set scrollTop */
   overflow: clip;
 
-  /* ── Border-radius: Figma = 20 px at 430 px canvas width ≈ 4.5 vw ── */
-  border-radius: clamp(14px, 4.5vw, 22px);
+  border-radius: 20px;
+  z-index: 1;
 
-  /* Subtle elevation so the canvas reads as a lifted screen */
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.07),
     0 24px 80px rgba(0,0,0,0.55);
