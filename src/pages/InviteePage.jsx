@@ -101,6 +101,7 @@ export default function InviteePage() {
   const [s7PopVisible, setS7PopVisible] = useState(false);
   const [s7PopCode, setS7PopCode] = useState('');
   const [labelsExpanded, setLabelsExpanded] = useState(false);
+  const s6BottomBarVisibleBeforeStickerDragRef = useRef(false);
 
   // Tool mode states
   const [tmIn, setTmIn] = useState(false);
@@ -121,9 +122,23 @@ export default function InviteePage() {
   const { toastMsg, toastVisible, showToast } = useToast(1600);
 
   // ── Sticker system ──
+  const handleStickerItemDragStart = useCallback(() => {
+    setS6BottomBarVisible(prev => {
+      s6BottomBarVisibleBeforeStickerDragRef.current = prev;
+      return false;
+    });
+  }, []);
+  const handleStickerItemDragEnd = useCallback(() => {
+    if (s6BottomBarVisibleBeforeStickerDragRef.current) {
+      setS6BottomBarVisible(true);
+    }
+    s6BottomBarVisibleBeforeStickerDragRef.current = false;
+  }, []);
   const stickerSys = useStickerSystem({
     ctxRef,
     setScrimVisible,
+    onItemDragStart: handleStickerItemDragStart,
+    onItemDragEnd: handleStickerItemDragEnd,
     // no onBeforeOpen — InviteePage handles this in its own openStickerPanel
   });
   const {

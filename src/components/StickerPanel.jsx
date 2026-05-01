@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 const SP_TABS = [
   {
     tab: 'recents', label: 'Recents',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 15" />
+        <circle cx="12" cy="12" r="9" />
+        <polyline points="12 7 12 12 15 15" />
       </svg>
     ),
   },
@@ -24,7 +25,8 @@ const SP_TABS = [
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
         <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-        <line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" />
+        <line x1="9" y1="9" x2="9.01" y2="9" />
+        <line x1="15" y1="9" x2="15.01" y2="9" />
       </svg>
     ),
   },
@@ -32,16 +34,11 @@ const SP_TABS = [
 
 const CloseIcon = () => (
   <svg width="16" height="16" viewBox="0 0 22 22" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-    <line x1="4" y1="4" x2="18" y2="18" /><line x1="18" y1="4" x2="4" y2="18" />
+    <line x1="4" y1="4" x2="18" y2="18" />
+    <line x1="18" y1="4" x2="4" y2="18" />
   </svg>
 );
 
-/**
- * StickerPanel — renders the sticker picker sheet, new-sticker screen,
- * the sticker overlay div, and the hidden file input.
- *
- * Pass the full return value of `useStickerSystem()` as the `sys` prop.
- */
 export default function StickerPanel({ sys }) {
   const {
     stickerPanelVisible,
@@ -49,24 +46,64 @@ export default function StickerPanel({ sys }) {
     stickerTab,
     stickerLibrary,
     spGridRef,
+    spEmojiWrapRef,
     spEmojiGridRef,
-    nsPreviewRef,
+    spEmojiCatsRef,
+    spEmojiSearchRef,
+    nsImageCanvasRef,
+    nsMaskCanvasRef,
+    nsLassoCanvasRef,
+    nsLoadingRef,
+    nsBarLassoRef,
+    nsBarRefineRef,
+    nsBtnConfirmRef,
+    nsBtnRefineBackRef,
+    nsBrushPanelRef,
+    nsTrackTopRef,
+    nsTrackBottomRef,
+    nsBrushHandleRef,
+    nsHeaderRef,
+    nsOpacitySliderRef,
+    nsOpacityValRef,
+    nsRefModeRef,
     stickerPhotoInputRef,
     stickerOverlayRef,
+    stkTrashBinRef,
     closePanel,
     handleTabClick,
     handleStickerPhotoChange,
     closeNewStickerScreen,
-    handleNewStickerAdd,
+    nsConfirmLasso,
+    nsBackToLasso,
+    nsApply,
   } = sys;
+
+  const handleNsOpacity = useCallback((e) => {
+    const val = +e.target.value;
+    if (sys.nsOpacityRef) sys.nsOpacityRef.current = val;
+    if (nsOpacityValRef?.current) nsOpacityValRef.current.textContent = val + '%';
+    if (nsMaskCanvasRef?.current) nsMaskCanvasRef.current.style.opacity = String(val / 100);
+  }, [sys.nsOpacityRef, nsOpacityValRef, nsMaskCanvasRef]);
+
+  const handleMarkClick = useCallback(() => {
+    if (sys.nsRefModeRef) sys.nsRefModeRef.current = 'pen';
+    document.getElementById('btnNsMark')?.classList.add('on');
+    document.getElementById('btnNsClear')?.classList.remove('on');
+  }, [sys.nsRefModeRef]);
+
+  const handleClearClick = useCallback(() => {
+    if (sys.nsRefModeRef) sys.nsRefModeRef.current = 'erase';
+    document.getElementById('btnNsClear')?.classList.add('on');
+    document.getElementById('btnNsMark')?.classList.remove('on');
+  }, [sys.nsRefModeRef]);
 
   return (
     <>
-      {/* ── Sticker picker panel (bottom sheet) ── */}
+      {/* Sticker Panel */}
       <div className={`sticker-panel${stickerPanelVisible ? ' sp-visible' : ''}`} id="stickerPanel">
         <div className="sp-header">
           <p className="sp-title">Stickers</p>
-          <button className="sp-close" id="btnStickerPanelClose" aria-label="Close" onClick={closePanel}>
+          <button className="sp-close" onClick={closePanel}>
             <CloseIcon />
           </button>
         </div>
@@ -76,9 +113,8 @@ export default function StickerPanel({ sys }) {
             <button
               key={tab}
               className={`sp-tab${stickerTab === tab ? ' active' : ''}`}
-              data-sptab={tab}
-              aria-label={label}
               onClick={() => handleTabClick(tab)}
+              aria-label={label}
             >
               {icon}
             </button>
@@ -86,66 +122,82 @@ export default function StickerPanel({ sys }) {
         </div>
 
         <div className="sp-content">
-          {/* Empty state — shown when not on emoji tab and library is empty */}
+          {/* Empty */}
           <div
             className="sp-empty"
-            id="spEmpty"
             style={{ display: stickerTab !== 'emoji' && stickerLibrary.length === 0 ? 'flex' : 'none' }}
           >
             <div className="sp-empty-blob">✦</div>
             <p className="sp-empty-title">Turn any photo into a sticker.</p>
-            <p className="sp-empty-sub">Or paste one you copied — here, or right on the canvas.</p>
-            <button
-              className="sp-get-started"
-              id="btnStickerGetStarted"
-              onClick={() => stickerPhotoInputRef.current && stickerPhotoInputRef.current.click()}
-            >
+            <p className="sp-empty-sub">Or paste one you copied.</p>
+            <button onClick={() => stickerPhotoInputRef.current?.click()}>
               Get Started
             </button>
           </div>
 
-          {/* Library grid (recents / my stickers) — display managed imperatively by renderStickerContent */}
-          <div className="sp-grid" id="spGrid" ref={spGridRef}></div>
-          {/* Emoji grid — display managed imperatively by renderStickerContent */}
-          <div className="sp-emoji-grid" id="spEmojiGrid" ref={spEmojiGridRef}></div>
+          {/* Grid */}
+          <div
+            className="sp-grid"
+            ref={spGridRef}
+            style={{ display: stickerTab !== 'emoji' && stickerLibrary.length > 0 ? 'grid' : 'none' }}
+          />
+
+          {/* Emoji */}
+          <div
+            className="sp-emoji-wrap"
+            ref={spEmojiWrapRef}
+            style={{ display: stickerTab === 'emoji' ? 'flex' : 'none' }}
+          >
+            <div className="sp-emoji-sticky">
+              <input
+                ref={spEmojiSearchRef}
+                className="sp-emoji-search"
+                type="text"
+                placeholder="Search emoji..."
+              />
+            </div>
+            <div ref={spEmojiCatsRef} className="sp-emoji-cats" />
+            <div ref={spEmojiGridRef} className="sp-emoji-grid" />
+          </div>
         </div>
       </div>
 
-      {/* ── New sticker screen ── */}
-      <div className={`new-sticker-screen${newStickerVisible ? ' ns-visible' : ''}`} id="newStickerScreen">
-        <div className="ns-header">
-          <button className="sp-close" id="btnNewStickerBack" aria-label="Back" onClick={closeNewStickerScreen}>
+      {/* New Sticker Screen */}
+      <div className={`new-sticker-screen${newStickerVisible ? ' ns-visible' : ''}`}>
+        <div className="ns-header" ref={nsHeaderRef}>
+          <button onClick={() => closeNewStickerScreen(true)}>
             <CloseIcon />
           </button>
-          <p className="ns-title">New Sticker</p>
-          <div style={{ width: '34px' }}></div>
+          <p>New Sticker</p>
         </div>
-        <div className="ns-preview" id="nsPreview" ref={nsPreviewRef}></div>
-        <div className="ns-actions">
-          <button className="ns-btn" id="btnNewStickerCancel" aria-label="Cancel" onClick={closeNewStickerScreen}>
-            <svg width="18" height="18" viewBox="0 0 22 22" fill="none" stroke="#1A1A2E" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="4" y1="4" x2="18" y2="18" /><line x1="18" y1="4" x2="4" y2="18" />
-            </svg>
-          </button>
-          <button className="ns-btn" id="btnNewStickerAdd" aria-label="Add sticker" onClick={handleNewStickerAdd}>
-            <svg width="18" height="18" viewBox="0 0 22 22" fill="none" stroke="#1A1A2E" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="11" y1="3" x2="11" y2="19" /><line x1="3" y1="11" x2="19" y2="11" />
-            </svg>
-          </button>
+
+        <div className="ns-preview-wrap">
+          <div ref={nsLoadingRef}>Detecting…</div>
+          <canvas ref={nsImageCanvasRef} />
+          <canvas ref={nsMaskCanvasRef} />
+          <canvas ref={nsLassoCanvasRef} />
+        </div>
+
+        <div ref={nsBarLassoRef}>
+          <button onClick={nsConfirmLasso}>Confirm</button>
+        </div>
+
+        <div ref={nsBarRefineRef}>
+          <button onClick={nsApply}>Add Sticker</button>
         </div>
       </div>
 
-      {/* ── Sticker overlay (DOM container for placed stickers) ── */}
-      <div id="stickerOverlay" ref={stickerOverlayRef}></div>
+      {/* Overlay */}
+      <div id="stickerOverlay" ref={stickerOverlayRef}>
+        <div id="stkTrashBin" ref={stkTrashBinRef}>🗑</div>
+      </div>
 
-      {/* ── Hidden file input for sticker photos ── */}
+      {/* File input */}
       <input
         type="file"
-        id="stickerPhotoInput"
         ref={stickerPhotoInputRef}
-        accept="image/*"
-        style={{ display: 'none' }}
         onChange={handleStickerPhotoChange}
+        style={{ display: 'none' }}
       />
     </>
   );

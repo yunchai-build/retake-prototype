@@ -551,15 +551,18 @@ body.inviter-mode #tmLeftPanel::before {
   cursor: grab;
   transition: width 0.06s ease, height 0.06s ease, top 0.06s ease, left 0.06s ease;
 }
+body.inviter-mode #tmLeftPanel.tm-resizing #tmSizeHandle {
+  transition: none;
+}
 
 /* ── Tool-mode bottom bar ── */
 #tmToolBar, #tmPenBar, #tmEraserBar {
   position: absolute;
-  left: 3.5vw; right: 3.5vw; top: auto; bottom: 3.5dvh;
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.35);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  left: 16px; right: 16px; top: auto; bottom: 16px;
+  background: rgba(18,18,28,0.82);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: none;
+  box-shadow: none;
   border-radius: 999px; padding: 0 20px; height: 76px;
   display: flex; align-items: center; gap: 0;
   z-index: 8;
@@ -569,6 +572,59 @@ body.inviter-mode #tmLeftPanel::before {
 #tmToolBar.tm-in, #tmPenBar.tm-in, #tmEraserBar.tm-in {
   opacity: 1; transform: translateY(0); pointer-events: auto;
 }
+
+#tmEraserBar.magic-mode {
+  flex-direction: column;
+  justify-content: center;
+  height: auto;
+  min-height: 118px;
+  border-radius: 24px;
+  padding: 10px 20px 14px;
+  gap: 8px;
+}
+
+#eraserMagicUI { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+#eraserMagicUI .magic-step { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.magic-hint {
+  font-family: 'Bedstead', monospace; font-size: 12px;
+  color: rgba(255,255,255,0.5); text-align: center; line-height: 1.4; margin: 0;
+}
+.magic-actions-row { display: flex; gap: 10px; width: 100%; }
+.magic-back-btn {
+  height: 46px; padding: 0 18px; border: none; border-radius: 14px;
+  background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.72);
+  font-family: 'Bedstead', monospace; font-size: 13px;
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+}
+.magic-back-btn:active { background: rgba(255,255,255,0.18); transform: scale(0.97); }
+.magic-confirm-btn {
+  flex: 1; height: 46px; border: none; border-radius: 14px;
+  background: #EEFF01; color: #1A1A2E;
+  font-family: 'Bedstead', monospace; font-size: 14px;
+  cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+}
+.magic-confirm-btn:disabled { opacity: 0.24; cursor: default; }
+.magic-confirm-btn:not(:disabled):active { transform: scale(0.97); }
+.magic-opacity-lbl {
+  font-family: 'Bedstead', monospace; font-size: 11px;
+  color: rgba(255,255,255,0.45); flex-shrink: 0;
+}
+.magic-apply-btn {
+  width: 100%; height: 50px; border: none; border-radius: 16px;
+  background: #EEFF01; color: #1A1A2E;
+  font-family: 'Bedstead', monospace; font-size: 15px;
+  cursor: pointer; transition: transform 0.1s;
+}
+.magic-apply-btn:active { transform: scale(0.97); }
+
+#selectionCanvas {
+  position: absolute; inset: 0;
+  width: 100% !important; height: 100% !important;
+  z-index: 3; pointer-events: none;
+  display: none;
+}
+#selectionCanvas.sel-active { display: block; }
 
 /* Content inside tool bar */
 .tm-swatches {
@@ -599,26 +655,26 @@ body.inviter-mode #tmLeftPanel::before {
 .tm-pen-types { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 .pen-type-btn {
   width: 34px; height: 34px;
-  background: rgba(255,255,255,0.2); border: none; border-radius: 10px;
+  background: rgba(255,255,255,0.1); border: none; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; padding: 0;
   transition: background 0.15s;
 }
-.pen-type-btn:active { background: rgba(238,255,1,0.45); }
-.pen-type-btn.active { background: #EEFF01; }
+.pen-type-btn:active { background: rgba(255,255,255,0.15); }
+.pen-type-btn.active { background: rgba(255,255,255,0.78); }
 .pen-type-btn.active svg { stroke: #1A1A2E; }
 
 /* Eraser shape selector */
 .eraser-shapes { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
 .eraser-shape-btn {
   width: 36px; height: 36px;
-  background: rgba(255,255,255,0.2); border: none; border-radius: 10px;
+  background: rgba(255,255,255,0.12); border: none; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; flex-shrink: 0;
   transition: background 0.15s, transform 0.1s;
 }
-.eraser-shape-btn:active { background: rgba(238,255,1,0.45); transform: scale(0.88); }
-.eraser-shape-btn.active { background: #EEFF01; }
+.eraser-shape-btn:active { transform: scale(0.88); }
+.eraser-shape-btn.active { background: rgba(255,255,255,0.82); }
 .eraser-shape-btn svg { stroke: white; }
 .eraser-shape-btn.active svg { stroke: #1A1A2E; }
 
@@ -907,31 +963,89 @@ body.inviter-mode .sticker-panel.sp-visible { transform: translateY(0); opacity:
 .sp-sticker-cell:active { opacity: 0.7; transform: scale(0.93); }
 .sp-sticker-cell img { width: 100%; height: 100%; object-fit: contain; }
 
-/* Emoji grid (5-col) */
-.sp-emoji-grid {
+/* ── Shared magic-tool UI components ── */
+.magic-toggle {
+  display: flex; background: rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 3px; width: 100%;
+}
+.magic-toggle-btn {
+  flex: 1; height: 38px; border: none; border-radius: 11px;
+  font-family: 'Bedstead', monospace; font-size: 13px;
+  cursor: pointer; transition: background 0.18s, color 0.18s;
+  color: rgba(255,255,255,0.3); background: transparent;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.magic-toggle-btn.on {
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.92);
+}
+.magic-opacity-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+.magic-tol-val {
+  font-family: 'Bedstead', monospace; font-size: 11px;
+  color: rgba(255,255,255,0.35); width: 34px; text-align: right; flex-shrink: 0;
+}
+
+/* ── Emoji wrap (flex column: fixed-height sticky header + scrollable grid) ── */
+.sp-emoji-wrap {
   position: absolute; inset: 0;
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  overflow-y: auto; padding: 4px 0; align-content: start;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.sp-emoji-sticky {
+  flex: 0 0 auto;
+  padding: 6px 12px 0;
+}
+.sp-emoji-search {
+  display: block; width: 100%; padding: 8px 14px; box-sizing: border-box;
+  background: rgba(255,255,255,0.1); border: none; border-radius: 10px;
+  color: white; font-family: 'Bedstead', monospace; font-size: 13px; outline: none;
+}
+.sp-emoji-search::placeholder { color: rgba(255,255,255,0.35); }
+
+.sp-emoji-cats {
+  display: flex; gap: 8px; padding: 10px 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+.sp-emoji-cats::-webkit-scrollbar { display: none; }
+.sp-cat-pill {
+  padding: 6px 14px; border: none; border-radius: 999px; white-space: nowrap;
+  background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.45);
+  font-family: 'Bedstead', monospace; font-size: 12px; cursor: pointer;
+  transition: background 0.18s, color 0.18s; flex-shrink: 0;
+}
+.sp-cat-pill.active {
+  background: rgba(255,255,255,0.2); color: white;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15);
+}
+
+.sp-emoji-grid {
+  flex: 1 1 0; min-height: 0;
+  overflow-y: auto;
+  padding: 4px 6px;
+  display: grid; grid-template-columns: repeat(6, 1fr); align-content: start;
+}
+.sp-emoji-cat-label {
+  grid-column: 1 / -1;
+  font-family: 'Bedstead', monospace; font-size: 10px;
+  color: rgba(255,255,255,0.35); padding: 10px 4px 3px; letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .sp-emoji-btn {
   aspect-ratio: 1; background: none; border: none;
-  font-size: 34px; cursor: pointer;
+  font-size: 28px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   border-radius: 10px; transition: background 0.1s, transform 0.1s;
 }
 .sp-emoji-btn:active { background: rgba(255,255,255,0.1); transform: scale(0.85); }
 
-/* ── New Sticker Screen ── */
+/* ── New Sticker Screen (lasso → ML → refine) ── */
 body.inviter-mode .new-sticker-screen {
-  position: absolute;
-  left: 0; top: 0;
+  position: absolute; left: 0; top: 0;
   width: 100%; height: 100%;
-  background: rgba(14,14,32,0.94);
+  background: rgba(12,11,28,0.97);
   backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  border: 1.5px solid rgba(45,42,255,0.2);
-  border-radius: 20px 20px 0 0;
-  z-index: 12;
-  display: flex; flex-direction: column;
+  border: 1.5px solid rgba(45,42,255,0.18);
+  border-radius: 20px 20px 0 0; z-index: 12;
   transform: translateY(100%); opacity: 0;
   transition: transform 0.44s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
   pointer-events: none;
@@ -939,33 +1053,135 @@ body.inviter-mode .new-sticker-screen {
 body.inviter-mode .new-sticker-screen.ns-visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
 
 .ns-header {
-  display: flex; align-items: center; padding: 20px 16px 0;
+  position: absolute; top: 0; left: 0; right: 0; z-index: 12;
+  display: flex; align-items: center;
+  padding: 18px 16px 10px;
+  background: rgba(12,11,28,0.97);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 .ns-title {
   flex: 1; text-align: center;
-  font-family: 'Bedstead', monospace; font-size: 18px; color: white;
+  font-family: 'Bedstead', monospace; font-size: 17px;
+  color: rgba(255,255,255,0.92); letter-spacing: 0.3px;
 }
-.ns-preview {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  padding: 28px; overflow: hidden;
+
+/* Preview area — fills full height minus bar area */
+.ns-preview-wrap { position: absolute; top: 0; left: 0; right: 0; bottom: 192px; overflow: hidden; }
+
+#nsImageCanvas {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: none;
 }
-.ns-preview img {
-  max-width: 100%; max-height: 100%;
-  object-fit: contain; border-radius: 14px;
+#nsMaskCanvas {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+  pointer-events: none; touch-action: none; display: none;
 }
-.ns-actions {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 20px 48px 52px;
+#nsMaskCanvas.ns-brush-active { pointer-events: auto; cursor: crosshair; }
+#nsLassoCanvas {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+  cursor: crosshair; touch-action: none; display: none;
 }
-.ns-btn {
-  width: 48px; height: 48px;
-  background: white; border: 3.5px solid #1A1A2E;
-  border-radius: 50%; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 5px 0 #1A1A2E;
-  transition: opacity 0.1s, transform 0.1s;
+
+/* Loading spinner */
+.ns-loading {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 14px;
 }
-.ns-btn:active { opacity: 0.7; transform: scale(0.91) translateY(3px); box-shadow: 0 2px 0 #1A1A2E; }
+.ns-spinner {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.1); border-top-color: rgba(255,255,255,0.75);
+  animation: nsspin 0.72s linear infinite;
+}
+@keyframes nsspin { to { transform: rotate(360deg); } }
+.ns-loading-txt {
+  font-family: 'Bedstead', monospace; font-size: 12px;
+  color: rgba(255,255,255,0.35); letter-spacing: 0.3px;
+}
+
+/* Bar area — fixed height, pinned to bottom */
+#nsBarArea { position: absolute; bottom: 0; left: 0; right: 0; height: 192px; }
+
+.ns-bar {
+  position: absolute; inset: 0;
+  display: flex; gap: 12px; padding: 16px 22px 38px;
+  align-items: center; justify-content: flex-end; overflow: hidden;
+}
+.ns-bar-col { flex-direction: column; }
+#nsBarLasso { justify-content: flex-end; }
+#nsBarRefine {
+  inset: auto 16px 20px 16px; height: auto;
+  background: rgba(18,18,28,0.82);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-radius: 24px; padding: 10px 20px 14px; gap: 8px;
+  justify-content: flex-start;
+}
+#nsBarRefine .ns-pri { border-radius: 16px; }
+
+.ns-lasso-hint {
+  font-family: 'Bedstead', monospace; font-size: 12px;
+  color: rgba(255,255,255,0.4); text-align: center; letter-spacing: 0.3px;
+}
+.ns-pri {
+  width: 100%; flex-shrink: 0;
+  height: 50px; border: none; border-radius: 14px;
+  background: #F0E84A; color: #1A1A2E;
+  font-family: 'Bedstead', monospace; font-size: 15px; letter-spacing: 0.2px;
+  cursor: pointer; transition: transform 0.12s, opacity 0.12s;
+}
+.ns-pri:active  { transform: scale(0.97); }
+.ns-pri:disabled { opacity: 0.2; cursor: default; }
+.ns-sec {
+  height: 40px; padding: 0 16px; border: none; border-radius: 12px; flex-shrink: 0;
+  background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
+  font-family: 'Bedstead', monospace; font-size: 13px; cursor: pointer;
+  transition: background 0.15s;
+}
+.ns-sec:active { background: rgba(255,255,255,0.18); }
+
+/* Floating back button */
+#btnNsRefineBack {
+  position: absolute; top: 20px; left: 20px; z-index: 16;
+  display: none; align-items: center; gap: 6px;
+  height: 38px; padding: 0 14px; border: none; border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  color: white; font-family: 'Bedstead', monospace; font-size: 14px;
+  cursor: pointer; transition: transform 0.1s;
+}
+#btnNsRefineBack:active { transform: scale(0.95); }
+
+/* Brush size panel */
+#nsBrushPanel {
+  position: absolute;
+  left: 0; top: 50%; margin-top: -120px;
+  width: 56px; height: 240px;
+  background: rgba(18,18,28,0.82);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-radius: 0 20px 20px 0;
+  z-index: 16; cursor: grab;
+  transition: transform 0.38s cubic-bezier(0.22,1,0.36,1);
+}
+#nsBrushPanel::before {
+  content: ''; position: absolute;
+  left: 50%; top: 38px; bottom: 30px;
+  width: 2px; transform: translateX(-50%);
+  background: rgba(255,255,255,0.2); border-radius: 1px; pointer-events: none;
+}
+#nsTrackTop {
+  position: absolute; width: 16px; height: 16px;
+  background: rgba(255,255,255,0.45); border-radius: 50%;
+  top: 14px; left: 50%; transform: translateX(-50%);
+}
+#nsTrackBottom {
+  position: absolute; width: 5px; height: 5px;
+  background: rgba(255,255,255,0.45); border-radius: 50%;
+  bottom: 14px; left: 50%; transform: translateX(-50%);
+}
+#nsBrushHandle {
+  position: absolute; background: white; border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.35); pointer-events: none;
+  transition: width 0.06s, height 0.06s, top 0.06s, left 0.06s;
+}
 
 /* ── Sticker overlay (placed stickers above canvas) ── */
 body.inviter-mode #stickerOverlay {
@@ -981,15 +1197,217 @@ body.inviter-mode #stickerOverlay.stk-active { pointer-events: auto; }
   transform-origin: center center;
 }
 .placed-sticker img { width: 100%; display: block; pointer-events: none; }
-.stk-del {
-  position: absolute; top: -13px; right: -13px;
-  width: 26px; height: 26px;
-  background: white; border: none; border-radius: 50%;
-  font-size: 15px; line-height: 1; cursor: pointer;
-  display: none; align-items: center; justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.35); z-index: 2; color: #1A1A2E;
-}
-.placed-sticker.stk-selected .stk-del { display: flex; }
 .placed-sticker.stk-selected { outline: 2px dashed rgba(255,255,255,0.55); border-radius: 6px; outline-offset: 4px; }
 
+/* Trash bin — shown while dragging a sticker */
+#stkTrashBin {
+  position: absolute; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(20px) scale(0.75);
+  width: 60px; height: 60px;
+  background: rgba(24,22,40,0.78);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; z-index: 10;
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34,1.56,0.64,1), background 0.15s ease;
+}
+#stkTrashBin.stk-trash-show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+#stkTrashBin.stk-trash-over { background: rgba(210,40,40,0.88); transform: translateX(-50%) translateY(0) scale(1.18); }
+
+/* ── Photo Crop Screen ── */
+body.inviter-mode .photo-crop-screen {
+  position: absolute; left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(10,10,22,0.97);
+  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border: 1.5px solid rgba(255,255,255,0.07);
+  border-radius: 20px 20px 0 0;
+  z-index: 13;
+  display: flex; flex-direction: column;
+  transform: translateY(100%); opacity: 0;
+  transition: transform 0.44s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
+  pointer-events: none;
+}
+body.inviter-mode .photo-crop-screen.pc-visible {
+  transform: translateY(0); opacity: 1; pointer-events: auto;
+}
+.pc-header {
+  display: flex; align-items: center;
+  padding: 18px 16px 14px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.pc-title {
+  flex: 1; text-align: center;
+  font-family: 'Bedstead', monospace; font-size: 17px;
+  color: rgba(255,255,255,0.92); letter-spacing: 0.3px;
+}
+.pc-close-btn {
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,0.08); border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+}
+.pc-close-btn:active { opacity: 0.6; }
+#pcPreviewWrap {
+  flex: 1; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background-color: #181825;
+  background-image:
+    linear-gradient(45deg, #212133 25%, transparent 25%),
+    linear-gradient(-45deg, #212133 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #212133 75%),
+    linear-gradient(-45deg, transparent 75%, #212133 75%);
+  background-size: 22px 22px;
+  background-position: 0 0, 0 11px, 11px -11px, -11px 0px;
+}
+#pcCanvas { touch-action: none; display: block; }
+#pcBottomCard {
+  flex-shrink: 0;
+  background: rgba(14,14,24,0.97);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding: 16px 18px 40px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+#pcShapeRow { display: flex; gap: 8px; }
+.pc-shape-chip {
+  flex: 1; height: 48px; border: none; border-radius: 14px;
+  background: rgba(255,255,255,0.07);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.16s, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.pc-shape-chip.active { background: rgba(255,255,255,0.2); transform: scale(1.06); }
+.pc-shape-chip:active { transform: scale(0.9); }
+#pcAddBtn {
+  width: 100%; height: 52px;
+  background: white; color: #0a0a16;
+  border: none; border-radius: 16px;
+  font-family: 'Bedstead', monospace; font-size: 16px;
+  letter-spacing: 0.4px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity 0.15s, transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+}
+#pcAddBtn:active { transform: scale(0.97); opacity: 0.88; }
+#pcOpacitySlider {
+  background: linear-gradient(to right,
+    rgba(255,255,255,0.82) var(--fill,100%),
+    rgba(255,255,255,0.15) var(--fill,100%));
+}
+
 /* Responsive handled by min() in the .screen rule above — no media query needed */
+
+
+/* ════════════════════════════════════════════
+   TEXT TOOL
+════════════════════════════════════════════ */
+
+/* Dim overlay — covers the frame while composing */
+.text-tool-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.44);
+  z-index: 7;
+  opacity: 0; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.22s ease;
+}
+.text-tool-overlay.txt-active { opacity: 1; pointer-events: auto; }
+
+/* Live contenteditable preview */
+.text-preview {
+  max-width: 370px; min-width: 20px;
+  outline: none; border: none;
+  padding: 2px 6px;
+  caret-color: white;
+  white-space: pre-wrap; word-break: break-word;
+  line-height: 1.22;
+  text-shadow: 0 2px 18px rgba(0,0,0,0.65);
+  cursor: text;
+}
+.text-preview:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(255,255,255,0.28);
+  pointer-events: none;
+}
+
+/* Compose bar — dark glass card, 2-row column */
+.tm-text-bar {
+  position: absolute;
+  left: 16px; right: 16px; bottom: 16px;
+  background: rgba(18,18,28,0.88);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-radius: 24px;
+  padding: 12px 18px 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  z-index: 14;
+  opacity: 0; pointer-events: none;
+  transform: translateY(24px);
+  transition: opacity 0.25s ease, transform 0.32s cubic-bezier(0.22,1,0.36,1);
+}
+.tm-text-bar.txt-active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+.txt-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+
+/* Font segmented control */
+.txt-fonts {
+  display: flex; background: rgba(255,255,255,0.07);
+  border-radius: 12px; padding: 3px; gap: 2px; flex-shrink: 0;
+}
+.txt-font-btn {
+  width: 38px; height: 34px; border: none; border-radius: 9px;
+  background: transparent; color: rgba(255,255,255,0.4);
+  font-size: 15px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.16s, color 0.16s;
+  padding: 0; line-height: 1;
+}
+.txt-font-btn.active { background: rgba(255,255,255,0.18); color: white; }
+.txt-font-btn:active { opacity: 0.7; }
+
+/* Size label */
+.txt-size-lbl {
+  flex-shrink: 0;
+  font-family: 'Bedstead', monospace; font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* Size slider fill */
+#txtSizeSlider {
+  background: linear-gradient(to right,
+    rgba(255,255,255,0.82) var(--fill,42%),
+    rgba(255,255,255,0.15) var(--fill,42%));
+}
+
+/* Color swatches */
+.txt-colors { display: flex; gap: 7px; align-items: center; flex: 1; }
+.txt-color-btn {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2.5px solid transparent; cursor: pointer; flex-shrink: 0;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.45);
+  transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1), border-color 0.12s;
+}
+.txt-color-btn:active { transform: scale(0.82) !important; }
+.txt-color-btn.active { border-color: white; transform: scale(1.15); }
+
+/* Alignment toggle */
+.txt-aligns {
+  display: flex; background: rgba(255,255,255,0.07);
+  border-radius: 12px; padding: 3px; gap: 2px; flex-shrink: 0;
+}
+.txt-align-btn {
+  width: 34px; height: 34px; border: none; border-radius: 9px;
+  background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s; padding: 0;
+}
+.txt-align-btn.active { background: rgba(255,255,255,0.18); }
+.txt-align-btn svg { stroke: rgba(255,255,255,0.38); transition: stroke 0.15s; }
+.txt-align-btn.active svg { stroke: rgba(255,255,255,0.95); }
+
+/* Placed text element — same drag system as stickers */
+.placed-text {
+  position: absolute; cursor: grab; touch-action: none; user-select: none;
+  transform-origin: center center;
+  white-space: pre-wrap; word-break: break-word; line-height: 1.22;
+  padding: 2px 6px;
+}
+.placed-text.stk-selected { outline: 2px dashed rgba(255,255,255,0.55); border-radius: 6px; outline-offset: 4px; }
