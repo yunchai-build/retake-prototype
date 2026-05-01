@@ -1086,11 +1086,9 @@ export default function InviterPage() {
               <button key="stickers" className={cls} id="btnToolStickers" aria-label="Stickers"
                 onClick={handleToolStickers}
                 onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ overflow: 'visible' }}>
-                  <defs><mask id="smileyMask"><rect width="24" height="24" fill="white" /><circle cx="9" cy="10" r="1.5" fill="black" /><circle cx="15" cy="10" r="1.5" fill="black" /><path d="M8 14.5 Q12 18 16 14.5" stroke="black" strokeWidth="2" strokeLinecap="round" fill="none" /></mask></defs>
-                  <circle cx="11" cy="13" r="9.5" fill="white" mask="url(#smileyMask)" />
-                  <line x1="18" y1="4" x2="23" y2="4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                  <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <defs><mask id="smileyMask"><rect width="24" height="24" fill="white" /><circle cx="10" cy="10" r="1.5" fill="black" /><circle cx="16" cy="10" r="1.5" fill="black" /><path d="M9 14.5 Q13 18 17 14.5" stroke="black" strokeWidth="2" strokeLinecap="round" fill="none" /></mask></defs>
+                  <circle cx="13" cy="13" r="9.5" fill="white" mask="url(#smileyMask)" />
                 </svg>
                 <span className="tool-label">Stickers</span>
               </button>
@@ -1099,12 +1097,10 @@ export default function InviterPage() {
               <button key="gallery" className={cls} id="btnToolGallery" aria-label="Photo"
                 onClick={handleToolGallery}
                 onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ overflow: 'visible' }}>
-                  <defs><clipPath id="photoClip"><rect x="3" y="4" width="15" height="15" rx="2" /></clipPath></defs>
-                  <g clipPath="url(#photoClip)" fill="white"><circle cx="7.5" cy="9" r="1.8" /><path d="M3 19 L8 12.5 L10.5 15.5 L13.5 11.5 L18 19 Z" /></g>
-                  <rect x="3" y="4" width="15" height="15" rx="2" stroke="white" strokeWidth="1.5" fill="none" />
-                  <line x1="18" y1="4" x2="23" y2="4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                  <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <defs><clipPath id="photoClip"><rect x="3" y="4" width="18" height="16" rx="2" /></clipPath></defs>
+                  <g clipPath="url(#photoClip)" fill="white"><circle cx="8.5" cy="9" r="1.8" /><path d="M3 20 L9 13 L12 16.5 L15.5 12 L21 20 Z" /></g>
+                  <rect x="3" y="4" width="18" height="16" rx="2" stroke="white" strokeWidth="1.5" fill="none" />
                 </svg>
                 <span className="tool-label">Photo</span>
               </button>
