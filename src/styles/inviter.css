@@ -118,8 +118,9 @@ body.inviter-mode .s6-exit-btn {
   position: absolute;
   left: 4.5vw; top: 3.5dvh;
   width: 42px; height: 42px;
-  background: rgba(0,0,0,0.28); border: none; border-radius: 50%;
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 50%;
+  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; z-index: 6;
   opacity: 0; transform: translateY(-16px);
@@ -128,7 +129,7 @@ body.inviter-mode .s6-exit-btn {
 }
 body.inviter-mode .s6-exit-btn.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
 body.inviter-mode .s6-exit-btn.out     { opacity: 0; transform: translateY(-16px); pointer-events: none; }
-body.inviter-mode .s6-exit-btn:active  { background: rgba(0,0,0,0.45); transform: scale(0.88); }
+body.inviter-mode .s6-exit-btn:active  { background: rgba(238,255,1,0.45); transform: scale(0.88); }
 
 /* Top-center: ↩ ↪ undo/redo — pill container */
 #undoRedoCluster {
@@ -141,9 +142,11 @@ body.inviter-mode .s6-exit-btn:active  { background: rgba(0,0,0,0.45); transform
   transition: opacity 0.35s ease 0.05s, transform 0.4s cubic-bezier(0.22,1,0.36,1) 0.05s;
   pointer-events: none;
 
-  /* oval pill container */
-  background: rgba(0,0,0,0.28);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  /* oval pill container — liquid glass */
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
   border-radius: 999px;
   padding: 5px 6px;
 }
@@ -157,7 +160,7 @@ body.inviter-mode .s6-exit-btn:active  { background: rgba(0,0,0,0.45); transform
   cursor: pointer;
   transition: background 0.1s ease, opacity 0.1s ease, transform 0.1s ease;
 }
-.history-btn:active  { background: rgba(255,255,255,0.12); transform: scale(0.88); }
+.history-btn:active  { background: rgba(238,255,1,0.45); transform: scale(0.88); }
 .history-btn:disabled { opacity: 0.25; pointer-events: none; }
 
 /* Right vertical toolbar */
@@ -176,14 +179,15 @@ body.inviter-mode .s6-tools.out     { opacity: 0; transform: translateX(32px); p
 
 .s6-tool-btn {
   width: 42px; height: 42px; padding: 9px;
-  background: rgba(0,0,0,0.28); border: none; border-radius: 50%;
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 50%;
+  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease, opacity 0.1s ease, transform 0.1s ease;
+  transition: background 0.15s ease, transform 0.1s ease;
 }
-.s6-tool-btn:active { opacity: 0.6; transform: scale(0.88); }
-.s6-tool-btn.active { background: rgba(255,255,255,0.92); }
+.s6-tool-btn:active { background: rgba(238,255,1,0.45); transform: scale(0.88); }
+.s6-tool-btn.active { background: #EEFF01; border-color: rgba(238,255,1,0.6); }
 .s6-tool-btn.active svg { stroke: #1A1A2E; }
 
 /* Main bottom bar */
@@ -195,31 +199,34 @@ body.inviter-mode .s6-bottom-bar {
   opacity: 0; transform: translateY(24px);
   transition: opacity 0.38s ease, transform 0.48s cubic-bezier(0.22,1,0.36,1);
   pointer-events: none;
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(40px) saturate(160%);
+  -webkit-backdrop-filter: blur(40px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
   border-radius: 999px;
   padding: 10px 10px 10px 16px;
 }
 body.inviter-mode .s6-bottom-bar.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
 body.inviter-mode .s6-bottom-bar.out     { opacity: 0; transform: translateY(32px); pointer-events: none; }
 
-/* Generic dark circle button */
+/* Generic circle button inside bottom bar */
 .s6-circle-btn {
   width: 52px; height: 52px; flex-shrink: 0;
-  background: rgba(255,255,255,0.12); border: none; border-radius: 50%;
+  background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: background 0.1s ease, transform 0.1s ease;
 }
-.s6-circle-btn:active { background: rgba(255,255,255,0.22); transform: scale(0.9); }
+.s6-circle-btn:active { background: rgba(238,255,1,0.45); transform: scale(0.9); }
 .s6-circle-btn svg { stroke: white; }
 
-/* Gallery — rounded square, same height as send btn so pill gap is uniform */
+/* Gallery — rounded square */
 #btnGallery {
   width: 46px; height: 46px;
   border-radius: 13px;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.22);
+  border: 1px solid rgba(255,255,255,0.3);
 }
 
 /* Frame title tap button (in nav bar) */
@@ -230,7 +237,7 @@ body.inviter-mode .s6-bottom-bar.out     { opacity: 0; transform: translateY(32p
   cursor: pointer; padding: 4px 8px; border-radius: 999px;
   transition: background 0.12s ease;
 }
-.s6-frame-title-btn:active { background: rgba(255,255,255,0.1); }
+.s6-frame-title-btn:active { background: rgba(238,255,1,0.25); }
 #frameNameDisplay {
   font-family: 'Bedstead', monospace; font-size: 16px; font-weight: 400;
   color: rgba(255,255,255,0.95); letter-spacing: 0.03em;
@@ -292,8 +299,10 @@ body.inviter-mode #tmUndoRedo {
   transform: translateX(-50%) translateY(-14px);
   display: flex; gap: 0;
   z-index: 8;
-  background: rgba(0,0,0,0.28);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
   border-radius: 999px;
   padding: 5px 6px;
 }
@@ -322,8 +331,10 @@ body.inviter-mode #tmDoneBtn:active { background: #EEFF01; transform: scale(0.95
 .tm-bottom-strip {
   position: absolute;
   left: 3.5vw; right: 3.5vw; top: auto; bottom: 3.5dvh;
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
   border-radius: 999px;
   padding: 0 20px;
   height: 76px;
@@ -478,12 +489,14 @@ body.inviter-mode #tmLeftPanel::before {
   transition: width 0.06s ease, height 0.06s ease, top 0.06s ease, left 0.06s ease;
 }
 
-/* ── Tool-mode bottom bar (styled like main nav bar) ── */
+/* ── Tool-mode bottom bar ── */
 #tmToolBar, #tmPenBar, #tmEraserBar {
   position: absolute;
   left: 3.5vw; right: 3.5vw; top: auto; bottom: 3.5dvh;
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
   border-radius: 999px; padding: 0 20px; height: 76px;
   display: flex; align-items: center; gap: 0;
   z-index: 8;
@@ -523,24 +536,26 @@ body.inviter-mode #tmLeftPanel::before {
 .tm-pen-types { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 .pen-type-btn {
   width: 34px; height: 34px;
-  background: rgba(255,255,255,0.1); border: none; border-radius: 10px;
+  background: rgba(255,255,255,0.2); border: none; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; padding: 0;
   transition: background 0.15s;
 }
-.pen-type-btn.active { background: rgba(255,255,255,0.78); }
+.pen-type-btn:active { background: rgba(238,255,1,0.45); }
+.pen-type-btn.active { background: #EEFF01; }
+.pen-type-btn.active svg { stroke: #1A1A2E; }
 
 /* Eraser shape selector */
 .eraser-shapes { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
 .eraser-shape-btn {
   width: 36px; height: 36px;
-  background: rgba(255,255,255,0.12); border: none; border-radius: 10px;
+  background: rgba(255,255,255,0.2); border: none; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; flex-shrink: 0;
   transition: background 0.15s, transform 0.1s;
 }
-.eraser-shape-btn:active { transform: scale(0.88); }
-.eraser-shape-btn.active { background: rgba(255,255,255,0.82); }
+.eraser-shape-btn:active { background: rgba(238,255,1,0.45); transform: scale(0.88); }
+.eraser-shape-btn.active { background: #EEFF01; }
 .eraser-shape-btn svg { stroke: white; }
 .eraser-shape-btn.active svg { stroke: #1A1A2E; }
 
