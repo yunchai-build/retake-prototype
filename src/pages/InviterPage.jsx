@@ -788,6 +788,14 @@ export default function InviterPage() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Recent tools tracking — must be defined before handlers that use it ──
+  const addRecentTool = useCallback((toolId) => {
+    setRecentTools(prev => {
+      const filtered = prev.filter(id => id !== toolId);
+      return [toolId, ...filtered].slice(0, 3);
+    });
+  }, []);
+
   // ── Handlers ──
   const handleToolDoodle = useCallback(() => {
     addRecentTool('doodle');
@@ -844,14 +852,6 @@ export default function InviterPage() {
       showToast('Unable to save — try from a server');
     }
   }, [stickerSys, pushHistory, frameName, showToast]);
-
-  // ── Recent tools tracking ──
-  const addRecentTool = useCallback((toolId) => {
-    setRecentTools(prev => {
-      const filtered = prev.filter(id => id !== toolId);
-      return [toolId, ...filtered].slice(0, 3);
-    });
-  }, []);
 
   // ── Chevron toggle (collapse ↔ expand) ──
   const handleToggleTools = useCallback((e) => {
