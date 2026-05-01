@@ -5,6 +5,9 @@ npm run build
 # Landing/marketing page — served at / via Vercel rewrite
 cp landing.html dist/landing.html
 
+# Standalone inviter page — served at /inviter via Vercel rewrite
+cp retake-ig.html dist/retake-ig.html
+
 # Static assets needed by landing.html
 cp cursor-hand.png bg-landscape.jpg hand-phone.png retake-logo.png dist/
 

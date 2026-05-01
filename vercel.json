@@ -4,7 +4,7 @@
   "framework": "vite",
   "rewrites": [
     { "source": "/",        "destination": "/landing.html" },
-    { "source": "/inviter", "destination": "/index.html" },
+    { "source": "/inviter", "destination": "/retake-ig.html" },
     { "source": "/invitee", "destination": "/index.html" }
   ]
 }
