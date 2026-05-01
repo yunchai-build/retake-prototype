@@ -40,6 +40,7 @@ export default function InviterPage() {
   // ── Timer refs ──
   const lpCollapseTimerRef = useRef(null);
   const toolsHideTimerRef = useRef(null);
+  const toolsCollapseTimerRef = useRef(null);
   const labelPressTimerRef = useRef(null);
   const labelCollapseTimerRef = useRef(null);
   const trackDraggingRef = useRef(false);
@@ -71,6 +72,8 @@ export default function InviterPage() {
   const [undoRedoVisible, setUndoRedoVisible] = useState(false);
   const [toolsVisible, setToolsVisible] = useState(false);
   const [toolsOut, setToolsOut] = useState(false);
+  const [toolsCollapsed, setToolsCollapsed] = useState(false);
+  const toolsCollapsedRef = useRef(false);
   const [bottomBarVisible, setBottomBarVisible] = useState(false);
   const [bottomBarOut, setBottomBarOut] = useState(false);
   const [exitBtnOut, setExitBtnOut] = useState(false);
@@ -418,7 +421,14 @@ export default function InviterPage() {
     }
 
     setToolsOut(false);
+    setToolsCollapsed(false);
+    toolsCollapsedRef.current = false;
     setToolsVisible(true);
+    clearTimeout(toolsCollapseTimerRef.current);
+    toolsCollapseTimerRef.current = setTimeout(() => {
+      setToolsCollapsed(true);
+      toolsCollapsedRef.current = true;
+    }, 2000);
     setTimeout(() => {
       setExitBtnOut(false);
       setUndoRedoOut(false);
@@ -499,8 +509,15 @@ export default function InviterPage() {
     setUndoRedoVisible(true);
     setUndoRedoOut(false);
     await delay(40);
+    setToolsCollapsed(false);
+    toolsCollapsedRef.current = false;
     setToolsVisible(true);
     setToolsOut(false);
+    clearTimeout(toolsCollapseTimerRef.current);
+    toolsCollapseTimerRef.current = setTimeout(() => {
+      setToolsCollapsed(true);
+      toolsCollapsedRef.current = true;
+    }, 1000);
     await delay(60);
     setBottomBarVisible(true);
     setBottomBarOut(false);
@@ -510,6 +527,9 @@ export default function InviterPage() {
 
   const exitToIntro = useCallback(async () => {
     if (activeToolRef.current) exitToolMode();
+    clearTimeout(toolsCollapseTimerRef.current);
+    setToolsCollapsed(false);
+    toolsCollapsedRef.current = false;
     await delay(180);
     setExitBtnVisible(false);
     setUndoRedoVisible(false);
@@ -999,8 +1019,24 @@ export default function InviterPage() {
       </div>
 
       {/* Right vertical toolbar */}
-      <div className={`s6-tools${toolsVisible ? ' visible' : ''}${toolsOut ? ' out' : ''}${labelsExpanded ? ' labels-expanded' : ''}`}
-        id="s6Tools">
+      <div
+        className={`s6-tools${toolsVisible ? ' visible' : ''}${toolsOut ? ' out' : ''}${toolsCollapsed ? ' tools-collapsed' : ''}${labelsExpanded ? ' labels-expanded' : ''}`}
+        id="s6Tools"
+        onClick={() => {
+          if (!toolsCollapsedRef.current) return;
+          setToolsCollapsed(false);
+          toolsCollapsedRef.current = false;
+          clearTimeout(toolsCollapseTimerRef.current);
+          toolsCollapseTimerRef.current = setTimeout(() => {
+            setToolsCollapsed(true);
+            toolsCollapsedRef.current = true;
+          }, 4000);
+        }}
+      >
+        {/* 3-dot handle — shown only when collapsed */}
+        <div className="s6-tools-handle" aria-hidden="true">
+          <span /><span /><span />
+        </div>
         <button className={`s6-tool-btn${activeTool === 'text' ? ' active' : ''}`}
           id="btnToolText" aria-label="Text"
           onClick={handleToolText}
