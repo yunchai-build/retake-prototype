@@ -560,14 +560,14 @@ body.inviter-mode #tmLeftPanel.tm-resizing #tmSizeHandle {
 #tmToolBar, #tmPenBar, #tmEraserBar {
   position: absolute;
   left: 16px; right: 16px; top: auto;
-  bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+  bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 24px));
   background: rgba(18,18,28,0.82);
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border: none;
   box-shadow: none;
   border-radius: 999px; padding: 0 20px; height: 76px;
   display: flex; align-items: center; gap: 0;
-  z-index: 8;
+  z-index: 14;
   opacity: 0; transform: translateY(32px); pointer-events: none;
   transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1);
 }
@@ -665,6 +665,34 @@ body.inviter-mode #tmLeftPanel.tm-resizing #tmSizeHandle {
 .pen-type-btn:active { background: rgba(255,255,255,0.15); }
 .pen-type-btn.active { background: rgba(255,255,255,0.78); }
 .pen-type-btn.active svg { stroke: #1A1A2E; }
+
+@media (max-width: 420px) {
+  #tmPenBar {
+    left: 12px; right: 12px;
+    height: auto;
+    min-height: 104px;
+    border-radius: 24px;
+    padding: 12px 18px 14px;
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 10px;
+  }
+  #tmPenBar .tm-swatches {
+    flex: 1 0 calc(100% - 56px);
+    gap: 7px;
+    min-width: 0;
+  }
+  #tmPenBar .tm-swatch { width: 26px; height: 26px; }
+  #tmPenBar .tm-divider {
+    display: none;
+  }
+  #tmPenBar .tm-pen-types {
+    flex: 0 0 100%;
+    justify-content: center;
+    gap: 8px;
+  }
+  #tmPenBar .pen-type-btn { width: 34px; height: 34px; }
+}
 
 /* Eraser shape selector */
 .eraser-shapes { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
