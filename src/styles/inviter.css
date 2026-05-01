@@ -129,28 +129,34 @@ body.inviter-mode .s6-exit-btn.visible { opacity: 1; transform: translateY(0); p
 body.inviter-mode .s6-exit-btn.out     { opacity: 0; transform: translateY(-16px); pointer-events: none; }
 body.inviter-mode .s6-exit-btn:active  { background: rgba(0,0,0,0.45); transform: scale(0.88); }
 
-/* Top-center: ↩ ↪ undo/redo */
+/* Top-center: ↩ ↪ undo/redo — pill container */
 #undoRedoCluster {
   position: absolute;
   left: 50%; top: 3.5dvh;
   transform: translateX(-50%) translateY(-16px);
-  display: flex; gap: 4px;
+  display: flex; gap: 0;
   z-index: 6;
   opacity: 0;
   transition: opacity 0.35s ease 0.05s, transform 0.4s cubic-bezier(0.22,1,0.36,1) 0.05s;
   pointer-events: none;
+
+  /* oval pill container */
+  background: rgba(0,0,0,0.28);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-radius: 999px;
+  padding: 5px 6px;
 }
 #undoRedoCluster.visible { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
 #undoRedoCluster.out     { opacity: 0; transform: translateX(-50%) translateY(-16px); pointer-events: none; }
 
 .history-btn {
-  width: 42px; height: 42px;
-  background: transparent; border: none; border-radius: 50%;
+  width: 38px; height: 38px;
+  background: transparent; border: none; border-radius: 999px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: opacity 0.1s ease, transform 0.1s ease;
+  transition: background 0.1s ease, opacity 0.1s ease, transform 0.1s ease;
 }
-.history-btn:active  { opacity: 0.6; transform: scale(0.88); }
+.history-btn:active  { background: rgba(255,255,255,0.12); transform: scale(0.88); }
 .history-btn:disabled { opacity: 0.25; pointer-events: none; }
 
 /* Right vertical toolbar */
@@ -278,13 +284,17 @@ body.inviter-mode .s6-bottom-bar.out     { opacity: 0; transform: translateY(32p
 }
 .tool-mode-el.tm-in  { opacity: 1; pointer-events: auto; }
 
-/* Top-left: undo/redo in tool mode */
+/* Top-center: undo/redo in tool mode — same oval pill */
 body.inviter-mode #tmUndoRedo {
   position: absolute;
   left: 50%; top: 3.5dvh;
   transform: translateX(-50%) translateY(-14px);
-  display: flex; gap: 4px;
+  display: flex; gap: 0;
   z-index: 8;
+  background: rgba(0,0,0,0.28);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-radius: 999px;
+  padding: 5px 6px;
 }
 body.inviter-mode #tmUndoRedo.tm-in { transform: translateX(-50%) translateY(0); }
 
