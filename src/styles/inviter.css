@@ -18,29 +18,22 @@ body.inviter-mode {
 button { -webkit-tap-highlight-color: transparent; }
 
 
-/* ── White canvas — fills 100 vw, strict 9:16 ratio, on black body ── *
- *                                                                      *
- *  Z-index stack (page level):                                         *
- *    0 (body)    = black background                                    *
- *    1 (.screen) = white canvas, 9:16, 20 px radius                   *
- *    2 (toolbar + bottom nav) = controls; hide while drawing           *
- *                                                                      *
- *  Width: 100 vw on portrait phones.                                   *
- *         Capped to 100dvh × 9/16 on wide screens so canvas           *
- *         never taller than the viewport.                              *
- *  Height: derived from width via aspect-ratio (9:16).                 *
- *  Anchored to top of viewport; black body shows below on             *
- *  devices taller than 9:16 (e.g. iPhone 14 and up).                  *
- * ─────────────────────────────────────────────────────────────────── */
+/* ── White canvas — fills the full visible browser viewport ── *
+ *                                                               *
+ *  Like Instagram Story: the canvas IS the screen.             *
+ *  No black bars, no leftover gaps.                            *
+ *                                                              *
+ *  Z-index stack (page level):                                 *
+ *    0 (body)    = black background                            *
+ *    1 (.screen) = white canvas, 20 px radius                  *
+ *    2 (toolbar + bottom nav) = controls; hide while drawing   *
+ * ─────────────────────────────────────────────────────────── */
 body.inviter-mode .screen {
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-
-  /* 100 vw on portrait phones; capped so it never overflows viewport height */
-  width: min(100vw, calc(100dvh * 9 / 16));
-  aspect-ratio: 9 / 16;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
 
   background: #F7F5F2;
 
