@@ -243,7 +243,8 @@ body.inviter-mode .s6-tools.out     { opacity: 0; transform: translateX(32px); p
 /* Main bottom bar */
 body.inviter-mode .s6-bottom-bar {
   position: absolute;
-  left: 3.5vw; right: 3.5vw; top: auto; bottom: 3.5dvh;
+  left: 3.5vw; right: 3.5vw; top: auto;
+  bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px));
   display: flex; align-items: center; gap: 6px;
   z-index: 6;
   opacity: 0; transform: translateY(24px);
@@ -558,7 +559,8 @@ body.inviter-mode #tmLeftPanel.tm-resizing #tmSizeHandle {
 /* ── Tool-mode bottom bar ── */
 #tmToolBar, #tmPenBar, #tmEraserBar {
   position: absolute;
-  left: 16px; right: 16px; top: auto; bottom: 16px;
+  left: 16px; right: 16px; top: auto;
+  bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px));
   background: rgba(18,18,28,0.82);
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border: none;
