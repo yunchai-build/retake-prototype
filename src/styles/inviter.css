@@ -163,32 +163,41 @@ body.inviter-mode .s6-exit-btn:active  { background: rgba(238,255,1,0.45); trans
 .history-btn:active  { background: rgba(238,255,1,0.45); transform: scale(0.88); }
 .history-btn:disabled { opacity: 0.25; pointer-events: none; }
 
-/* Right vertical toolbar */
+/* Right vertical toolbar — single glass pill wrapping all icons */
 body.inviter-mode .s6-tools {
   position: absolute;
   right: 4.5vw; top: 3.5dvh;
-  display: flex; flex-direction: column; gap: 16px;
+  display: flex; flex-direction: column; gap: 4px;
   z-index: 6;
   opacity: 0; transform: translateX(22px);
   transition: opacity 0.32s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
   pointer-events: none;
   touch-action: manipulation;
+
+  /* glass pill container */
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(40px) saturate(160%);
+  -webkit-backdrop-filter: blur(40px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  border-radius: 999px;
+  padding: 6px;
 }
 body.inviter-mode .s6-tools.visible { opacity: 1; transform: translateX(0); pointer-events: auto; }
 body.inviter-mode .s6-tools.out     { opacity: 0; transform: translateX(32px); pointer-events: none; }
 
+/* Individual buttons — transparent inside the pill */
 .s6-tool-btn {
   width: 42px; height: 42px; padding: 9px;
-  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 50%;
-  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  background: transparent; border: none; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.1s ease;
 }
 .s6-tool-btn:active { background: rgba(238,255,1,0.45); transform: scale(0.88); }
-.s6-tool-btn.active { background: #EEFF01; border-color: rgba(238,255,1,0.6); }
-.s6-tool-btn.active svg { stroke: #1A1A2E; }
+/* Active tool: filled circle inside pill */
+.s6-tool-btn.active { background: rgba(255,255,255,0.35); }
+.s6-tool-btn.active svg { stroke: white; }
 
 /* Main bottom bar */
 body.inviter-mode .s6-bottom-bar {
