@@ -186,14 +186,10 @@ body.inviter-mode .s6-tools {
 body.inviter-mode .s6-tools.visible { opacity: 1; transform: translateX(0); pointer-events: auto; }
 body.inviter-mode .s6-tools.out     { opacity: 0; transform: translateX(32px); pointer-events: none; }
 
-/* Individual buttons — uniform frosted circle, same for every icon */
+/* Individual buttons — transparent inside the pill, animate for collapse */
 .s6-tool-btn {
   width: 42px; padding: 9px;
-  /* Consistent subtle circle so all buttons look the same weight */
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.16);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
-  border-radius: 50%;
+  background: transparent; border: none; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   overflow: hidden;
@@ -204,16 +200,11 @@ body.inviter-mode .s6-tools.out     { opacity: 0; transform: translateX(32px); p
     padding-bottom 0.38s cubic-bezier(0.4, 0, 0.2, 1),
     opacity       0.25s ease,
     background    0.15s ease,
-    border-color  0.15s ease,
     transform     0.1s  ease;
 }
-.s6-tool-btn:active { background: rgba(238,255,1,0.45); border-color: rgba(238,255,1,0.3); transform: scale(0.88); transition-delay: 0ms !important; }
-/* Active tool: brighter circle */
-.s6-tool-btn.active {
-  background: rgba(255,255,255,0.28);
-  border-color: rgba(255,255,255,0.35);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 0 0 1px rgba(255,255,255,0.12);
-}
+.s6-tool-btn:active { background: rgba(238,255,1,0.45); transform: scale(0.88); transition-delay: 0ms !important; }
+/* Active tool: filled circle inside pill */
+.s6-tool-btn.active { background: rgba(255,255,255,0.35); }
 .s6-tool-btn.active svg { stroke: white; }
 
 /* ── Hidden (non-recent) buttons collapse instantly as a group ── */
