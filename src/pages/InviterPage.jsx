@@ -1,4 +1,7 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+
+// Fixed tool order — used to derive orderedToolIds from recentTools
+const ALL_TOOL_IDS = ['text', 'stickers', 'gallery', 'doodle', 'eraser', 'download'];
 import '../styles/inviter.css';
 import { useToast } from '../hooks/useToast';
 import { useStickerSystem } from '../hooks/useStickerSystem';
@@ -74,6 +77,14 @@ export default function InviterPage() {
   const [toolsOut, setToolsOut] = useState(false);
   const [toolsCollapsed, setToolsCollapsed] = useState(false);
   const toolsCollapsedRef = useRef(false);
+  // recentTools: IDs in most-recent-first order; first 3 shown when collapsed
+  const [recentTools, setRecentTools] = useState(['text', 'doodle', 'eraser']);
+  // orderedToolIds: recent 3 first, then the rest in default order
+  const orderedToolIds = useMemo(() => {
+    const recentSet = new Set(recentTools);
+    const rest = ALL_TOOL_IDS.filter(id => !recentSet.has(id));
+    return [...recentTools, ...rest];
+  }, [recentTools]);
   const [bottomBarVisible, setBottomBarVisible] = useState(false);
   const [bottomBarOut, setBottomBarOut] = useState(false);
   const [exitBtnOut, setExitBtnOut] = useState(false);
@@ -517,7 +528,7 @@ export default function InviterPage() {
     toolsCollapseTimerRef.current = setTimeout(() => {
       setToolsCollapsed(true);
       toolsCollapsedRef.current = true;
-    }, 1000);
+    }, 2000);
     await delay(60);
     setBottomBarVisible(true);
     setBottomBarOut(false);
@@ -779,36 +790,41 @@ export default function InviterPage() {
 
   // ── Handlers ──
   const handleToolDoodle = useCallback(() => {
+    addRecentTool('doodle');
     if (activeToolRef.current === 'doodle') { exitToolMode(); return; }
     if (activeToolRef.current) exitToolMode();
     setTimeout(() => {
       enterToolMode('doodle');
     }, activeToolRef.current ? 120 : 0);
-  }, [exitToolMode, enterToolMode]);
+  }, [exitToolMode, enterToolMode, addRecentTool]);
 
   const handleToolEraser = useCallback(() => {
+    addRecentTool('eraser');
     if (activeToolRef.current === 'eraser') { exitToolMode(); return; }
     if (activeToolRef.current) exitToolMode();
     setTimeout(() => {
       enterToolMode('eraser');
     }, activeToolRef.current ? 120 : 0);
-  }, [exitToolMode, enterToolMode]);
+  }, [exitToolMode, enterToolMode, addRecentTool]);
 
   const handleToolStickers = useCallback(() => {
+    addRecentTool('stickers');
     if (activeToolRef.current) exitToolMode();
     setTimeout(stickerSys.openPanel, activeToolRef.current ? 120 : 0);
-  }, [exitToolMode, stickerSys]);
+  }, [exitToolMode, stickerSys, addRecentTool]);
 
   const handleToolText = useCallback(() => {
+    addRecentTool('text');
     if (activeToolRef.current) exitToolMode();
-  }, [exitToolMode]);
+  }, [exitToolMode, addRecentTool]);
 
   const handleToolGallery = useCallback(() => {
+    addRecentTool('gallery');
     if (activeToolRef.current) exitToolMode();
     setTimeout(() => {
       if (galleryInputRef.current) galleryInputRef.current.click();
     }, 50);
-  }, [exitToolMode]);
+  }, [exitToolMode, addRecentTool]);
 
   const handleToolDownload = useCallback(() => {
     if (activeToolRef.current) exitToolMode();
@@ -828,6 +844,34 @@ export default function InviterPage() {
       showToast('Unable to save — try from a server');
     }
   }, [stickerSys, pushHistory, frameName, showToast]);
+
+  // ── Recent tools tracking ──
+  const addRecentTool = useCallback((toolId) => {
+    setRecentTools(prev => {
+      const filtered = prev.filter(id => id !== toolId);
+      return [toolId, ...filtered].slice(0, 3);
+    });
+  }, []);
+
+  // ── Chevron toggle (collapse ↔ expand) ──
+  const handleToggleTools = useCallback((e) => {
+    e.stopPropagation();
+    if (toolsCollapsedRef.current) {
+      // Expand
+      setToolsCollapsed(false);
+      toolsCollapsedRef.current = false;
+      clearTimeout(toolsCollapseTimerRef.current);
+      toolsCollapseTimerRef.current = setTimeout(() => {
+        setToolsCollapsed(true);
+        toolsCollapsedRef.current = true;
+      }, 4000);
+    } else {
+      // Collapse
+      clearTimeout(toolsCollapseTimerRef.current);
+      setToolsCollapsed(true);
+      toolsCollapsedRef.current = true;
+    }
+  }, []);
 
   const handleGalleryChange = useCallback(async (e) => {
     const file = e.target.files[0];
@@ -1018,123 +1062,99 @@ export default function InviterPage() {
         </button>
       </div>
 
-      {/* Right vertical toolbar */}
+      {/* Right vertical toolbar — dynamic order, recent tools first */}
       <div
         className={`s6-tools${toolsVisible ? ' visible' : ''}${toolsOut ? ' out' : ''}${toolsCollapsed ? ' tools-collapsed' : ''}${labelsExpanded ? ' labels-expanded' : ''}`}
         id="s6Tools"
-        onClick={() => {
-          if (!toolsCollapsedRef.current) return;
-          setToolsCollapsed(false);
-          toolsCollapsedRef.current = false;
-          clearTimeout(toolsCollapseTimerRef.current);
-          toolsCollapseTimerRef.current = setTimeout(() => {
-            setToolsCollapsed(true);
-            toolsCollapsedRef.current = true;
-          }, 4000);
-        }}
       >
-        {/* 3-dot handle — shown only when collapsed */}
-        <div className="s6-tools-handle" aria-hidden="true">
-          <span /><span /><span />
-        </div>
-        <button className={`s6-tool-btn${activeTool === 'text' ? ' active' : ''}`}
-          id="btnToolText" aria-label="Text"
-          onClick={handleToolText}
-          onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="4" y1="5" x2="20" y2="5" />
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="9" y1="19" x2="15" y2="19" />
-          </svg>
-          <span className="tool-label">Text</span>
-        </button>
+        {orderedToolIds.map((toolId, index) => {
+          const hidden = toolsCollapsed && index >= 3;
+          const cls = `s6-tool-btn${hidden ? ' btn-hidden' : ''}`;
+          switch (toolId) {
+            case 'text': return (
+              <button key="text" className={`${cls}${activeTool === 'text' ? ' active' : ''}`}
+                id="btnToolText" aria-label="Text"
+                onClick={handleToolText}
+                onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="5" x2="20" y2="5" /><line x1="12" y1="5" x2="12" y2="19" /><line x1="9" y1="19" x2="15" y2="19" />
+                </svg>
+                <span className="tool-label">Text</span>
+              </button>
+            );
+            case 'stickers': return (
+              <button key="stickers" className={cls} id="btnToolStickers" aria-label="Stickers"
+                onClick={handleToolStickers}
+                onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ overflow: 'visible' }}>
+                  <defs><mask id="smileyMask"><rect width="24" height="24" fill="white" /><circle cx="9" cy="10" r="1.5" fill="black" /><circle cx="15" cy="10" r="1.5" fill="black" /><path d="M8 14.5 Q12 18 16 14.5" stroke="black" strokeWidth="2" strokeLinecap="round" fill="none" /></mask></defs>
+                  <circle cx="11" cy="13" r="9.5" fill="white" mask="url(#smileyMask)" />
+                  <line x1="18" y1="4" x2="23" y2="4" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                  <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                <span className="tool-label">Stickers</span>
+              </button>
+            );
+            case 'gallery': return (
+              <button key="gallery" className={cls} id="btnToolGallery" aria-label="Photo"
+                onClick={handleToolGallery}
+                onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ overflow: 'visible' }}>
+                  <defs><clipPath id="photoClip"><rect x="3" y="4" width="15" height="15" rx="2" /></clipPath></defs>
+                  <g clipPath="url(#photoClip)" fill="white"><circle cx="7.5" cy="9" r="1.8" /><path d="M3 19 L8 12.5 L10.5 15.5 L13.5 11.5 L18 19 Z" /></g>
+                  <rect x="3" y="4" width="15" height="15" rx="2" stroke="white" strokeWidth="1.5" fill="none" />
+                  <line x1="18" y1="4" x2="23" y2="4" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                  <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                <span className="tool-label">Photo</span>
+              </button>
+            );
+            case 'doodle': return (
+              <button key="doodle" className={`${cls}${activeTool === 'doodle' ? ' active' : ''}`}
+                id="btnToolDoodle" aria-label="Draw"
+                onClick={handleToolDoodle}
+                onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" /><line x1="15" y1="5" x2="19" y2="9" />
+                </svg>
+                <span className="tool-label">Draw</span>
+              </button>
+            );
+            case 'eraser': return (
+              <button key="eraser" className={`${cls}${activeTool === 'eraser' ? ' active' : ''}`}
+                id="btnToolEraser" aria-label="Eraser"
+                onClick={handleToolEraser}
+                onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <defs><clipPath id="circleClip"><circle cx="12" cy="12" r="10" /></clipPath></defs>
+                  <rect x="2" y="2" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="7" y="2" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="12" y="2" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="17" y="2" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
+                  <rect x="2" y="7" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="7" y="7" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="12" y="7" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="17" y="7" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
+                  <rect x="2" y="12" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="7" y="12" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="12" y="12" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="17" y="12" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
+                  <rect x="2" y="17" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="7" y="17" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" /><rect x="12" y="17" width="5" height="5" fill="white" clipPath="url(#circleClip)" /><rect x="17" y="17" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
+                  <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" />
+                </svg>
+                <span className="tool-label">Eraser</span>
+              </button>
+            );
+            case 'download': return (
+              <button key="download" className={cls} id="btnToolDownload" aria-label="Download"
+                onClick={handleToolDownload}
+                onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3v11" /><polyline points="8 10 12 14 16 10" /><line x1="5" y1="19" x2="19" y2="19" />
+                </svg>
+                <span className="tool-label">Save</span>
+              </button>
+            );
+            default: return null;
+          }
+        })}
 
-        <button className="s6-tool-btn" id="btnToolStickers" aria-label="Stickers"
-          onClick={handleToolStickers}
-          onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ overflow: 'visible' }}>
-            <defs>
-              <mask id="smileyMask">
-                <rect width="24" height="24" fill="white" />
-                <circle cx="9" cy="10" r="1.5" fill="black" />
-                <circle cx="15" cy="10" r="1.5" fill="black" />
-                <path d="M8 14.5 Q12 18 16 14.5" stroke="black" strokeWidth="2" strokeLinecap="round" fill="none" />
-              </mask>
-            </defs>
-            <circle cx="11" cy="13" r="9.5" fill="white" mask="url(#smileyMask)" />
-            <line x1="18" y1="4" x2="23" y2="4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        {/* Flat chevron — collapses/expands the pill */}
+        <button className="s6-tools-chevron" aria-label="Toggle toolbar" onClick={handleToggleTools}>
+          <svg width="14" height="8" viewBox="0 0 14 8" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="1 1 7 7 13 1" />
           </svg>
-          <span className="tool-label">Stickers</span>
-        </button>
-
-        <button className="s6-tool-btn" id="btnToolGallery" aria-label="Photo"
-          onClick={handleToolGallery}
-          onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ overflow: 'visible' }}>
-            <defs>
-              <clipPath id="photoClip">
-                <rect x="3" y="4" width="15" height="15" rx="2" />
-              </clipPath>
-            </defs>
-            <g clipPath="url(#photoClip)" fill="white">
-              <circle cx="7.5" cy="9" r="1.8" />
-              <path d="M3 19 L8 12.5 L10.5 15.5 L13.5 11.5 L18 19 Z" />
-            </g>
-            <rect x="3" y="4" width="15" height="15" rx="2" stroke="white" strokeWidth="1.5" fill="none" />
-            <line x1="18" y1="4" x2="23" y2="4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            <line x1="20.5" y1="1.5" x2="20.5" y2="6.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-          <span className="tool-label">Photo</span>
-        </button>
-
-        <button className={`s6-tool-btn${activeTool === 'doodle' ? ' active' : ''}`}
-          id="btnToolDoodle" aria-label="Draw"
-          onClick={handleToolDoodle}
-          onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-            <line x1="15" y1="5" x2="19" y2="9" />
-          </svg>
-          <span className="tool-label">Draw</span>
-        </button>
-
-        <button className={`s6-tool-btn${activeTool === 'eraser' ? ' active' : ''}`}
-          id="btnToolEraser" aria-label="Eraser"
-          onClick={handleToolEraser}
-          onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <defs><clipPath id="circleClip"><circle cx="12" cy="12" r="10" /></clipPath></defs>
-            <rect x="2" y="2" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
-            <rect x="7" y="2" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
-            <rect x="12" y="2" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
-            <rect x="17" y="2" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
-            <rect x="2" y="7" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
-            <rect x="7" y="7" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
-            <rect x="12" y="7" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
-            <rect x="17" y="7" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
-            <rect x="2" y="12" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
-            <rect x="7" y="12" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
-            <rect x="12" y="12" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
-            <rect x="17" y="12" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
-            <rect x="2" y="17" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
-            <rect x="7" y="17" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
-            <rect x="12" y="17" width="5" height="5" fill="white" clipPath="url(#circleClip)" />
-            <rect x="17" y="17" width="5" height="5" fill="#c0c0c0" clipPath="url(#circleClip)" />
-            <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" />
-          </svg>
-          <span className="tool-label">Eraser</span>
-        </button>
-
-        <button className="s6-tool-btn" id="btnToolDownload" aria-label="Download"
-          onClick={handleToolDownload}
-          onMouseEnter={handleToolMouseEnter} onMouseLeave={handleToolMouseLeave}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 3v11" />
-            <polyline points="8 10 12 14 16 10" />
-            <line x1="5" y1="19" x2="19" y2="19" />
-          </svg>
-          <span className="tool-label">Save</span>
         </button>
       </div>
 
