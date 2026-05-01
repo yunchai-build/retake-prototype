@@ -1,0 +1,922 @@
+@font-face {
+  font-family: 'Bedstead';
+  src: url('/bedstead-extracondensed.otf') format('opentype');
+  font-weight: normal; font-style: normal;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Inviter-specific layout (scoped via JS class to avoid CSS bundle conflicts) ── */
+body.inviter-mode {
+  background: #000;
+  margin: 0; padding: 0;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+button { -webkit-tap-highlight-color: transparent; }
+
+
+/* ── Phone frame — centred in black body, 9∶16 responsive ── *
+ *                                                              *
+ *  Figma ref: node 878:3509 (iPhone 16 Plus – 2)              *
+ *  Total frame = 430 × 824 px                                 *
+ *  Top status-bar zone = 60 px  →  60/824 = 7.28 %           *
+ *  Canvas = 430 × 764 px = exactly 9:16 ratio                 *
+ *  Border-radius = 20 px at 430 px width ≈ 4.5 vw            *
+ *                                                              *
+ *  Responsive strategy:                                        *
+ *    • Mobile portrait (most beta users):                      *
+ *      canvas fills 100 vw × 92.7 dvh (below the top bar)    *
+ *    • Desktop / tablet:                                       *
+ *      canvas is 9:16, centred on the black body              *
+ * ─────────────────────────────────────────────────────────── */
+body.inviter-mode .screen {
+  position: absolute;
+
+  /* ── Top status-bar zone (matches Figma 60/824 = 7.28 %) ── */
+  top: 7.3dvh;
+
+  /* ── Canvas fills the rest of the viewport height ── */
+  height: 92.7dvh;
+
+  /* ── Width: 9/16 of canvas height, capped at viewport width.
+         On most phones (portrait) this equals 100 vw.
+         On wide viewports the canvas stays 9:16-proportioned. ── */
+  width: min(100vw, calc(92.7dvh * 9 / 16));
+
+  /* ── Centre horizontally in the black body ── */
+  left: 50%;
+  transform: translateX(-50%);
+
+  background: #F7F5F2;
+
+  /* overflow: clip — does NOT create a scroll container (unlike
+     overflow: hidden), so Blink cannot programmatically set scrollTop */
+  overflow: clip;
+
+  /* ── Border-radius: Figma = 20 px at 430 px canvas width ≈ 4.5 vw ── */
+  border-radius: clamp(14px, 4.5vw, 22px);
+
+  /* Subtle elevation so the canvas reads as a lifted screen */
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.07),
+    0 24px 80px rgba(0,0,0,0.55);
+}
+
+
+/* ── Frame container ── */
+body.inviter-mode #frameContainer {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  overflow: hidden;
+  z-index: 1;
+  box-shadow: none;
+}
+
+#checkerBg {
+  position: absolute; left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: #e8e8e8;
+  background-image:
+    linear-gradient(45deg, #d0d0d0 25%, transparent 25%),
+    linear-gradient(-45deg, #d0d0d0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #d0d0d0 75%),
+    linear-gradient(-45deg, transparent 75%, #d0d0d0 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  z-index: 0;
+}
+
+body.inviter-mode #editCanvas {
+  position: absolute; inset: 0;
+  width: 100% !important; height: 100% !important;
+  z-index: 2;
+  cursor: none;
+  touch-action: none;
+}
+body.inviter-mode #editCanvas.no-tool { cursor: default; pointer-events: none; }
+
+#brushCursor {
+  position: absolute;
+  pointer-events: none; z-index: 10;
+  transform: translate(-50%, -50%);
+  display: none;
+}
+
+
+/* ── Edge gradient scrim (always on when editor is open) ── */
+#frameScrim {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.08) 12%, rgba(0,0,0,0) 24%),
+    linear-gradient(to top,   rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.08) 12%, rgba(0,0,0,0) 24%);
+  pointer-events: none; z-index: 5;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+#frameScrim.visible { opacity: 1; }
+
+
+/* ════════════════════════════════════════════
+   DEFAULT EDITOR UI  (visible when no tool active)
+════════════════════════════════════════════ */
+
+/* Top-left: × exit */
+body.inviter-mode .s6-exit-btn {
+  position: absolute;
+  left: 4.5vw; top: 9.5dvh;
+  width: 42px; height: 42px;
+  background: rgba(0,0,0,0.28); border: none; border-radius: 50%;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 6;
+  opacity: 0; transform: translateY(-16px);
+  transition: opacity 0.32s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
+  pointer-events: none;
+}
+body.inviter-mode .s6-exit-btn.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+body.inviter-mode .s6-exit-btn.out     { opacity: 0; transform: translateY(-16px); pointer-events: none; }
+body.inviter-mode .s6-exit-btn:active  { background: rgba(0,0,0,0.45); transform: scale(0.88); }
+
+/* Top-center: ↩ ↪ undo/redo */
+#undoRedoCluster {
+  position: absolute;
+  left: 50%; top: 9.5dvh;
+  transform: translateX(-50%) translateY(-16px);
+  display: flex; gap: 4px;
+  z-index: 6;
+  opacity: 0;
+  transition: opacity 0.35s ease 0.05s, transform 0.4s cubic-bezier(0.22,1,0.36,1) 0.05s;
+  pointer-events: none;
+}
+#undoRedoCluster.visible { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+#undoRedoCluster.out     { opacity: 0; transform: translateX(-50%) translateY(-16px); pointer-events: none; }
+
+.history-btn {
+  width: 42px; height: 42px;
+  background: transparent; border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+.history-btn:active  { opacity: 0.6; transform: scale(0.88); }
+.history-btn:disabled { opacity: 0.25; pointer-events: none; }
+
+/* Right vertical toolbar */
+body.inviter-mode .s6-tools {
+  position: absolute;
+  right: 4.5vw; top: 9.5dvh;
+  display: flex; flex-direction: column; gap: 16px;
+  z-index: 6;
+  opacity: 0; transform: translateX(22px);
+  transition: opacity 0.32s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
+  pointer-events: none;
+  touch-action: manipulation;
+}
+body.inviter-mode .s6-tools.visible { opacity: 1; transform: translateX(0); pointer-events: auto; }
+body.inviter-mode .s6-tools.out     { opacity: 0; transform: translateX(32px); pointer-events: none; }
+
+.s6-tool-btn {
+  width: 42px; height: 42px; padding: 9px;
+  background: rgba(0,0,0,0.28); border: none; border-radius: 50%;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.1s ease, transform 0.1s ease;
+}
+.s6-tool-btn:active { opacity: 0.6; transform: scale(0.88); }
+.s6-tool-btn.active { background: rgba(255,255,255,0.92); }
+.s6-tool-btn.active svg { stroke: #1A1A2E; }
+
+/* Main bottom bar */
+body.inviter-mode .s6-bottom-bar {
+  position: absolute;
+  left: 3.5vw; right: 3.5vw; top: auto; bottom: 3.5dvh;
+  display: flex; align-items: center; gap: 10px;
+  z-index: 6;
+  opacity: 0; transform: translateY(24px);
+  transition: opacity 0.38s ease, transform 0.48s cubic-bezier(0.22,1,0.36,1);
+  pointer-events: none;
+  background: rgba(18,18,28,0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 999px;
+  padding: 10px 10px 10px 16px;
+}
+body.inviter-mode .s6-bottom-bar.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+body.inviter-mode .s6-bottom-bar.out     { opacity: 0; transform: translateY(32px); pointer-events: none; }
+
+/* Generic dark circle button */
+.s6-circle-btn {
+  width: 52px; height: 52px; flex-shrink: 0;
+  background: rgba(255,255,255,0.12); border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.1s ease, transform 0.1s ease;
+}
+.s6-circle-btn:active { background: rgba(255,255,255,0.22); transform: scale(0.9); }
+.s6-circle-btn svg { stroke: white; }
+
+/* Gallery — rounded square, same height as send btn so pill gap is uniform */
+#btnGallery {
+  width: 46px; height: 46px;
+  border-radius: 13px;
+  background: rgba(255,255,255,0.12);
+}
+
+/* Frame title tap button (in nav bar) */
+.s6-frame-title-btn {
+  flex: 1; min-width: 0;
+  background: none; border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 4px 8px; border-radius: 999px;
+  transition: background 0.12s ease;
+}
+.s6-frame-title-btn:active { background: rgba(255,255,255,0.1); }
+#frameNameDisplay {
+  font-family: 'Bedstead', monospace; font-size: 16px; font-weight: 400;
+  color: rgba(255,255,255,0.95); letter-spacing: 0.03em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Edit-name bottom sheet (same yellow card as share popup) */
+.edit-name-field {
+  background: rgba(26,26,46,0.08); border-radius: 16px;
+  padding: 14px 16px; margin-top: 16px;
+}
+.edit-name-input {
+  width: 100%; background: none; border: none; outline: none;
+  font-family: 'Bedstead', monospace; font-size: 22px;
+  color: #1A1A2E; letter-spacing: 0.04em;
+  caret-color: #1A1A2E;
+}
+.edit-name-input::placeholder { color: rgba(26,26,46,0.3); }
+.edit-name-save {
+  width: 100%; padding: 18px;
+  background: #1A1A2E; color: white;
+  font-family: 'Bedstead', monospace; font-size: 16px; letter-spacing: 0.05em;
+  border: none; border-radius: 16px;
+  cursor: pointer; margin-top: 12px;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+.edit-name-save:active { opacity: 0.8; transform: scale(0.98); }
+
+/* Share — prominent white circle */
+.s6-send-btn {
+  width: 56px; height: 56px; background: white;
+  border: none; border-radius: 50%;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.28);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.s6-send-btn:active { background: #EEFF01; transform: scale(0.91); box-shadow: 0 1px 6px rgba(0,0,0,0.2); }
+
+
+/* ════════════════════════════════════════════
+   IMMERSIVE TOOL MODE UI
+   Replaces all chrome when eraser or doodle is active.
+   The canvas fills the whole screen.
+════════════════════════════════════════════ */
+
+/* Shared enter/exit transitions for tool-mode elements */
+.tool-mode-el {
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1);
+}
+.tool-mode-el.tm-in  { opacity: 1; pointer-events: auto; }
+
+/* Top-left: undo/redo in tool mode */
+body.inviter-mode #tmUndoRedo {
+  position: absolute;
+  left: 50%; top: 9.5dvh;
+  transform: translateX(-50%) translateY(-14px);
+  display: flex; gap: 4px;
+  z-index: 8;
+}
+body.inviter-mode #tmUndoRedo.tm-in { transform: translateX(-50%) translateY(0); }
+
+/* Top-right: "Done" pill */
+body.inviter-mode #tmDoneBtn {
+  position: absolute;
+  right: 4.5vw; top: 9.5dvh;
+  height: 38px;
+  background: white; border: none; border-radius: 999px;
+  padding: 0 20px;
+  font-family: 'Bedstead', monospace; font-size: 15px;
+  color: #1A1A2E; letter-spacing: 0.02em;
+  cursor: pointer; z-index: 8;
+  display: flex; align-items: center;
+  transform: translateY(-14px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1),
+              background 0.1s ease;
+}
+body.inviter-mode #tmDoneBtn.tm-in { transform: translateY(0); }
+body.inviter-mode #tmDoneBtn:active { background: #EEFF01; transform: scale(0.95) translateY(0); }
+
+/* Shared bottom strip base — appears in place of main bottom bar */
+.tm-bottom-strip {
+  position: absolute;
+  left: 3.5vw; right: 3.5vw; top: auto; bottom: 3.5dvh;
+  background: rgba(18,18,28,0.82);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-radius: 999px;
+  padding: 0 20px;
+  height: 76px;
+  display: flex; align-items: center; gap: 0;
+  z-index: 8;
+  transform: translateY(32px);
+}
+.tm-bottom-strip.tm-in { transform: translateY(0); }
+
+/* Thin divider between control groups */
+.tm-divider {
+  width: 1px; height: 28px;
+  background: rgba(255,255,255,0.15);
+  flex-shrink: 0; margin: 0 14px;
+}
+
+/* Icon in the strip */
+.tm-icon {
+  width: 20px; height: 20px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  margin-right: 8px;
+}
+
+/* Value label */
+.tm-val {
+  font-family: 'Bedstead', monospace; font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  width: 34px; text-align: right; flex-shrink: 0; margin-left: 8px;
+}
+
+/* Range sliders in strips */
+input[type="range"] {
+  -webkit-appearance: none;
+  flex: 1; height: 3px; border-radius: 2px;
+  outline: none; cursor: pointer; min-width: 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px; background: white; border-radius: 50%;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.32); cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px; height: 20px; background: white; border-radius: 50%;
+  border: none; box-shadow: 0 1px 6px rgba(0,0,0,0.32);
+}
+#eraserSizeSlider {
+  background: linear-gradient(to right,
+    rgba(255,255,255,0.82) var(--fill,25%),
+    rgba(255,255,255,0.15) var(--fill,25%));
+}
+#eraserOpacitySlider {
+  background: linear-gradient(to right,
+    #EEFF01 var(--fill,100%),
+    rgba(255,255,255,0.15) var(--fill,100%));
+}
+#doodleSizeSlider {
+  background: linear-gradient(to right,
+    rgba(255,255,255,0.82) var(--fill,12%),
+    rgba(255,255,255,0.15) var(--fill,12%));
+}
+
+/* Color swatches in doodle strip */
+.tm-swatches {
+  display: flex; gap: 7px; align-items: center; flex-shrink: 0;
+}
+.tm-swatch {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: none; cursor: pointer; flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+}
+.tm-swatch:active { transform: scale(0.85); }
+.tm-swatch.active::after {
+  content: '';
+  position: absolute; inset: -3px;
+  border-radius: 50%;
+  border: 2.5px solid white;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+}
+
+
+/* ── Toolbar labels & expand ── */
+.s6-tool-btn { position: relative; }
+.tool-label {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%; transform: translateY(-50%);
+  font-family: 'Bedstead', monospace; font-size: 12px; color: rgba(255,255,255,0.92);
+  white-space: nowrap;
+  background: rgba(0,0,0,0.28);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  padding: 5px 10px; border-radius: 999px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+body.inviter-mode .s6-tools.labels-expanded .tool-label { opacity: 1; }
+
+/* ── Tool-mode left panel (collapsible size bar) ── */
+body.inviter-mode #tmLeftPanel {
+  position: absolute;
+  left: 0; top: calc(50% - 120px); /* vertically centered on canvas */
+  width: 56px; height: 240px;
+  background: rgba(18,18,28,0.82);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-radius: 0 20px 20px 0;
+  z-index: 8;
+  opacity: 0; pointer-events: none;
+  transform: translateX(-36px);
+  transition: opacity 0.28s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
+}
+body.inviter-mode #tmLeftPanel.tm-in {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(0);
+}
+body.inviter-mode #tmLeftPanel.tm-in.lp-collapsed {
+  transform: translateX(-28px);
+}
+
+/* Track line — only between the two indicator dots */
+body.inviter-mode #tmLeftPanel::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 38px; bottom: 30px;
+  width: 2px; transform: translateX(-50%);
+  background: rgba(255,255,255,0.2);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+/* Max size indicator (top) */
+#tmTrackTop {
+  position: absolute;
+  width: 16px; height: 16px;
+  background: rgba(255,255,255,0.45); border-radius: 50%;
+  top: 14px; left: 50%; transform: translateX(-50%);
+}
+
+/* Min size indicator (bottom) */
+#tmTrackBottom {
+  position: absolute;
+  width: 5px; height: 5px;
+  background: rgba(255,255,255,0.45); border-radius: 50%;
+  bottom: 14px; left: 50%; transform: translateX(-50%);
+}
+
+#tmSizeHandle {
+  position: absolute;
+  background: white; border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  cursor: grab;
+  transition: width 0.06s ease, height 0.06s ease, top 0.06s ease, left 0.06s ease;
+}
+
+/* ── Tool-mode bottom bar (styled like main nav bar) ── */
+#tmToolBar, #tmPenBar, #tmEraserBar {
+  position: absolute;
+  left: 3.5vw; right: 3.5vw; top: auto; bottom: 3.5dvh;
+  background: rgba(18,18,28,0.82);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-radius: 999px; padding: 0 20px; height: 76px;
+  display: flex; align-items: center; gap: 0;
+  z-index: 8;
+  opacity: 0; transform: translateY(32px); pointer-events: none;
+  transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1);
+}
+#tmToolBar.tm-in, #tmPenBar.tm-in, #tmEraserBar.tm-in {
+  opacity: 1; transform: translateY(0); pointer-events: auto;
+}
+
+/* Content inside tool bar */
+.tm-swatches {
+  display: flex; gap: 8px; align-items: center; flex: 1;
+}
+.tm-swatch {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: none; cursor: pointer; flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+}
+.tm-swatch:active { transform: scale(0.85); }
+.tm-swatch.active::after {
+  content: '';
+  position: absolute; inset: -3px;
+  border-radius: 50%;
+  border: 2.5px solid white;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+}
+
+.tm-divider {
+  width: 1px; height: 28px;
+  background: rgba(255,255,255,0.15);
+  flex-shrink: 0; margin: 0 12px;
+}
+
+.tm-pen-types { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.pen-type-btn {
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,0.1); border: none; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0;
+  transition: background 0.15s;
+}
+.pen-type-btn.active { background: rgba(255,255,255,0.78); }
+
+/* Eraser shape selector */
+.eraser-shapes { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+.eraser-shape-btn {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.12); border: none; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
+}
+.eraser-shape-btn:active { transform: scale(0.88); }
+.eraser-shape-btn.active { background: rgba(255,255,255,0.82); }
+.eraser-shape-btn svg { stroke: white; }
+.eraser-shape-btn.active svg { stroke: #1A1A2E; }
+
+/* Eraser opacity in bar */
+.tm-icon {
+  width: 22px; height: 22px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  margin-right: 10px;
+}
+.tm-val {
+  font-family: 'Bedstead', monospace; font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  width: 38px; text-align: right; flex-shrink: 0; margin-left: 8px;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  flex: 1; height: 3px; border-radius: 2px;
+  outline: none; cursor: pointer; min-width: 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px; background: white; border-radius: 50%;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.32); cursor: pointer;
+}
+#eraserOpacitySlider {
+  background: linear-gradient(to right,
+    #F0E84A var(--fill,100%),
+    rgba(255,255,255,0.15) var(--fill,100%));
+}
+
+/* ── Watermark ── */
+body.inviter-mode .watermark {
+  position: absolute; left: 50%; transform: translateX(-50%); top: auto; bottom: 3.5dvh;
+  color: rgba(255,255,255,0.5); font-family: 'Bedstead', monospace;
+  font-size: 11px; letter-spacing: 0.04em; white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.3);
+  pointer-events: none; z-index: 6;
+}
+
+
+/* ── Toast ── */
+body.inviter-mode .s6-toast {
+  position: absolute; bottom: 14dvh; left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  width: fit-content; white-space: nowrap;
+  background: rgba(18,18,28,0.88);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-radius: 999px; padding: 12px 24px;
+  z-index: 12; opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.22,1,0.36,1);
+  font-family: 'Bedstead', monospace; font-size: 15px; color: white;
+}
+body.inviter-mode .s6-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+
+/* ── Share popup ── */
+.share-pop {
+  position: absolute; left: 4.5vw; right: 4.5vw; bottom: 0;
+  transform: translateY(100%);
+  background: #F0E84A; border-radius: 28px 28px 0 0;
+  padding: 28px 28px 44px;
+  display: flex; flex-direction: column; gap: 12px;
+  z-index: 11; opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.48s cubic-bezier(0.22,1,0.36,1);
+}
+.share-pop.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.s7-pop-title { font-family: 'Bedstead', monospace; font-size: 30px; color: #1A1A2E; line-height: 1; }
+.s7-pop-dim   { font-family: 'Bedstead', monospace; font-size: 30px; color: rgba(26,26,46,0.42); line-height: 1; }
+.s7-pop-subtitle { font-family: 'Bedstead', monospace; font-size: 15px; color: rgba(26,26,46,0.6); }
+.s7-pop-code-row {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  background: rgba(26,26,46,0.08); border-radius: 16px; padding: 14px 16px;
+}
+.s7-pop-code { flex: 1; font-family: 'Bedstead', monospace; font-size: 22px; color: #1A1A2E; letter-spacing: 0.12em; }
+.s7-pop-copy-btn {
+  width: 36px; height: 36px; background: #1A1A2E; border: none; border-radius: 10px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  padding: 0; flex-shrink: 0;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+.s7-pop-copy-btn:active { opacity: 0.7; transform: scale(0.91); }
+.s7-pop-copy-btn svg { stroke: white; }
+
+
+/* ── Scrim ── */
+.scrim {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.4);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease; z-index: 10;
+}
+.scrim.visible { opacity: 1; pointer-events: auto; }
+
+
+/* ── Intro card ── */
+.invite-card {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -48%) scale(0.88);
+  opacity: 0; pointer-events: none; z-index: 11;
+  background: #F0E84A; border-radius: 28px; padding: 28px; width: 360px;
+  display: flex; flex-direction: column; gap: 24px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.32), 0 4px 16px rgba(0,0,0,0.14);
+  transition: opacity 0.38s ease, transform 0.42s cubic-bezier(0.22,1,0.36,1);
+}
+.invite-card.visible { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+.app-icon {
+  width: 44px; height: 44px; border-radius: 14px; background: #1A1A2E;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bedstead', monospace; font-size: 16px; color: #F0E84A; flex-shrink: 0;
+}
+.card-content { display: flex; flex-direction: column; gap: 20px; }
+.card-text    { display: flex; flex-direction: column; gap: 0; }
+.card-username { color: #1A1A2E; font-family: 'Bedstead', monospace; font-size: 42px; line-height: 1.0; }
+.card-subtitle { color: rgba(26,26,46,0.6); font-family: 'Bedstead', monospace; font-size: 42px; line-height: 1.0; }
+.card-buttons { display: flex; gap: 10px; }
+.btn {
+  flex: 1; padding: 16px 0; border-radius: 18px;
+  font-family: 'Bedstead', monospace; font-size: 18px;
+  cursor: pointer; border: none; text-align: center;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+.btn:active { opacity: 0.78; transform: scale(0.97); }
+.btn-primary   { background: #1A1A2E; color: #F0E84A; }
+.btn-secondary { background: rgba(26,26,46,0.10); color: #1A1A2E; }
+
+
+/* ── Confirm dialog ── */
+.confirm-scrim {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.42); z-index: 12;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+}
+.confirm-scrim.visible { opacity: 1; pointer-events: auto; }
+.confirm-dialog {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, calc(-50% + 24px));
+  width: 320px; background: #fff; border-radius: 28px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.16); padding: 28px 24px 22px;
+  z-index: 13; opacity: 0; pointer-events: none;
+  transition: opacity 0.24s ease, transform 0.36s cubic-bezier(0.34,1.2,0.64,1);
+}
+.confirm-dialog.visible { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%); }
+.confirm-message {
+  font-family: 'Bedstead', monospace; font-size: 17px;
+  color: #1A1A2E; text-align: center; line-height: 1.5; margin-bottom: 24px;
+}
+.confirm-buttons { display: flex; gap: 10px; }
+.confirm-btn {
+  flex: 1; height: 52px; border: none; border-radius: 18px;
+  font-family: 'Bedstead', monospace; font-size: 16px;
+  cursor: pointer; transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.confirm-btn:active { opacity: 0.78; transform: scale(0.96); }
+.confirm-btn-cancel { background: rgba(26,26,46,0.08); color: #1A1A2E; }
+.confirm-btn-ok     { background: #1A1A2E; color: white; }
+.confirm-btn-ok.danger { background: #FF3B30; }
+
+/* ── Intro card body text ── */
+.card-body {
+  font-family: 'Bedstead', monospace;
+  font-size: 14px;
+  color: rgba(26,26,46,0.52);
+  line-height: 1.6;
+  margin-top: -8px;
+}
+/* ── Intro card: photo pick CTA fills full width ── */
+.btn-photo {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-blank {
+  font-size: 15px;
+  padding: 12px 0;
+  opacity: 0.7;
+}
+
+/* ════════════════════════════════════════════
+   STICKER SYSTEM
+════════════════════════════════════════════ */
+
+/* Sticker Panel (slide-up overlay) */
+body.inviter-mode .sticker-panel {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(18,18,40,0.88);
+  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border: 1.5px solid rgba(45,42,255,0.2);
+  border-radius: 20px 20px 0 0;
+  z-index: 11;
+  display: flex; flex-direction: column;
+  transform: translateY(100%); opacity: 0;
+  transition: transform 0.44s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
+  pointer-events: none;
+}
+body.inviter-mode .sticker-panel.sp-visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+.sp-header {
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px 16px 0; position: relative; flex-shrink: 0;
+}
+.sp-title {
+  font-family: 'Bedstead', monospace; font-size: 18px;
+  color: white; letter-spacing: 0.02em;
+}
+.sp-close {
+  position: absolute; right: 14px;
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,0.1); border: none; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: opacity 0.1s, transform 0.1s;
+}
+.sp-close:active { opacity: 0.6; transform: scale(0.88); }
+
+/* Tab bar */
+.sp-tabs {
+  display: flex; gap: 6px; justify-content: center;
+  padding: 14px 0 10px; flex-shrink: 0;
+}
+.sp-tab {
+  width: 40px; height: 40px;
+  background: transparent; border: none; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s;
+}
+.sp-tab.active { background: rgba(255,255,255,0.15); }
+.sp-tab svg { stroke: rgba(255,255,255,0.5); }
+.sp-tab.active svg { stroke: white; }
+
+/* Content area */
+.sp-content { flex: 1; position: relative; overflow: hidden; }
+
+/* Empty state */
+.sp-empty {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; padding: 24px 36px;
+}
+.sp-empty-blob {
+  width: 148px; height: 148px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 72px; margin-bottom: 6px;
+}
+.sp-empty-title {
+  font-family: 'Bedstead', monospace; font-size: 20px;
+  color: white; text-align: center; line-height: 1.25;
+}
+.sp-empty-sub {
+  font-family: 'Bedstead', monospace; font-size: 13px;
+  color: rgba(255,255,255,0.5); text-align: center; line-height: 1.55;
+}
+.sp-get-started {
+  width: 100%; padding: 17px;
+  background: #6A00FF; color: white;
+  font-family: 'Bedstead', monospace; font-size: 16px; letter-spacing: 0.04em;
+  border: none; border-radius: 18px; cursor: pointer; margin-top: 6px;
+  transition: opacity 0.1s, transform 0.1s;
+}
+.sp-get-started:active { opacity: 0.8; transform: scale(0.98); }
+
+/* Sticker grid (3-col) */
+.sp-grid {
+  position: absolute; inset: 0;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 3px; overflow-y: auto; padding: 4px 0; align-content: start;
+}
+.sp-add-cell {
+  aspect-ratio: 1;
+  background: rgba(255,255,255,0.08);
+  border: none; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: opacity 0.1s;
+}
+.sp-add-cell:active { opacity: 0.6; }
+.sp-sticker-cell {
+  aspect-ratio: 1;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px; overflow: hidden;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px; border: none;
+  transition: opacity 0.1s, transform 0.1s;
+}
+.sp-sticker-cell:active { opacity: 0.7; transform: scale(0.93); }
+.sp-sticker-cell img { width: 100%; height: 100%; object-fit: contain; }
+
+/* Emoji grid (5-col) */
+.sp-emoji-grid {
+  position: absolute; inset: 0;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  overflow-y: auto; padding: 4px 0; align-content: start;
+}
+.sp-emoji-btn {
+  aspect-ratio: 1; background: none; border: none;
+  font-size: 34px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px; transition: background 0.1s, transform 0.1s;
+}
+.sp-emoji-btn:active { background: rgba(255,255,255,0.1); transform: scale(0.85); }
+
+/* ── New Sticker Screen ── */
+body.inviter-mode .new-sticker-screen {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(14,14,32,0.94);
+  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border: 1.5px solid rgba(45,42,255,0.2);
+  border-radius: 20px 20px 0 0;
+  z-index: 12;
+  display: flex; flex-direction: column;
+  transform: translateY(100%); opacity: 0;
+  transition: transform 0.44s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
+  pointer-events: none;
+}
+body.inviter-mode .new-sticker-screen.ns-visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+.ns-header {
+  display: flex; align-items: center; padding: 20px 16px 0;
+}
+.ns-title {
+  flex: 1; text-align: center;
+  font-family: 'Bedstead', monospace; font-size: 18px; color: white;
+}
+.ns-preview {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 28px; overflow: hidden;
+}
+.ns-preview img {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; border-radius: 14px;
+}
+.ns-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 48px 52px;
+}
+.ns-btn {
+  width: 48px; height: 48px;
+  background: white; border: 3.5px solid #1A1A2E;
+  border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 5px 0 #1A1A2E;
+  transition: opacity 0.1s, transform 0.1s;
+}
+.ns-btn:active { opacity: 0.7; transform: scale(0.91) translateY(3px); box-shadow: 0 2px 0 #1A1A2E; }
+
+/* ── Sticker overlay (placed stickers above canvas) ── */
+body.inviter-mode #stickerOverlay {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 4;
+}
+body.inviter-mode #stickerOverlay.stk-active { pointer-events: auto; }
+
+/* Placed sticker */
+.placed-sticker {
+  position: absolute; cursor: grab; touch-action: none; user-select: none;
+  transform-origin: center center;
+}
+.placed-sticker img { width: 100%; display: block; pointer-events: none; }
+.stk-del {
+  position: absolute; top: -13px; right: -13px;
+  width: 26px; height: 26px;
+  background: white; border: none; border-radius: 50%;
+  font-size: 15px; line-height: 1; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35); z-index: 2; color: #1A1A2E;
+}
+.placed-sticker.stk-selected .stk-del { display: flex; }
+.placed-sticker.stk-selected { outline: 2px dashed rgba(255,255,255,0.55); border-radius: 6px; outline-offset: 4px; }
+
+/* Responsive handled by min() in the .screen rule above — no media query needed */
