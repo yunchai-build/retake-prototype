@@ -8,7 +8,8 @@ import DrawingToolOverlays from '../components/DrawingToolOverlays.jsx';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
 
 const TIMER_STEPS = [0, 3, 6, 10];
-const frameName = 'babe, wake up';
+const DEFAULT_FRAME_NAME = 'babe, wake up';
+const DEFAULT_FRAME_URL = 'canvas-frame-teletubby.png';
 
 export default function InviteePage() {
   // ── DOM refs ──
@@ -73,6 +74,15 @@ export default function InviteePage() {
   const [activeTool, setActiveTool] = useState(null);
   const [doodleColor, setDoodleColor] = useState('#FFFFFF');
   const [penType, setPenType] = useState('pen');
+  const [frameUrl] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('frame') || DEFAULT_FRAME_URL;
+  });
+  const [frameName] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('name') || DEFAULT_FRAME_NAME;
+  });
+  const isCustomFrame = frameUrl !== DEFAULT_FRAME_URL;
 
   // Visibility states
   const [inviteCardVisible, setInviteCardVisible] = useState(false);
@@ -334,7 +344,9 @@ export default function InviteePage() {
     // 3. Placed stickers (non-destructive, properly async)
     await drawStickersToContext(cctx);
 
-    // 4. Frame overlay — replicate the CSS mask-image radial gradient in canvas.
+    // 4. Frame overlay.
+    //    Uploaded invite frames are transparent PNG overlays and can be drawn directly.
+    //    The built-in demo frame uses a CSS mask, so canvas reproduces that mask.
     //    The live UI uses:
     //      mask-image: radial-gradient(105px 105px at 50% 23%,
     //        rgba(0,0,0,0) 55%, rgba(0,0,0,0.5) 78%, rgb(0,0,0) 100%)
@@ -343,7 +355,14 @@ export default function InviteePage() {
     const frameEl = document.getElementById('yunchaiPhoto');
     if (frameEl && frameEl.complete && frameEl.naturalWidth > 0) {
       try {
-        // 4a. Draw raw frame onto a temp canvas
+        if (isCustomFrame) {
+          cctx.drawImage(frameEl, 0, 0, W, H);
+          return new Promise((res, rej) =>
+            offscreen.toBlob(b => b ? res(b) : rej(new Error('toBlob null')), 'image/jpeg', 0.92)
+          );
+        }
+
+        // 4a. Draw raw demo frame onto a temp canvas
         const fCanvas = document.createElement('canvas');
         fCanvas.width = W; fCanvas.height = H;
         const fCtx = fCanvas.getContext('2d');
@@ -375,7 +394,7 @@ export default function InviteePage() {
     return new Promise((res, rej) =>
       offscreen.toBlob(b => b ? res(b) : rej(new Error('toBlob null')), 'image/jpeg', 0.92)
     );
-  }, [drawStickersToContext]);
+  }, [drawStickersToContext, isCustomFrame]);
 
   const shareImage = useCallback((blob) => {
     if (navigator.share) {
@@ -393,7 +412,7 @@ export default function InviteePage() {
       setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
       showToast('Saved!');
     }
-  }, [showToast]);
+  }, [frameName, showToast]);
 
   const doFlash = useCallback(async (peakOpacity, holdMs, fadeMs) => {
     const fl = flashOverlayRef.current;
@@ -1206,7 +1225,13 @@ export default function InviteePage() {
           <img className="photo-overlay" id="photoOverlay" ref={photoOverlayRef} alt="" draggable="false" />
         </div>
 
-        <img id="yunchaiPhoto" src="canvas-frame-teletubby.png" alt="" />
+        <img
+          id="yunchaiPhoto"
+          className={isCustomFrame ? 'custom-frame' : ''}
+          src={frameUrl}
+          crossOrigin="anonymous"
+          alt=""
+        />
 
         <canvas id="editCanvas" ref={canvasRef} className="no-tool" width="414" height="750"></canvas>
 

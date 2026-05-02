@@ -1,15 +1,15 @@
 import React from 'react';
 
-export default function SharePopup({ visible, shareCode, onCopyCode }) {
+export default function SharePopup({ visible, shareCode, shareUrl, onCopyCode }) {
   return (
     <div className={`share-pop${visible ? ' visible' : ''}`} id="sharePop">
       <div>
         <p className="s7-pop-title">Share your frame!</p>
         <p className="s7-pop-dim">Invite a friend</p>
       </div>
-      <p className="s7-pop-subtitle">Send them this code — they'll step right into your frame and take a photo</p>
+      <p className="s7-pop-subtitle">Send this link — they'll open your frame, use their camera, and take a Retake.</p>
       <div className="s7-pop-code-row">
-        <span className="s7-pop-code" id="shareCode">{shareCode}</span>
+        <span className="s7-pop-code" id="shareCode">{shareUrl ? 'Link ready' : shareCode}</span>
         <button className="s7-pop-copy-btn" id="btnCopyCode" aria-label="Copy link"
           onClick={onCopyCode}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

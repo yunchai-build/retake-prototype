@@ -123,9 +123,24 @@ export default function InviterPage() {
 
   const {
     sharePanelVisible, setSharePanelVisible,
-    shareCode,
+    shareCode, shareUrl,
     handleCopyLink, handleCopyCode, handleShare,
-  } = useSharePanel({ frameName, showToast, setScrimVisible });
+  } = useSharePanel({
+    frameName,
+    showToast,
+    setScrimVisible,
+    getFrameDataUrl: async () => {
+      if (activeToolRef.current) exitCurrentTool(true);
+      const source = canvasRef.current;
+      const out = document.createElement('canvas');
+      out.width = source.width;
+      out.height = source.height;
+      const outCtx = out.getContext('2d');
+      outCtx.drawImage(source, 0, 0);
+      await stickerSys.drawStickersToContext(outCtx);
+      return out.toDataURL('image/png');
+    },
+  });
 
   const {
     editNameVisible, editNameInputValue, setEditNameInputValue,
@@ -745,7 +760,7 @@ export default function InviterPage() {
         onSave={saveEditName}
       />
 
-      <SharePopup visible={sharePanelVisible} shareCode={shareCode} onCopyCode={handleCopyCode} />
+      <SharePopup visible={sharePanelVisible} shareCode={shareCode} shareUrl={shareUrl} onCopyCode={handleCopyCode} />
 
       <div className={`scrim${scrimVisible ? ' visible' : ''}`} id="scrim" onClick={handleScrimClick} />
 
