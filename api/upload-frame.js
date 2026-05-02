@@ -31,6 +31,7 @@ export default async function handler(req, res) {
     .slice(0, 40);
   const filename = `frames/${Date.now()}-${safeName}.${ext}`;
 
+  
   try {
     const blob = await put(filename, buffer, {
       access: 'public',
