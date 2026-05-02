@@ -38,12 +38,33 @@ export default async function handler(req, res) {
       token: process.env.BLOB_READ_WRITE_TOKEN,
       addRandomSuffix: true,
     });
-    return res.status(200).json({ url: blob.url });
+    return res.status(200).json({ url: blob.url, access: 'public' });
   } catch (err) {
+    const message = err?.message || 'Vercel Blob upload failed';
+    const privateStore = /private store/i.test(message) || /configured with private access/i.test(message);
+    if (privateStore) {
+      try {
+        const blob = await put(filename, buffer, {
+          access: 'private',
+          contentType,
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+          addRandomSuffix: true,
+        });
+        const proxyUrl = `/api/frame?url=${encodeURIComponent(blob.url)}`;
+        return res.status(200).json({ url: proxyUrl, access: 'private' });
+      } catch (privateErr) {
+        console.error('[upload-frame] Private Blob error:', privateErr);
+        return res.status(500).json({
+          error: 'Upload failed',
+          detail: privateErr?.message || 'Private Vercel Blob upload failed',
+        });
+      }
+    }
+
     console.error('[upload-frame] Blob error:', err);
     return res.status(500).json({
       error: 'Upload failed',
-      detail: err?.message || 'Vercel Blob upload failed',
+      detail: message,
     });
   }
 }
