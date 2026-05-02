@@ -17,7 +17,10 @@ export function useSharePanel({ frameName, showToast, setScrimVisible, getFrameD
       body: JSON.stringify({ frameDataUrl, frameName }),
     });
 
-    if (!res.ok) throw new Error('Frame upload failed');
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      throw new Error(body?.detail || body?.error || 'Frame upload failed');
+    }
 
     const { url } = await res.json();
     const inviteUrl = new URL('/invitee', window.location.origin);
@@ -37,7 +40,8 @@ export function useSharePanel({ frameName, showToast, setScrimVisible, getFrameD
       await navigator.clipboard?.writeText(url);
       showToast('Invite link copied!');
     } catch(e) {
-      showToast('Could not create link');
+      console.error('[share] Could not create invite link:', e);
+      showToast(e.message || 'Could not create link');
     }
   }, [buildInviteUrl, setScrimVisible, showToast]);
 
@@ -58,7 +62,10 @@ export function useSharePanel({ frameName, showToast, setScrimVisible, getFrameD
         showToast('Invite link copied!');
       }
     } catch(e) {
-      if (e.name !== 'AbortError') showToast('Could not share link');
+      if (e.name !== 'AbortError') {
+        console.error('[share] Could not share invite link:', e);
+        showToast(e.message || 'Could not share link');
+      }
     }
   }, [buildInviteUrl, frameName, shareUrl, showToast]);
 

@@ -7,6 +7,13 @@ export const config = {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return res.status(500).json({
+      error: 'Blob token missing',
+      detail: 'Connect a Vercel Blob store to this project or add BLOB_READ_WRITE_TOKEN in Vercel project environment variables.',
+    });
+  }
+
   const { frameDataUrl, frameName = 'frame' } = req.body ?? {};
 
   if (!frameDataUrl?.startsWith('data:image/')) {
@@ -28,10 +35,15 @@ export default async function handler(req, res) {
     const blob = await put(filename, buffer, {
       access: 'public',
       contentType,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      addRandomSuffix: true,
     });
     return res.status(200).json({ url: blob.url });
   } catch (err) {
     console.error('[upload-frame] Blob error:', err);
-    return res.status(500).json({ error: 'Upload failed' });
+    return res.status(500).json({
+      error: 'Upload failed',
+      detail: err?.message || 'Vercel Blob upload failed',
+    });
   }
 }
