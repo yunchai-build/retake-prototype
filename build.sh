@@ -13,5 +13,6 @@ cp cursor-hand.png bg-landscape.jpg hand-phone.png retake-logo.png dist/
 
 # Assets needed by the SPA (stickers, fonts, canvas)
 cp canvas-frame-teletubby.png sticker-yunchai.png logo.png dist/
-cp camera-throw.png camera-icon.png sticker-frames.svg sticker-ball.png dist/
+cp camera-throw.png sticker-frames.svg sticker-ball.png dist/
+[ -f camera-icon.png ] && cp camera-icon.png dist/
 cp bedstead-extracondensed.otf bedstead-semicondensed.otf dist/
