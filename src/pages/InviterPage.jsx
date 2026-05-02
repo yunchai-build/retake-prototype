@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import '../styles/glass.css';
 import '../styles/inviter.css';
 import { useToast } from '../hooks/useToast';
 import { useStickerSystem } from '../hooks/useStickerSystem';
@@ -534,6 +535,10 @@ export default function InviterPage() {
     if (galleryInputRef.current) galleryInputRef.current.click();
   }, []);
 
+  const handleProceedToStep3 = useCallback(() => {
+    showToast('Step 3 next');
+  }, [showToast]);
+
   const handlePhotoCropChange = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -711,8 +716,7 @@ export default function InviterPage() {
         onGalleryChange={handleGalleryChange}
         onGalleryClick={handleBgGallery}
         onEditName={openEditName}
-        onCopyLink={handleCopyLink}
-        onShare={handleShare}
+        onProceed={handleProceedToStep3}
       />
 
       <DrawingToolOverlays
@@ -750,7 +754,6 @@ export default function InviterPage() {
         onMagicApply={applyMagicErase}
       />
 
-      <p className="watermark">Made with Retake!</p>
       <div className={`s6-toast${toastVisible ? ' visible' : ''}`} id="toast">{toastMsg}</div>
 
       <EditNamePopup

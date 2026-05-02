@@ -8,8 +8,7 @@ export default function BottomBar({
   onGalleryChange,
   onGalleryClick,
   onEditName,
-  onCopyLink,
-  onShare,
+  onProceed,
 }) {
   return (
     <>
@@ -28,28 +27,20 @@ export default function BottomBar({
           </svg>
         </button>
 
-        <button className="s6-frame-title-btn" id="btnFrameName" aria-label="Edit frame name"
-          onClick={onEditName}>
-          <span id="frameNameDisplay">{frameName}</span>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-            style={{ flexShrink: 0, marginLeft: 5 }}>
-            <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-          </svg>
+        <button
+          type="button"
+          className="s6-frame-title-btn"
+          id="frameNameDisplay"
+          aria-label="Name your frame"
+          onClick={onEditName}
+        >
+          <span className="s6-frame-title-text">{frameName}</span>
         </button>
 
-        <button className="s6-circle-btn" id="btnCopyLink" aria-label="Copy invite link"
-          onClick={onCopyLink}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" />
-            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-          </svg>
-        </button>
-
-        <button className="s6-send-btn" id="btnShare" aria-label="Share" onClick={onShare}>
-          <span className="s6-send-label">SEND</span>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-            <polygon points="22 2 15 22 11 13 2 9 22 2" fill="#1A1A2E" />
+        <button className="s6-send-btn" id="btnProceed" aria-label="Proceed" onClick={onProceed}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14" />
+            <path d="M13 6l6 6-6 6" />
           </svg>
         </button>
       </div>

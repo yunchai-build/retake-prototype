@@ -22,7 +22,8 @@ export function useHistory({ canvasRef, ctxRef, activeToolRef, showToast }) {
       const i = new Image();
       i.onload = () => {
         const ctx = ctxRef.current;
-        ctx.clearRect(0, 0, 414, 750);
+        const canvas = ctx.canvas;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(i, 0, 0);
         res();
       };

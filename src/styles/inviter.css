@@ -30,10 +30,11 @@ button { -webkit-tap-highlight-color: transparent; }
  * ─────────────────────────────────────────────────────────── */
 body.inviter-mode .screen {
   position: fixed;   /* fixed = always pinned to viewport; no scroll drift on iOS */
-  top: 0;
+  top: 50%;
   left: 0;
   width: 100vw;
-  height: 100dvh;
+  height: calc(100vw * 16 / 9);
+  transform: translateY(-50%);
 
   background: transparent; /* checkerboard behind shows through */
 
@@ -118,9 +119,9 @@ body.inviter-mode .s6-exit-btn {
   position: absolute;
   left: 4.5vw; top: 3.5dvh;
   width: 42px; height: 42px;
-  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 50%;
-  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  background: var(--glass-bg); border: var(--glass-border); border-radius: 50%;
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; z-index: 6;
   opacity: 0; transform: translateY(-16px);
@@ -143,10 +144,10 @@ body.inviter-mode .s6-exit-btn:active  { background: rgba(238,255,1,0.45); trans
   pointer-events: none;
 
   /* oval pill container — liquid glass */
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.35);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px;
   padding: 5px 6px;
 }
@@ -175,11 +176,11 @@ body.inviter-mode .s6-tools {
   touch-action: manipulation;
 
   /* glass pill container */
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(40px) saturate(160%);
-  -webkit-backdrop-filter: blur(40px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.35);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px;
   padding: 6px;
 }
@@ -189,7 +190,7 @@ body.inviter-mode .s6-tools.out     { opacity: 0; transform: translateX(32px); p
 /* Individual buttons — transparent inside the pill, animate for collapse */
 .s6-tool-btn {
   width: 42px; padding: 9px;
-  background: transparent; border: none; border-radius: 50%;
+  background: rgba(187, 174, 174, 0.15); border: none; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   overflow: hidden;
@@ -202,9 +203,9 @@ body.inviter-mode .s6-tools.out     { opacity: 0; transform: translateX(32px); p
     background    0.15s ease,
     transform     0.1s  ease;
 }
+.s6-tool-btn svg { stroke: white; }
 .s6-tool-btn:active { background: rgba(238,255,1,0.45); transform: scale(0.88); transition-delay: 0ms !important; }
-/* Active tool: filled circle inside pill */
-.s6-tool-btn.active { background: rgba(255,255,255,0.35); }
+.s6-tool-btn.active { background: rgba(244, 38, 38, 0.15); }
 .s6-tool-btn.active svg { stroke: white; }
 
 /* ── Hidden (non-recent) buttons collapse instantly as a group ── */
@@ -251,13 +252,14 @@ body.inviter-mode .s6-bottom-bar {
   transition: opacity 0.38s ease, transform 0.48s cubic-bezier(0.22,1,0.36,1);
   pointer-events: none;
   /* Same glass pill as toolbar */
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(40px) saturate(160%);
-  -webkit-backdrop-filter: blur(40px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.35);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px;
   padding: 6px;
+  padding-left:12px;
 }
 body.inviter-mode .s6-bottom-bar.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
 body.inviter-mode .s6-bottom-bar.out     { opacity: 0; transform: translateY(32px); pointer-events: none; }
@@ -266,6 +268,8 @@ body.inviter-mode .s6-bottom-bar.out     { opacity: 0; transform: translateY(32p
 .s6-circle-btn {
   width: 42px; height: 42px; flex-shrink: 0;
   background: transparent; border: none; border-radius: 50%;
+  box-sizing: border-box;
+  padding: 0;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: background 0.1s ease, transform 0.1s ease;
@@ -274,27 +278,39 @@ body.inviter-mode .s6-bottom-bar.out     { opacity: 0; transform: translateY(32p
 .s6-circle-btn svg { stroke: white; }
 
 /* Gallery — rounded square, same 42px, transparent */
-#btnGallery {
-  width: 42px; height: 42px;
+body.inviter-mode #btnGallery {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  max-width: 42px;
+  min-height: 42px;
+  max-height: 42px;
   border-radius: 12px;
   background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.18);
 }
 
-/* Frame title tap button — flexible center label */
 .s6-frame-title-btn {
-  flex: 1; min-width: 0;
-  background: none; border: none;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; padding: 4px 8px; border-radius: 999px;
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   transition: background 0.12s ease;
 }
-.s6-frame-title-btn:active { background: rgba(238,255,1,0.25); }
-#frameNameDisplay {
+.s6-frame-title-btn:active {
+  background: rgba(238,255,1,0.25);
+}
+.s6-frame-title-text {
+  display: block;
+  max-width: 100%;
   font-family: 'Bedstead', monospace; font-size: 16px; font-weight: 400;
   color: rgba(255,255,255,0.95); letter-spacing: 0.03em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 100%;
 }
 
 /* Edit-name bottom sheet */
@@ -321,14 +337,25 @@ body.inviter-mode .s6-bottom-bar.out     { opacity: 0; transform: translateY(32p
 
 /* Share — primary CTA: brand yellow pill (scoped to inviter to override invitee.css) */
 body.inviter-mode .s6-send-btn {
-  width: auto; height: 42px;
+  width: 42px; height: 42px;
   background: #EEFF01;
   border: none; border-radius: 999px;
-  padding: 0 16px;
-  display: flex; align-items: center; justify-content: center; gap: 7px;
+  box-sizing: border-box;
+  padding: 0;
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer; flex-shrink: 0;
   box-shadow: 0 2px 16px rgba(238,255,1,0.38), 0 1px 4px rgba(0,0,0,0.16);
   transition: transform 0.1s ease, background 0.1s ease, box-shadow 0.1s ease;
+}
+#btnProceed {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  max-width: 42px;
+  min-height: 42px;
+  max-height: 42px;
+  background: #F0E84A;
+  box-shadow: none;
 }
 body.inviter-mode .s6-send-btn:active {
   background: #d6e800;
@@ -336,12 +363,6 @@ body.inviter-mode .s6-send-btn:active {
   box-shadow: 0 1px 6px rgba(238,255,1,0.25);
   transition-delay: 0ms !important;
 }
-.s6-send-label {
-  font-family: 'Bedstead', monospace; font-size: 14px;
-  color: #1A1A2E; letter-spacing: 0.07em;
-  flex-shrink: 0;
-}
-
 
 /* ════════════════════════════════════════════
    IMMERSIVE TOOL MODE UI
@@ -363,10 +384,10 @@ body.inviter-mode #tmUndoRedo {
   transform: translateX(-50%) translateY(-14px);
   display: flex; gap: 0;
   z-index: 8;
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.35);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px;
   padding: 5px 6px;
 }
@@ -376,15 +397,15 @@ body.inviter-mode #tmUndoRedo.tm-in { transform: translateX(-50%) translateY(0);
 body.inviter-mode #tmDoneBtn {
   position: absolute;
   right: 4.5vw; top: 3.5dvh;
-  height: 38px;
-  background: white; border: none; border-radius: 999px;
-  padding: 0 20px;
-  font-family: 'Bedstead', monospace; font-size: 15px;
-  color: #1A1A2E; letter-spacing: 0.02em;
+  width: 42px; height: 42px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer; z-index: 8;
-  display: flex; align-items: center;
   transform: translateY(-14px);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
   transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1),
               background 0.1s ease;
 }
@@ -395,10 +416,10 @@ body.inviter-mode #tmDoneBtn:active { background: #EEFF01; transform: scale(0.95
 .tm-bottom-strip {
   position: absolute;
   left: 3.5vw; right: 3.5vw; top: auto; bottom: 3.5dvh;
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.35);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px;
   padding: 0 20px;
   height: 76px;
@@ -502,8 +523,10 @@ body.inviter-mode #tmLeftPanel {
   position: absolute;
   left: 0; top: calc(50% - 120px); /* vertically centered on canvas */
   width: 56px; height: 240px;
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 0 20px 20px 0;
   z-index: 8;
   opacity: 0; pointer-events: none;
@@ -561,10 +584,10 @@ body.inviter-mode #tmLeftPanel.tm-resizing #tmSizeHandle {
   position: absolute;
   left: 16px; right: 16px; top: auto;
   bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 24px));
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-  border: none;
-  box-shadow: none;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px; padding: 0 20px; height: 76px;
   display: flex; align-items: center; gap: 0;
   z-index: 14;
@@ -599,7 +622,7 @@ body.inviter-mode #tmLeftPanel.tm-resizing #tmSizeHandle {
   cursor: pointer; flex-shrink: 0; white-space: nowrap;
   transition: background 0.15s, transform 0.1s;
 }
-.magic-back-btn:active { background: rgba(255,255,255,0.18); transform: scale(0.97); }
+.magic-back-btn:active { background: var(--glass-bg); transform: scale(0.97); }
 .magic-confirm-btn {
   flex: 1; height: 46px; border: none; border-radius: 14px;
   background: #EEFF01; color: #1A1A2E;
@@ -737,9 +760,9 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* ── Watermark — z-index 1.3: above canvas content, below toolbar/nav ── */
 body.inviter-mode .watermark {
-  position: absolute; left: 50%; transform: translateX(-50%); top: auto; bottom: 3.5dvh;
-  color: rgba(255,255,255,0.5); font-family: 'Bedstead', monospace;
-  font-size: 11px; letter-spacing: 0.04em; white-space: nowrap;
+  position: absolute; left: 50%; transform: translateX(-50%); top: auto; bottom: 88px;
+  color: rgba(255,255,255,0.34); font-family: 'Bedstead', monospace;
+  font-size: 10px; letter-spacing: 0.04em; white-space: nowrap;
   text-shadow: 0 1px 6px rgba(0,0,0,0.3);
   pointer-events: none; z-index: 5;
 }
@@ -750,8 +773,10 @@ body.inviter-mode .s6-toast {
   position: absolute; bottom: 14dvh; left: 50%;
   transform: translateX(-50%) translateY(8px);
   width: fit-content; white-space: nowrap;
-  background: rgba(18,18,28,0.88);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px; padding: 12px 24px;
   z-index: 12; opacity: 0; pointer-events: none;
   transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.22,1,0.36,1);
@@ -889,9 +914,10 @@ body.inviter-mode .sticker-panel {
   position: absolute;
   left: 0; top: 0;
   width: 100%; height: 100%;
-  background: rgba(18,18,40,0.88);
-  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  border: 1.5px solid rgba(45,42,255,0.2);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 20px 20px 0 0;
   z-index: 11;
   display: flex; flex-direction: column;
@@ -1072,9 +1098,10 @@ body.inviter-mode .sticker-panel.sp-visible { transform: translateY(0); opacity:
 body.inviter-mode .new-sticker-screen {
   position: absolute; left: 0; top: 0;
   width: 100%; height: 100%;
-  background: rgba(12,11,28,0.97);
-  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  border: 1.5px solid rgba(45,42,255,0.18);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 20px 20px 0 0; z-index: 12;
   transform: translateY(100%); opacity: 0;
   transition: transform 0.44s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
@@ -1086,8 +1113,9 @@ body.inviter-mode .new-sticker-screen.ns-visible { transform: translateY(0); opa
   position: absolute; top: 0; left: 0; right: 0; z-index: 12;
   display: flex; align-items: center;
   padding: 18px 16px 10px;
-  background: rgba(12,11,28,0.97);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border-bottom: var(--glass-border);
 }
 .ns-title {
   flex: 1; text-align: center;
@@ -1139,8 +1167,10 @@ body.inviter-mode .new-sticker-screen.ns-visible { transform: translateY(0); opa
 #nsBarLasso { justify-content: flex-end; }
 #nsBarRefine {
   inset: auto 16px 20px 16px; height: auto;
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 24px; padding: 10px 20px 14px; gap: 8px;
   justify-content: flex-start;
 }
@@ -1165,7 +1195,7 @@ body.inviter-mode .new-sticker-screen.ns-visible { transform: translateY(0); opa
   font-family: 'Bedstead', monospace; font-size: 13px; cursor: pointer;
   transition: background 0.15s;
 }
-.ns-sec:active { background: rgba(255,255,255,0.18); }
+.ns-sec:active { background: var(--glass-bg); }
 
 /* Floating back button */
 #btnNsRefineBack {
@@ -1185,8 +1215,10 @@ body.inviter-mode .new-sticker-screen.ns-visible { transform: translateY(0); opa
   position: absolute;
   left: 0; top: 50%; margin-top: -120px;
   width: 56px; height: 240px;
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 0 20px 20px 0;
   z-index: 16; cursor: grab;
   transition: transform 0.38s cubic-bezier(0.22,1,0.36,1);
@@ -1363,8 +1395,10 @@ body.inviter-mode .photo-crop-screen.pc-visible {
 .tm-text-bar {
   position: absolute;
   left: 16px; right: 16px; bottom: 16px;
-  background: rgba(18,18,28,0.88);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 24px;
   padding: 12px 18px 16px;
   display: flex; flex-direction: column; gap: 10px;
@@ -1390,7 +1424,7 @@ body.inviter-mode .photo-crop-screen.pc-visible {
   transition: background 0.16s, color 0.16s;
   padding: 0; line-height: 1;
 }
-.txt-font-btn.active { background: rgba(255,255,255,0.18); color: white; }
+.txt-font-btn.active { background: var(--glass-bg); color: white; }
 .txt-font-btn:active { opacity: 0.7; }
 
 /* Size label */
@@ -1429,7 +1463,7 @@ body.inviter-mode .photo-crop-screen.pc-visible {
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s; padding: 0;
 }
-.txt-align-btn.active { background: rgba(255,255,255,0.18); }
+.txt-align-btn.active { background: var(--glass-bg); }
 .txt-align-btn svg { stroke: rgba(255,255,255,0.38); transition: stroke 0.15s; }
 .txt-align-btn.active svg { stroke: rgba(255,255,255,0.95); }
 

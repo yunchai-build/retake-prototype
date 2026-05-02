@@ -3,7 +3,6 @@ import React from 'react';
 export default function IntroCard({ visible, onChoosePhoto, onStartBlank }) {
   return (
     <div className={`invite-card${visible ? ' visible' : ''}`} id="introCard">
-      <div className="app-icon">R!</div>
       <div className="card-content">
         <div className="card-text">
           <span className="card-username">Make a frame,</span>
@@ -20,7 +19,7 @@ export default function IntroCard({ visible, onChoosePhoto, onStartBlank }) {
             Pick a photo
           </button>
           <button className="btn btn-secondary btn-blank" id="btnStartBlank" onClick={onStartBlank}>
-            Start with blank canvas
+            Blank canvas
           </button>
         </div>
       </div>

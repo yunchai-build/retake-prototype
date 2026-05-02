@@ -340,8 +340,9 @@ export function useStickerSystem({
       displayW = displayH = 120;
     }
 
-    const x = (414 - displayW) / 2;
-    const y = (750 - displayH) / 2;
+    const canvas = ctxRef.current?.canvas;
+    const x = ((canvas?.width || 414) - displayW) / 2;
+    const y = ((canvas?.height || 736) - displayH) / 2;
 
     const stk = { id: Date.now(), el, src, x, y, scale: 1, rotation: 0, baseW: displayW, baseH: displayH };
     placedStickersRef.current.push(stk);
@@ -357,7 +358,7 @@ export function useStickerSystem({
     selectSticker(stk);
     el.addEventListener('click', ev => { ev.stopPropagation(); selectSticker(stk); });
     setupStickerDrag(stk);
-  }, [selectSticker, setupStickerDrag]);
+  }, [ctxRef, selectSticker, setupStickerDrag]);
 
   // ── Place text ──
   const placeText = useCallback((text, font, size, color, align) => {
@@ -382,8 +383,9 @@ export function useStickerSystem({
     el.remove();
     el.style.position = el.style.visibility = el.style.maxWidth = '';
 
-    const x = Math.round((414 - bw) / 2);
-    const y = Math.round((750 - bh) / 2);
+    const canvas = ctxRef.current?.canvas;
+    const x = Math.round(((canvas?.width || 414) - bw) / 2);
+    const y = Math.round(((canvas?.height || 736) - bh) / 2);
 
     const stk = {
       id: Date.now(), el,
@@ -405,7 +407,7 @@ export function useStickerSystem({
     selectSticker(stk);
     el.addEventListener('click', ev => { ev.stopPropagation(); selectSticker(stk); });
     setupStickerDrag(stk);
-  }, [selectSticker, setupStickerDrag]);
+  }, [ctxRef, selectSticker, setupStickerDrag]);
 
   // ── Canvas commit / draw ──
   const commitStickersToCanvas = useCallback(() => {

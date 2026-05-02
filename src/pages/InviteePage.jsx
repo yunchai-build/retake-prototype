@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import '../styles/glass.css';
 import '../styles/invitee.css';
 import { delay, dataUrlToBlob, getPos } from '../utils/canvas.js';
 import { useToast } from '../hooks/useToast.js';

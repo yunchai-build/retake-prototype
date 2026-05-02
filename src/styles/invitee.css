@@ -669,9 +669,11 @@ button { -webkit-tap-highlight-color: transparent; }
 .tap-hint-dot { display: none; }
 
 .tap-hint-label {
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px;
   padding: 10px 24px;
   font-family: 'Bedstead', monospace;
@@ -696,9 +698,11 @@ button { -webkit-tap-highlight-color: transparent; }
   opacity: 0;
   transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px;
   padding: 10px 10px 10px 16px;
 }
@@ -889,14 +893,15 @@ button { -webkit-tap-highlight-color: transparent; }
 /* ── Done button (top-right) ── */
 #tmDoneBtn {
   position: absolute; right: 20px; top: 89px;
-  height: 38px; background: white; border: none; border-radius: 999px;
-  padding: 0 20px;
-  font-family: 'Bedstead', monospace; font-size: 15px;
-  color: #1A1A2E; letter-spacing: 0.02em;
+  width: 42px; height: 42px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer; z-index: 8;
-  display: flex; align-items: center;
   transform: translateY(-14px);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
   transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22,1,0.36,1), background 0.1s ease;
 }
 #tmDoneBtn.tm-in { transform: translateY(0); }
@@ -906,8 +911,10 @@ button { -webkit-tap-highlight-color: transparent; }
 #tmLeftPanel {
   position: absolute; left: 0; top: 332px;
   width: 56px; height: 240px;
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 0 20px 20px 0; z-index: 8;
   opacity: 0; pointer-events: none; transform: translateX(-36px);
   transition: opacity 0.28s ease, transform 0.38s cubic-bezier(0.22,1,0.36,1);
@@ -937,8 +944,10 @@ button { -webkit-tap-highlight-color: transparent; }
 /* ── Tool-mode bottom bars ── */
 #tmPenBar {
   position: absolute; left: 16px; right: 16px; top: 835px;
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px; padding: 0 20px; height: 76px;
   display: flex; align-items: center; gap: 0;
   z-index: 8;
@@ -998,9 +1007,11 @@ input[type="range"]::-moz-range-thumb {
   opacity: 0; transform: translateY(24px);
   transition: opacity 0.4s ease, transform 0.52s cubic-bezier(0.22,1,0.36,1);
   pointer-events: none;
-  background: rgba(18,18,28,0.82);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px;
   padding: 10px 10px 10px 16px;
 }
@@ -1075,9 +1086,11 @@ input[type="range"]::-moz-range-thumb {
   bottom: 108px; left: 50%;
   transform: translateX(-50%) translateY(8px);
   width: fit-content; white-space: nowrap;
-  background: rgba(18,18,28,0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 999px;
   padding: 12px 24px;
   text-align: center;
